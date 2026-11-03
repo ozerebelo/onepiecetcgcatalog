@@ -1,0 +1,31 @@
+# Supabase CLI configuration, used by `supabase start` / `supabase db start` /
+# `supabase test db` for local development and CI.
+# The hosted project's auth settings (site URL, redirect URLs, email
+# confirmations) are configured in the Supabase dashboard — see docs/SETUP.md.
+project_id = "nakama-binder"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[auth]
+enabled = true
+# Expo web dev server.
+site_url = "http://localhost:8081"
+additional_redirect_urls = ["http://localhost:8081/**", "nakamabinder://**", "exp://**"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true

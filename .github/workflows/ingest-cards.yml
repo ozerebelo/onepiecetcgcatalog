@@ -1,0 +1,47 @@
+name: Import card data
+
+# Refreshes the card catalog from the official card list (via punk-records)
+# every day, and on demand from the Actions tab ("Run workflow").
+on:
+  schedule:
+    - cron: '17 6 * * *' # daily, 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Only normalize and report, do not write to the database
+        type: boolean
+        default: false
+
+concurrency:
+  group: ingest-cards
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_CA_CERT: ${{ secrets.DATABASE_CA_CERT }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "$DATABASE_URL" ] && [ "${{ inputs.dry_run }}" != "true" ]; then
+            echo "::warning::DATABASE_URL secret is not set; skipping import. See docs/SETUP.md."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.skip != 'true'
+      - uses: pnpm/action-setup@v4
+        if: steps.config.outputs.skip != 'true'
+      - uses: actions/setup-node@v4
+        if: steps.config.outputs.skip != 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @binder/ingest...
+        if: steps.config.outputs.skip != 'true'
+      - name: Import
+        if: steps.config.outputs.skip != 'true'
+        run: pnpm ingest --fetch ${{ inputs.dry_run && '--dry-run' || '' }}

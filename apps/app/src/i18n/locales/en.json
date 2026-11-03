@@ -1,0 +1,163 @@
+{
+  "app": {
+    "name": "Nakama Binder",
+    "tagline": "Your One Piece Card Game collection"
+  },
+  "tabs": {
+    "cards": "Cards",
+    "sets": "Sets",
+    "account": "Account"
+  },
+  "common": {
+    "retry": "Try again",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "notFound": "Not found"
+  },
+  "languages": {
+    "all": "EN + JP",
+    "en": "English",
+    "ja": "Japanese",
+    "short": {
+      "en": "EN",
+      "ja": "JP"
+    }
+  },
+  "categories": {
+    "Leader": "Leader",
+    "Character": "Character",
+    "Event": "Event",
+    "Stage": "Stage",
+    "Don": "DON!!"
+  },
+  "colors": {
+    "Red": "Red",
+    "Green": "Green",
+    "Blue": "Blue",
+    "Purple": "Purple",
+    "Black": "Black",
+    "Yellow": "Yellow"
+  },
+  "rarities": {
+    "Leader": "Leader",
+    "Common": "Common",
+    "Uncommon": "Uncommon",
+    "Rare": "Rare",
+    "SuperRare": "Super Rare",
+    "SecretRare": "Secret Rare",
+    "Special": "Special",
+    "TreasureRare": "Treasure Rare",
+    "Promo": "Promo"
+  },
+  "search": {
+    "placeholder": "Search name, number or type…",
+    "results_one": "{{count}} card",
+    "results_other": "{{count}} cards",
+    "noResults": "No cards match these filters.",
+    "clearFilters": "Clear filters",
+    "filters": "Filters",
+    "hideFilters": "Hide filters",
+    "sort": "Sort",
+    "sorts": {
+      "relevance": "Relevance",
+      "number": "Number",
+      "name": "Name",
+      "cost": "Cost"
+    },
+    "cost": "Cost",
+    "costMin": "Min",
+    "costMax": "Max",
+    "rarity": "Rarity",
+    "color": "Color",
+    "category": "Type",
+    "language": "Card language",
+    "arts_one": "{{count}} art",
+    "arts_other": "{{count}} arts"
+  },
+  "sets": {
+    "title": "Sets",
+    "kinds": {
+      "booster": "Booster packs",
+      "extra": "Extra boosters",
+      "premium": "Premium boosters",
+      "starter": "Starter decks",
+      "promo": "Promotional cards",
+      "other": "Other products"
+    },
+    "printings_one": "{{count}} card",
+    "printings_other": "{{count}} cards",
+    "showVariants": "Show alternate arts",
+    "empty": "No sets yet. Run the card import (see docs/SETUP.md)."
+  },
+  "card": {
+    "printings": "Printings",
+    "cost": "Cost",
+    "life": "Life",
+    "power": "Power",
+    "counter": "Counter",
+    "attribute": "Attribute",
+    "types": "Types",
+    "effect": "Effect",
+    "trigger": "Trigger",
+    "noEffect": "No effect text.",
+    "showJapaneseText": "Show Japanese text",
+    "showEnglishText": "Show English text",
+    "japaneseOnly": "Not released in English yet",
+    "variants": {
+      "base": "Base",
+      "parallel": "Parallel",
+      "parallelN": "Parallel {{n}}",
+      "reprint": "Reprint",
+      "reprintN": "Reprint {{n}}"
+    }
+  },
+  "account": {
+    "title": "Account",
+    "signedOutTitle": "Sign in to build your binder",
+    "signedOutBody": "Create a free account to track the cards you own and check your decklists — synced across all your devices.",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "signOut": "Sign out",
+    "signedInAs": "Signed in as {{email}}",
+    "comingSoon": "Collection tracking and deck checking are coming next.",
+    "catalogUpdated": "Card data updated {{date}}",
+    "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "newPassword": "New password",
+    "displayName": "Display name",
+    "signInTitle": "Welcome back",
+    "signUpTitle": "Create your account",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "No account yet? Create one",
+    "haveAccount": "Already have an account? Sign in",
+    "resetTitle": "Reset your password",
+    "resetBody": "Enter your account email and we'll send you a link to choose a new password.",
+    "sendResetLink": "Send reset link",
+    "resetSent": "If an account exists for {{email}}, a reset link is on its way.",
+    "updatePasswordTitle": "Choose a new password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "Password updated.",
+    "waitingForLink": "Open the reset link from your email on this device to continue.",
+    "checkEmailTitle": "Check your email",
+    "checkEmailBody": "We sent a confirmation link to {{email}}. Open it to activate your account.",
+    "confirming": "Signing you in…",
+    "errors": {
+      "emailInvalid": "Enter a valid email address.",
+      "passwordShort": "Use at least 8 characters.",
+      "passwordMismatch": "Passwords don't match.",
+      "displayNameRequired": "Enter a display name (max 50 characters)."
+    }
+  },
+  "config": {
+    "missingTitle": "Backend not configured",
+    "missingBody": "Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY (see docs/SETUP.md), then restart the app."
+  }
+}

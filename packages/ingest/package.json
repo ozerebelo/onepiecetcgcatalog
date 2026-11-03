@@ -1,0 +1,23 @@
+{
+  "name": "@binder/ingest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Imports the official One Piece TCG card list (via the punk-records dataset) into the Postgres database.",
+  "type": "module",
+  "scripts": {
+    "ingest": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@binder/core": "workspace:*",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+.vercel
+.turbo
+# local card-data checkouts used by the ingest script
+.cache/
+# Supabase CLI local state
+supabase/.branches
+supabase/.temp
