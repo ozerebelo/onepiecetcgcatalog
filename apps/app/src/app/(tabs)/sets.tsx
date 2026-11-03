@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
+import { useSetProgress } from '@/hooks/use-collection';
 import { fetchSets } from '@/lib/api';
 import { radius, spacing, usePalette } from '@/theme';
 
@@ -17,6 +18,7 @@ export default function SetsScreen() {
   const { t } = useTranslation();
   const [language, setLanguage] = useState<Language>('en');
   const sets = useQuery({ queryKey: ['sets', language], queryFn: () => fetchSets(language) });
+  const progress = useSetProgress(language);
 
   const sections = useMemo(() => {
     const sorted = [...(sets.data ?? [])].sort(compareSets);
@@ -57,16 +59,23 @@ export default function SetsScreen() {
               {section.title}
             </Text>
           )}
-          renderItem={({ item }) => <SetRowItem set={item} />}
+          renderItem={({ item }) => (
+            <SetRowItem set={item} owned={progress.data ? (progress.data[item.id] ?? 0) : undefined} />
+          )}
         />
       )}
     </Screen>
   );
 }
 
-function SetRowItem({ set }: { set: SetRow }) {
+/** `owned` is undefined when signed out (no progress shown). */
+function SetRowItem({ set, owned }: { set: SetRow; owned?: number }) {
   const { t } = useTranslation();
   const palette = usePalette();
+  const progress =
+    owned === undefined
+      ? null
+      : { owned, percent: set.printing_count ? Math.round((owned / set.printing_count) * 100) : 0 };
   return (
     <Link href={{ pathname: '/set/[id]', params: { id: set.id } }} asChild>
       <PressableArea
@@ -82,8 +91,15 @@ function SetRowItem({ set }: { set: SetRow }) {
             {set.name}
           </Text>
           <Text variant="caption" tone="secondary">
-            {t('sets.printings', { count: set.printing_count })}
+            {progress !== null
+              ? t('collection.setRowProgress', { owned: progress.owned, total: set.printing_count })
+              : t('sets.printings', { count: set.printing_count })}
           </Text>
+          {progress !== null ? (
+            <View style={[styles.track, { backgroundColor: palette.surfaceAlt }]}>
+              <View style={[styles.fill, { width: `${progress.percent}%`, backgroundColor: palette.primary }]} />
+            </View>
+          ) : null}
         </View>
         <Text tone="muted">›</Text>
       </PressableArea>
@@ -107,4 +123,6 @@ const styles = StyleSheet.create({
   code: { minWidth: 84, paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center' },
   codeText: { fontWeight: '700' },
   rowText: { flex: 1, gap: 2 },
+  track: { height: 4, borderRadius: radius.pill, overflow: 'hidden', marginTop: 4 },
+  fill: { height: '100%' },
 });

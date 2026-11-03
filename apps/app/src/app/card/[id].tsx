@@ -1,15 +1,19 @@
 import { rarityShort, type VariantKind } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
+import { QuantityStepper } from '@/components/quantity-stepper';
+import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
+import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { fetchCard, type CardDetail, type PrintingWithSet } from '@/lib/api';
+import { useAuth } from '@/providers/auth';
 import { CARD_COLORS, radius, spacing, usePalette } from '@/theme';
 
 const WIDE_BREAKPOINT = 760;
@@ -43,6 +47,12 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
     card.printings.find((p) => p.id === initialPrintingId)?.id ?? card.printings[0]?.id,
   );
   const selected = card.printings.find((p) => p.id === selectedId) ?? card.printings[0];
+  const { user } = useAuth();
+  const quantities = useCollectionQuantities({ cardId: card.id });
+  const adjust = useAdjustQuantity();
+  const owned = quantities.data ?? {};
+  const ownedTotal = Object.values(owned).reduce((sum, q) => sum + q, 0);
+  const ownedPrintings = Object.keys(owned).length;
 
   return (
     <View style={[styles.layout, wide && styles.layoutWide]}>
@@ -56,6 +66,35 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
             {t(`languages.short.${selected.language}`)}
           </Text>
         ) : null}
+        {selected ? (
+          <View style={styles.collectionBox}>
+            {user ? (
+              <>
+                <Text variant="label" tone="secondary">
+                  {t('collection.inCollection')}
+                </Text>
+                <QuantityStepper
+                  quantity={owned[selected.id] ?? 0}
+                  label={selected.code}
+                  onChange={(delta) => adjust.mutate({ printingId: selected.id, delta })}
+                />
+                {ownedTotal > 0 ? (
+                  <Text variant="caption" tone="secondary" style={styles.center}>
+                    {t('collection.ownedAcross', { count: ownedTotal, printings: ownedPrintings })}
+                  </Text>
+                ) : null}
+              </>
+            ) : (
+              <Link href="/auth/sign-in" asChild>
+                <PressableArea accessibilityRole="link">
+                  <Text variant="caption" tone="primary" style={styles.link}>
+                    {t('collection.signInToTrack')}
+                  </Text>
+                </PressableArea>
+              </Link>
+            )}
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.infoColumn}>
@@ -66,7 +105,13 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.printings}>
             {card.printings.map((p) => (
-              <PrintingThumb key={p.id} printing={p} selected={p.id === selected?.id} onPress={() => setSelectedId(p.id)} />
+              <PrintingThumb
+                key={p.id}
+                printing={p}
+                quantity={owned[p.id] ?? 0}
+                selected={p.id === selected?.id}
+                onPress={() => setSelectedId(p.id)}
+              />
             ))}
           </ScrollView>
         </View>
@@ -183,10 +228,12 @@ function useVariantLabel() {
 
 function PrintingThumb({
   printing,
+  quantity,
   selected,
   onPress,
 }: {
   printing: PrintingWithSet;
+  quantity: number;
   selected: boolean;
   onPress: () => void;
 }) {
@@ -198,9 +245,18 @@ function PrintingThumb({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${printing.code}, ${variantLabel(printing.variant, printing.variant_index)}, ${printing.set.code}`}
+      accessibilityLabel={`${printing.code}, ${variantLabel(printing.variant, printing.variant_index)}, ${printing.set.code}${quantity > 0 ? `, ×${quantity}` : ''}`}
       style={[styles.thumb, { borderColor: selected ? palette.primary : 'transparent' }]}>
-      <CardImage uri={printing.image_url} label={printing.code} />
+      <View>
+        <CardImage uri={printing.image_url} label={printing.code} />
+        {quantity > 0 ? (
+          <View style={[styles.ownedBadge, { backgroundColor: palette.primary }]}>
+            <Text variant="label" style={styles.ownedBadgeText}>
+              ×{quantity}
+            </Text>
+          </View>
+        ) : null}
+      </View>
       <Text variant="mono" numberOfLines={1}>
         {t(`languages.short.${printing.language}`)} · {rarityShort(printing.rarity)}
       </Text>
@@ -233,4 +289,7 @@ const styles = StyleSheet.create({
   link: { fontWeight: '700' },
   printings: { gap: spacing.sm, paddingVertical: spacing.xs },
   thumb: { width: 104, gap: 2, padding: 3, borderWidth: 2, borderRadius: radius.md },
+  collectionBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
+  ownedBadge: { position: 'absolute', top: 4, right: 4, paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.pill },
+  ownedBadgeText: { color: '#fff', textTransform: 'none', letterSpacing: 0 },
 });

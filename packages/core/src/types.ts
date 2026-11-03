@@ -83,3 +83,12 @@ export interface PrintingRow {
   name: string; // localized name as printed
   image_url: string;
 }
+
+/** How many copies of one printing a user owns (rows with 0 copies don't exist). */
+export interface CollectionItemRow {
+  user_id: string;
+  printing_id: string;
+  quantity: number; // 1..9999
+  created_at: string;
+  updated_at: string;
+}

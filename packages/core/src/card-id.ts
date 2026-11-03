@@ -49,6 +49,26 @@ export function normalizeCardId(input: string): string | null {
   return `${prefix}-${num.padStart(3, '0')}`;
 }
 
+/**
+ * Like normalizeCardId, but keeps the variant suffix:
+ *   "op1-16_P2" -> "OP01-016_p2"     "st10-1" -> "ST10-001"
+ */
+export function normalizePrintingCode(input: string): string | null {
+  const match = /^\s*([a-z]+\d{0,2}\s*-\s*\d{1,3})(?:_([pr])(\d+))?\s*$/i.exec(input);
+  if (!match) return null;
+  const cardId = normalizeCardId(match[1] ?? '');
+  if (!cardId) return null;
+  return match[2] ? `${cardId}_${match[2].toLowerCase()}${Number(match[3])}` : cardId;
+}
+
+/** Accepts "en", "EN", "English", "jp", "JA", "Japanese", "[JP]", "(en)"; null otherwise. */
+export function parseLanguage(input: string): Language | null {
+  const value = input.trim().replace(/^[[(]|[\])]$/g, '').toLowerCase();
+  if (value === 'en' || value === 'eng' || value === 'english') return 'en';
+  if (value === 'ja' || value === 'jp' || value === 'jpn' || value === 'japanese') return 'ja';
+  return null;
+}
+
 /** Primary key of a printing row: language + printing code, e.g. `en:OP01-016_p3`. */
 export function printingId(language: Language, code: string): string {
   return `${language}:${code}`;

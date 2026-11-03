@@ -57,6 +57,7 @@ function RootStack() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="card/[id]" options={{ title: '' }} />
       <Stack.Screen name="set/[id]" options={{ title: '' }} />
+      <Stack.Screen name="collection/import" options={{ title: t('import.title') }} />
       <Stack.Screen name="auth/sign-in" options={{ title: t('account.signIn') }} />
       <Stack.Screen name="auth/sign-up" options={{ title: t('account.signUp') }} />
       <Stack.Screen name="auth/forgot-password" options={{ title: t('auth.resetTitle') }} />

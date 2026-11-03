@@ -30,6 +30,9 @@ export default function AppTabs() {
             <TabTrigger name="sets" href="/sets" asChild>
               <TabButton>{t('tabs.sets')}</TabButton>
             </TabTrigger>
+            <TabTrigger name="collection" href="/collection" asChild>
+              <TabButton>{t('tabs.collection')}</TabButton>
+            </TabTrigger>
             <TabTrigger name="account" href="/account" asChild>
               <TabButton>{t('tabs.account')}</TabButton>
             </TabTrigger>

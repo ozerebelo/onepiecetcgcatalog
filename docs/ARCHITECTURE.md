@@ -62,7 +62,30 @@ sets (one row per product per language)            cards (game identity, one per
 
 profiles (1:1 with auth.users)  username, display_name, card_languages[]
 ingest_runs                     bookkeeping for "card data updated <date>"
+
+collection_items (phase 2)      PK (user_id, printing_id), quantity 1..9999
+                                rows with 0 copies are deleted, so the table holds only owned cards
 ```
+
+### Collection API (SQL functions, `security invoker` — RLS applies)
+
+| Function | Purpose |
+|---|---|
+| `adjust_collection_quantity(printing, delta)` | Atomic +/−; safe under rapid taps. Returns the new quantity (0 = removed). |
+| `set_collection_quantity(printing, qty)` | Set an exact quantity (0 removes). |
+| `import_collection(items jsonb, mode, dry_run)` | Bulk import in one transaction. Modes `add` / `set` / `replace_all`. Duplicates are summed, unknown printings reported. A dry run computes the exact outcome inside a sub-transaction and rolls it back — that's the import preview. |
+| `collection_quantities(set?, card?)` | Owned counts for badges and steppers. |
+| `collection_summary()`, `collection_set_progress(lang)` | Totals and per-set progress. |
+| `search_collection(...)` | The Collection tab: same filters as `search_cards`, printing-level, paginated. |
+| `export_collection()` | Whole collection as one JSON array (not subject to the API's 1,000-row page limit). |
+
+Parsing of pasted lists / CSV lives in `packages/core/src/card-list.ts` (shared with phase 3
+decklists). The client resolves lines to printing ids (`<lang>:<code>`, with the default language the
+user picks) and sends one request; the server validates against the catalog.
+
+In the app, quantity changes are optimistic: the UI updates immediately, the server receives
+an atomic delta, and the server's number is applied once the last pending tap for that card returns
+(`hooks/use-collection.ts`).
 
 ### Identity rules (important for phases 2–3)
 
@@ -127,14 +150,16 @@ theme/               Colors (light/dark), spacing, card colors
 | Phase | Scope | Key additions |
 |---|---|---|
 | **1 ✅** | Foundation | Accounts, EN+JP catalog + daily import, search, sets, card pages |
-| **2** | Collection | `collection_items (user_id, printing_id, quantity, …)` with RLS; +/− on card and set pages; set-grid tap mode; bulk paste / CSV / Sim-format import processed server-side in batches (thousands of rows); export & backup |
+| **2 ✅** | Collection | `collection_items` with RLS; +/− on card pages; "tap to collect" set grids with progress and owned/missing filters; bulk paste / CSV / Sim-format import with exact preview (add / set / replace all); CSV + list export; Collection tab with search and filters |
 | **3** | Decks (core) | `decks`, `deck_cards (deck_id, card_id, quantity)`; Sim-format parser in `packages/core` (unit-tested); owned / missing per card with any-printing matching; English-only toggle; copy/export missing list; saved decks; optional "cards committed to other built decks" toggle; missing → wishlist |
-| **4** | Extras | Set completion %, wishlist & trade list, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
+| **4** | Extras | Wishlist & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
 | **5** | Scanning & stores | Camera scanning (card-number OCR on device), Google sign-in / Sign in with Apple, App Store / Play Store release, more UI languages |
 
-## Known limitations (phase 1)
+## Known limitations
 
 - Search doesn't cover effect text yet (planned with the richer filters).
 - Japanese-only cards show Japanese types until the English release fills them in.
 - Trigram ranking is weaker for Japanese queries (matching still works).
 - Supabase's default email sender is rate-limited; production needs custom SMTP (see SETUP.md).
+- Collections track quantity per printing only (no condition, foil, language-of-sleeve notes yet).
+- Imports are capped at 50,000 lines per request (far above the ~10,000 printings that exist).

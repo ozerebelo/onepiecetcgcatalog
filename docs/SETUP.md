@@ -50,6 +50,18 @@ oldest first (the file names start with a timestamp). If you go this way, keep d
 future migrations too — mixing methods makes the CLI's migration history inaccurate.
 </details>
 
+### Updating the database when a new version adds migrations
+
+Each phase adds files to `supabase/migrations/`. Apply the **new** files only, oldest first, using
+the same method you used originally (`npx supabase db push` applies just the missing ones; in the SQL
+Editor, run each new file once). Deploy the database change **before** (or together with) the app
+code that needs it.
+
+| File | Added in |
+|---|---|
+| `20261103000100_catalog.sql`, `20261103000200_profiles.sql` | Phase 1 |
+| `20261104000100_collection.sql` | Phase 2 — collections |
+
 ## 3. Configure sign-in
 
 In the dashboard, **Authentication → URL Configuration**:

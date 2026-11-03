@@ -3,8 +3,8 @@
 A collection tracker and deck checker for the **One Piece Card Game** — on the web, iOS and Android
 from one codebase.
 
-> **Status: Phase 1 of 5 complete** — accounts, the full EN + JP card database, card search and set
-> browsing. Collection tracking (phase 2) and decklist checking (phase 3) are next. See the
+> **Status: Phase 2 of 5 complete** — accounts, the full EN + JP card database, search, set browsing
+> and **collection tracking**. Decklist checking (phase 3) is next. See the
 > [roadmap](docs/ARCHITECTURE.md#roadmap).
 
 ## What works today
@@ -18,6 +18,13 @@ from one codebase.
   with or without alternate arts.
 - **Card pages**: stats, effect text (English / Japanese) and every printing of the card.
 - **Accounts**: sign up / sign in / password reset (email + password), with a profile per user.
+- **Collection** (phase 2): track exactly which printings you own (alt arts and languages separately)
+  - **+ / −** on every card page, and **"Tap to collect"** on set pages to tick off a whole binder page fast
+  - **Set progress** ("87 / 154 owned") on the Sets list and each set, with Owned / Missing filters
+  - **Bulk import** of pasted lists (OPTCG Sim `4xOP01-016`, `2 OP01-025_p1 JP`, …) or CSV files, with an
+    exact preview before anything is written; modes *Add*, *Set exact* and *Replace all*
+  - **Export** as a CSV backup (re-importable) or copy as a plain list
+  - **Collection tab** with the same search and filters as the card database
 
 ## Tech at a glance
 

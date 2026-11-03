@@ -6,7 +6,8 @@
   "tabs": {
     "cards": "Cards",
     "sets": "Sets",
-    "account": "Account"
+    "account": "Account",
+    "collection": "Collection"
   },
   "common": {
     "retry": "Try again",
@@ -123,7 +124,7 @@
     "signUp": "Create account",
     "signOut": "Sign out",
     "signedInAs": "Signed in as {{email}}",
-    "comingSoon": "Collection tracking and deck checking are coming next.",
+    "comingSoon": "Track your cards in the Collection tab. Deck checking is coming next.",
     "catalogUpdated": "Card data updated {{date}}",
     "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai."
   },
@@ -159,5 +160,106 @@
   "config": {
     "missingTitle": "Backend not configured",
     "missingBody": "Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_KEY (see docs/SETUP.md), then restart the app."
+  },
+  "collection": {
+    "title": "Collection",
+    "signedOutBody": "Create a free account to track every card you own — exact arts and languages included — synced across all your devices.",
+    "summary": "{{copies}} cards · {{printings}} printings · {{cards}} different cards",
+    "results_one": "{{count}} printing · {{copies}} copies",
+    "results_other": "{{count}} printings · {{copies}} copies",
+    "import": "Import",
+    "exportCsv": "Export CSV",
+    "copyList": "Copy as list",
+    "copied_one": "Copied {{count}} line to the clipboard.",
+    "copied_other": "Copied {{count}} lines to the clipboard.",
+    "emptyTitle": "Your binder is empty",
+    "emptyBody": "Open a set and switch on “Tap to collect” to tick off the cards you own, use + on any card page, or import a list you already have.",
+    "browseSets": "Browse sets",
+    "sorts": {
+      "number": "Number",
+      "name": "Name",
+      "cost": "Cost",
+      "quantity": "Most copies",
+      "recent": "Recently changed"
+    },
+    "inCollection": "In your collection",
+    "ownedAcross_one": "You own {{count}} copy of this card ({{printings}} printing).",
+    "ownedAcross_other": "You own {{count}} copies of this card across {{printings}} printing(s).",
+    "signInToTrack": "Sign in to track which cards you own →",
+    "addOne": "Add one {{card}}",
+    "removeOne": "Remove one {{card}}",
+    "ownedCount_one": "{{count}} owned",
+    "ownedCount_other": "{{count}} owned",
+    "setProgress": "You own {{owned}} of {{total}} ({{percent}}%)",
+    "setRowProgress": "{{owned}} / {{total}} owned",
+    "ownedFilter": "Show",
+    "filters": {
+      "all": "All",
+      "owned": "Owned",
+      "missing": "Missing"
+    },
+    "collectMode": "Tap to collect",
+    "collectModeHint": "Tap a card to add a copy; tap − to remove one. Faded cards are ones you don’t own yet.",
+    "nothingHere": "No cards to show with this filter."
+  },
+  "import": {
+    "title": "Import cards",
+    "intro": "Paste a list or choose a CSV / text file. Each line needs a card number; quantity and language are optional.",
+    "examples": "4xOP01-016            (OPTCG Sim format)\n2 OP01-025_p1 JP      (alt art, Japanese)\nOP05-119 x3           (quantity after)\nCSV with columns like: code, quantity, language",
+    "pasteLabel": "Paste your list",
+    "chooseFile": "Choose a file…",
+    "removeFile": "Remove",
+    "fileLines_one": "{{count}} line",
+    "fileLines_other": "{{count}} lines",
+    "defaultLanguage": "Language for lines that don’t say",
+    "defaultLanguageHint": "Lines can override it with EN / JP.",
+    "mode": "What should happen",
+    "modes": {
+      "add": "Add",
+      "set": "Set exact",
+      "replace_all": "Replace all"
+    },
+    "modeHints": {
+      "add": "Add these copies to what you already own.",
+      "set": "Set each listed card to exactly this quantity (0 removes it). Cards not in the list stay as they are.",
+      "replace_all": "Your collection becomes exactly this list. Everything not in it will be removed."
+    },
+    "preview": "Preview import",
+    "empty": "Paste a list or choose a file first.",
+    "nothingValid": "No line in this list has a card number we recognise.",
+    "previewTitle": "Check before importing",
+    "readLines_one": "Read {{count}} line ({{format}}).",
+    "readLines_other": "Read {{count}} lines ({{format}}).",
+    "formats": {
+      "list": "list",
+      "csv": "CSV"
+    },
+    "matched": "Cards recognised",
+    "inserted": "New to your collection",
+    "updated": "Quantity changed",
+    "unchanged": "Already up to date",
+    "removed": "Removed",
+    "skippedUnknown": "Skipped (unknown)",
+    "collectionAfter": "Afterwards your collection will have {{copies}} cards in {{printings}} printings.",
+    "collectionNow": "Your collection now has {{copies}} cards in {{printings}} printings.",
+    "unknownTitle_one": "{{count}} card number not found",
+    "unknownTitle_other": "{{count}} card numbers not found",
+    "unknownHint": "These will be skipped. Check the number, the _p/_r suffix and the language (some cards exist only in Japanese).",
+    "issuesTitle_one": "{{count}} line couldn’t be read",
+    "issuesTitle_other": "{{count}} lines couldn’t be read",
+    "issues": {
+      "noCardNumber": "no card number",
+      "badQuantity": "invalid quantity"
+    },
+    "line": "Line {{line}}",
+    "andMore": "…and {{count}} more",
+    "confirm_one": "Import {{count}} card",
+    "confirm_other": "Import {{count}} cards",
+    "replaceConfirm": "Replace my collection",
+    "replaceConfirmTitle": "Replace your whole collection?",
+    "replaceConfirmBody": "Every card that is not in this list will be removed from your collection. Consider exporting a CSV backup first.",
+    "doneTitle": "Import complete",
+    "viewCollection": "View collection",
+    "importMore": "Import another list"
   }
 }

@@ -31,11 +31,11 @@ jobs:
             echo "::warning::DATABASE_URL secret is not set; skipping import. See docs/SETUP.md."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.config.outputs.skip != 'true'
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: steps.config.outputs.skip != 'true'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.config.outputs.skip != 'true'
         with:
           node-version: 22

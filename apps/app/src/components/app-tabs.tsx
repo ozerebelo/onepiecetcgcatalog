@@ -22,6 +22,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>{t('tabs.sets')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="square.grid.2x2" md="grid_view" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="collection">
+        <NativeTabs.Trigger.Label>{t('tabs.collection')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="books.vertical" md="collections_bookmark" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="account">
         <NativeTabs.Trigger.Label>{t('tabs.account')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.crop.circle" md="account_circle" />
