@@ -48,7 +48,7 @@ export default function AccountScreen() {
             <MenuLink href="/collection" icon="book-open" label={t('tabs.collection')} />
             <MenuLink href="/decks" icon="copy" label={t('tabs.decks')} />
             <MenuLink href="/collection/import" icon="upload" label={t('collection.import')} />
-            <MenuLink href="/sets" icon="grid" label={t('tabs.sets')} last />
+            <MenuLink href="/cards" icon="grid" label={t('tabs.cards')} last />
           </Panel>
 
           <Button
@@ -99,7 +99,7 @@ export default function AccountScreen() {
   );
 }
 
-function MenuLink({ href, icon, label, last = false }: { href: '/collection' | '/decks' | '/collection/import' | '/sets'; icon: IconName; label: string; last?: boolean }) {
+function MenuLink({ href, icon, label, last = false }: { href: '/collection' | '/decks' | '/collection/import' | '/cards'; icon: IconName; label: string; last?: boolean }) {
   const palette = usePalette();
   return (
     <Link href={href} asChild>

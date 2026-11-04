@@ -134,11 +134,10 @@ export function Footer({ layout, stats }: { layout: PosterLayout; stats: { cards
   const pad = phone ? 20 : 24;
   const tile = (bg: string) => ({ backgroundColor: bg, padding: pad });
   const links: {
-    href: '/cards' | '/sets' | '/collection' | '/decks' | '/auth/sign-in';
+    href: '/cards' | '/collection' | '/decks' | '/auth/sign-in';
     label: string;
   }[] = [
     { href: '/cards', label: t('tabs.cards') },
-    { href: '/sets', label: t('tabs.sets') },
     { href: '/collection', label: t('tabs.collection') },
     { href: '/decks', label: t('tabs.decks') },
     { href: '/auth/sign-in', label: t('account.signIn') },

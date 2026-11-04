@@ -5,8 +5,8 @@ import { Platform, useColorScheme, type TextStyle } from 'react-native';
  * Design tokens (v3).
  *
  * App screens follow a "framed sheet" style: a low-chroma stone frame (nav + top bar) holds a white
- * sheet; surfaces are separated by one tone step or a 1px edge — never a shadow or a gradient. The
- * brand colour is kept to the logo; chroma lives in the data (card colours, owned / missing).
+ * page; surfaces are separated by one tone step or a 1px edge — never a shadow or a gradient. The
+ * brand red marks the primary action and the current page; other chroma lives in the data.
  *
  * The landing page uses `poster`: flat fields in the game's own card colours, independent of the
  * light / dark setting.
@@ -27,9 +27,9 @@ const light = {
   text: '#1A1A1A',
   textSecondary: '#5F5B52',
   textMuted: '#6B6B6B',
-  /** The primary action: a near-black fill with a white label. */
-  primary: '#1A1A1A',
-  primaryPressed: '#000000',
+  /** The primary action: the brand's red (deepened to keep a white label at 4.5:1). */
+  primary: '#D33A33',
+  primaryPressed: '#B52F29',
   primarySoft: '#ECEBE8',
   onPrimary: '#FFFFFF',
   /** The one accent: green, on data (owned, progress) and the selected tab. */
@@ -59,10 +59,10 @@ const dark: Palette = {
   text: '#F2EFE8',
   textSecondary: '#B4B4B4',
   textMuted: '#949494',
-  primary: '#F2EFE8',
-  primaryPressed: '#FFFFFF',
+  primary: '#D33A33',
+  primaryPressed: '#E04A42',
   primarySoft: '#262626',
-  onPrimary: '#111111',
+  onPrimary: '#FFFFFF',
   accent: '#3FC96A',
   accentSoft: '#172A1D',
   success: '#3FC96A',
@@ -164,10 +164,6 @@ export const CARD_ASPECT_RATIO = 63 / 88;
 
 /** Content never grows wider than this on large screens. */
 export const MAX_CONTENT_WIDTH = 1200;
-
-/** The web shell on wide screens: sidebar width and the sheet's inset from the window edge. */
-export const SHELL_SIDEBAR_WIDTH = 232;
-export const SHELL_SHEET_INSET = 8;
 
 /** Wide layouts (two columns, side navigation) start here. */
 export const WIDE_BREAKPOINT = 820;

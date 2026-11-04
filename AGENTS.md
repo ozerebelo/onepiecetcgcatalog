@@ -32,9 +32,9 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
 - **Web tabs (`components/app-tabs.web.tsx`):** `<TabTrigger>`s must be direct children of `<TabList>`
   (or of its single `asChild` child) and `<TabList>` a direct child of `<Tabs>`. Wrapping them in other
   views renders fine but makes clicks silently do nothing. Test navigation by clicking, not `goto`.
-- **Web navigation:** on wide screens every page sits on the white sheet of `components/web-shell.web.tsx`,
-  whose sidebar is the site navigation; phones use the bottom bar in `components/app-tabs.web.tsx` (its
-  triggers stay mounted, hidden, on wide screens). Pages pushed on top of the tabs get the back/title row in
+- **Web navigation:** on wide screens `components/web-shell.web.tsx` draws one top bar (logo, Cards,
+  Collection, Decks, account) above every page; phones use the bottom bar in `components/app-tabs.web.tsx`
+  (its triggers stay mounted, hidden, on wide screens). Sets live on the Cards page (`/sets` redirects). Pages pushed on top of the tabs get the back/title row in
   `components/web-stack-header.tsx`. Keep the shell's `NAV` and the tab triggers in sync. The signed-out
   home page (`components/home/landing.tsx`) is full-bleed with its own header and scrolls the document.
 - **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,

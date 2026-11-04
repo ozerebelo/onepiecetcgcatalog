@@ -272,7 +272,10 @@
   },
   "cardsPage": {
     "title": "Cards",
-    "browseSets": "Browse sets"
+    "subtitle": "Every set, newest first. Search to find any card.",
+    "setCount_one": "{{total}} product",
+    "setCount_other": "{{total}} products",
+    "owned": "{{owned}} / {{total}} owned"
   },
   "landing": {
     "titleLine1": "Every card,",

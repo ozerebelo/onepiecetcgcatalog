@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { PressableArea } from '@/components/ui/pressable-area';
 import { fetchSetPortraits } from '@/lib/api';
-import { titleCase } from '@/lib/format';
+import { setDisplayName } from '@/lib/format';
 import { poster, tabular } from '@/theme';
 
 import { HEADER_HEIGHT } from './hero';
@@ -88,7 +88,7 @@ export function SetList({ layout, sets }: { layout: PosterLayout; sets: SetRow[]
           </PHeading>
         </Reveal>
         <Reveal delay={80}>
-          <Link href="/sets" asChild>
+          <Link href="/cards" asChild>
             <PButton
               label={t('landing.sets.browse')}
               bg={poster.ink}
@@ -138,7 +138,7 @@ export function SetList({ layout, sets }: { layout: PosterLayout; sets: SetRow[]
                 </PText>
                 <View style={styles.flex}>
                   <PText face="medium" size={size.body} color={poster.ink} leading={1.25} numberOfLines={phone ? 2 : 1}>
-                    {displayName(set, t(`landing.sets.kind.${groupOf(set.kind)}`))}
+                    {setDisplayName(set, t(`landing.sets.kind.${groupOf(set.kind)}`))}
                   </PText>
                   <PText size={size.caption} color={poster.ink} leading={1.3} style={tabular}>
                     {t('landing.sets.printings', { count: set.printing_count })}
@@ -160,7 +160,7 @@ export function SetList({ layout, sets }: { layout: PosterLayout; sets: SetRow[]
               </PressableArea>
             </Link>
           ))}
-          <Link href="/sets" asChild>
+          <Link href="/cards" asChild>
             <PressableArea accessibilityRole="link" boxStyle={[styles.band, styles.more]}>
               <PText face="medium" size={size.small} color={poster.ink} style={styles.underline}>
                 {more > 0 ? t('landing.sets.more', { count: more }) : t('landing.sets.all', { count: sets.length })}
@@ -173,11 +173,6 @@ export function SetList({ layout, sets }: { layout: PosterLayout; sets: SetRow[]
   );
 }
 
-/** Some products are officially named by their code; show what kind of product they are instead. */
-function displayName(set: SetRow, kindLabel: string) {
-  const bare = (s: string) => s.replace(/[^a-z0-9]/gi, '').toLowerCase();
-  return bare(set.name) === bare(set.code) ? kindLabel : titleCase(set.name);
-}
 
 const styles = StyleSheet.create({
   headRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 24 },

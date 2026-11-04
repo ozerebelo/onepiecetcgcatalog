@@ -144,7 +144,7 @@ function CollectionView({ userId }: { userId: string }) {
         <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
           <Text variant="heading">{t('collection.emptyTitle')}</Text>
           <Text tone="secondary">{t('collection.emptyBody')}</Text>
-          <Link href="/sets" asChild>
+          <Link href="/cards" asChild>
             <Button title={t('collection.browseSets')} variant="secondary" />
           </Link>
         </View>

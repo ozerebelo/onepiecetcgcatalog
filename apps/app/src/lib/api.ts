@@ -526,3 +526,17 @@ export async function fetchCardsBrief(cardIds: string[]): Promise<Record<string,
   }
   return out;
 }
+
+export interface SetCover {
+  set_id: string;
+  printing_id: string;
+  card_id: string;
+  name: string;
+  image_url: string | null;
+}
+
+/** One representative card picture per set (secret rare, else leader …), keyed by set id. */
+export async function fetchSetCovers(language: Language): Promise<Record<string, SetCover>> {
+  const rows = unwrap(await getSupabase().rpc('set_covers', { p_language: language })) as SetCover[];
+  return Object.fromEntries(rows.map((row) => [row.set_id, row]));
+}

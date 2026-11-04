@@ -71,11 +71,6 @@ export function Landing() {
     for (const [key, chapter] of sections) {
       out.push({ y, chapter });
       if (key === 'hero' && inner.seam != null) out.push({ y: y + inner.seam, chapter: 'red' });
-      if (key === 'sheets') {
-        (['red', 'black', 'green', 'bone'] as ChapterName[]).forEach((c, i) => {
-          if (inner[`sheet-${i}`] != null) out.push({ y: y + inner[`sheet-${i}`], chapter: c });
-        });
-      }
       y += heights[key] ?? 0;
     }
     return out.sort((a, b) => a.y - b.y);
@@ -118,7 +113,7 @@ export function Landing() {
               <SetList layout={layout} sets={data.sets} />
             </View>
             <View onLayout={measure('sheets')}>
-              <Sheets layout={layout} cards={data.cards} showcase={data.showcase} onSheet={(i, y) => setInnerMark(`sheet-${i}`, y)} />
+              <Sheets layout={layout} cards={data.cards} showcase={data.showcase} />
             </View>
           </>
         )}
@@ -198,7 +193,6 @@ function LandingHeader({ layout, chapter }: { layout: PosterLayout; chapter: Cha
   });
   const links = [
     { href: '/cards' as const, label: t('tabs.cards') },
-    { href: '/sets' as const, label: t('tabs.sets') },
     { href: '/decks' as const, label: t('tabs.decks') },
     { href: '/auth/sign-in' as const, label: t('account.signIn') },
   ];
