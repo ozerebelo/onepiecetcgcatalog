@@ -1,4 +1,4 @@
-import { CATEGORIES, toShoppingList, toSimList, validateDeck } from '@binder/core';
+import { CATEGORIES, toShoppingList, toSimList, validateDeck, type Category } from '@binder/core';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import { Link, Redirect, Stack, router, useLocalSearchParams } from 'expo-router';
@@ -10,7 +10,7 @@ import { CardImage } from '@/components/card-image';
 import { DeckProblems } from '@/components/deck-problems';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
-import { Badge, KpiStrip, Panel } from '@/components/ui/panel';
+import { Badge, Panel, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
@@ -19,7 +19,7 @@ import { Text } from '@/components/ui/text';
 import { checkDeck, deleteDeck, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
 import { confirmAction, notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
-import { CARD_COLORS, WIDE_BREAKPOINT, radius, spacing, tabular, usePalette } from '@/theme';
+import { CARD_COLORS, WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
 
 type Filter = 'all' | 'missing' | 'owned';
 
@@ -31,7 +31,6 @@ export default function DeckScreen() {
   const { user, initializing } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
-  const palette = usePalette();
 
   const [englishOnly, setEnglishOnly] = useState(false);
   const [reserveBuilt, setReserveBuilt] = useState(false);
@@ -92,77 +91,86 @@ export default function DeckScreen() {
     <Screen scroll edges={[]}>
       <Stack.Screen options={{ title: deck.data.name }} />
 
-      {/* The object itself: leader, name, actions */}
-      <View style={[styles.object, { borderColor: palette.border }]}>
-        <View style={styles.leaderArt}>
-          <CardImage uri={leader?.image_url} label={leader?.name ?? deck.data.name} rounded={radius.sm} priority="high" />
-        </View>
-        <View style={styles.titleText}>
-          <Text variant="title" accessibilityRole="header" aria-level={1}>
-            {deck.data.name}
-          </Text>
-          <View style={styles.row}>
-            {(leader?.colors ?? []).map((c) => (
-              <View key={c} style={[styles.dot, { backgroundColor: CARD_COLORS[c] }]} />
-            ))}
-            <Text variant="caption" tone="secondary" numberOfLines={1} style={styles.flexShrink}>
-              {leader ? `${leader.name} · ${leader.card_id}` : t('decks.noLeader')}
-            </Text>
-            {deck.data.is_built ? <Badge label={t('decks.built')} icon="package" /> : null}
+      {/* Summary */}
+      <Panel style={[styles.hero, wide && styles.heroWide]}>
+        {wide ? (
+          <View style={styles.leaderArtWide}>
+            <CardImage uri={leader?.image_url} label={leader?.name ?? deck.data.name} rounded={radius.lg} priority="high" />
           </View>
+        ) : null}
+        <View style={styles.heroBody}>
+          <View style={styles.titleRow}>
+            {!wide ? (
+              <View style={styles.leaderArtSmall}>
+                <CardImage uri={leader?.image_url} label={leader?.card_id ?? ''} rounded={radius.sm} priority="high" />
+              </View>
+            ) : null}
+            <View style={styles.titleText}>
+              <View style={styles.row}>
+                {(leader?.colors ?? []).map((c) => (
+                  <View key={c} style={[styles.dot, { backgroundColor: CARD_COLORS[c] }]} />
+                ))}
+                <Text variant="caption" tone="secondary" style={styles.flex} numberOfLines={1}>
+                  {leader ? `${leader.name} · ${leader.card_id}` : t('decks.noLeader')}
+                </Text>
+              </View>
+              <Text variant="title">{deck.data.name}</Text>
+              {deck.data.is_built ? <Badge label={t('decks.built')} tone="accent" icon="package" /> : null}
+            </View>
+          </View>
+          <View style={styles.statsRow}>
+            <BigStat value={`${have}/${total}`} label={t('decks.cardsOwned')} />
+            <BigStat value={String(missingCount)} label={t('decks.cardsMissing')} tone={missingCount ? 'danger' : 'success'} />
+            <BigStat value={`${total ? Math.round((have / total) * 100) : 0}%`} label={t('decks.complete')} />
+          </View>
+          <ProgressBar value={total ? have / total : 0} tone={missingCount === 0 ? 'success' : 'primary'} height={10} />
+          <View style={styles.actions}>
+            <Button
+              title={t('decks.copyMissing')}
+              icon="clipboard"
+              size="sm"
+              disabled={missingCount === 0}
+              onPress={() =>
+                copy(
+                  toSimList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing }))),
+                  t('decks.copiedMissing', { count: missingCount }),
+                )
+              }
+            />
+            <Button
+              title={t('decks.copyShopping')}
+              icon="shopping-cart"
+              size="sm"
+              variant="outline"
+              disabled={missingCount === 0}
+              onPress={() =>
+                copy(
+                  toShoppingList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing, name: r.name }))),
+                  t('decks.copiedShopping'),
+                )
+              }
+            />
+            <Button
+              title={t('decks.copyDeck')}
+              icon="copy"
+              size="sm"
+              variant="outline"
+              onPress={() =>
+                copy(toSimList(known.map((r) => ({ card_id: r.card_id, quantity: r.needed }))), t('decks.copiedDeck'))
+              }
+            />
+            <Link href={{ pathname: '/deck/[id]/edit', params: { id } }} asChild>
+              <Button title={t('decks.edit')} icon="edit-2" size="sm" variant="outline" />
+            </Link>
+            <Button title={t('decks.delete')} icon="trash-2" size="sm" variant="danger" onPress={remove} />
+          </View>
+          {notice ? (
+            <Text variant="caption" tone="success" accessibilityLiveRegion="polite">
+              {notice}
+            </Text>
+          ) : null}
         </View>
-        <View style={[styles.actions, wide && styles.actionsWide]}>
-          <Button
-            title={t('decks.copyMissing')}
-            icon="clipboard"
-            size="sm"
-            disabled={missingCount === 0}
-            onPress={() =>
-              copy(
-                toSimList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing }))),
-                t('decks.copiedMissing', { count: missingCount }),
-              )
-            }
-          />
-          <Button
-            title={t('decks.copyShopping')}
-            icon="shopping-cart"
-            size="sm"
-            variant="outline"
-            disabled={missingCount === 0}
-            onPress={() =>
-              copy(
-                toShoppingList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing, name: r.name }))),
-                t('decks.copiedShopping'),
-              )
-            }
-          />
-          <Button
-            title={t('decks.copyDeck')}
-            icon="copy"
-            size="sm"
-            variant="outline"
-            onPress={() => copy(toSimList(known.map((r) => ({ card_id: r.card_id, quantity: r.needed }))), t('decks.copiedDeck'))}
-          />
-          <Link href={{ pathname: '/deck/[id]/edit', params: { id } }} asChild>
-            <Button title={t('decks.edit')} icon="edit-2" size="sm" variant="outline" />
-          </Link>
-          <Button title={t('decks.delete')} icon="trash-2" size="sm" variant="ghost" onPress={remove} />
-        </View>
-      </View>
-      {notice ? (
-        <Text variant="caption" tone="success" accessibilityLiveRegion="polite">
-          {notice}
-        </Text>
-      ) : null}
-
-      <KpiStrip
-        items={[
-          { label: t('decks.cardsOwned'), value: `${have} / ${total}` },
-          { label: t('decks.cardsMissing'), value: String(missingCount), hint: missingCount ? t('decks.toBuy') : t('decks.readyToBuild') },
-          { label: t('decks.complete'), value: `${total ? Math.round((have / total) * 100) : 0}%` },
-        ]}
-      />
+      </Panel>
 
       {/* Options */}
       <Panel style={styles.options}>
@@ -204,17 +212,12 @@ export default function DeckScreen() {
           if (group.length === 0) return null;
           return (
             <View key={category} style={styles.group}>
-              <View style={styles.groupTitle}>
-                <Text variant="subheading" weight="semibold" role="heading" aria-level={2}>
-                  {t(`decks.groups.${category}`)}
-                </Text>
-                <Text variant="caption" tone="secondary" style={tabular}>
-                  {t('decks.cardCount', { count: group.reduce((n, r) => n + r.needed, 0) })}
-                </Text>
-              </View>
-              <View style={[styles.list, { borderColor: palette.border }]}>
-                {group.map((row, i) => (
-                  <CheckRowView key={row.card_id} row={row} first={i === 0} />
+              <Text variant="label" tone="muted">
+                {t(`decks.groups.${category}`)} · {group.reduce((n, r) => n + r.needed, 0)}
+              </Text>
+              <View style={[styles.grid, wide && styles.gridWide]}>
+                {group.map((row) => (
+                  <CheckRowView key={row.card_id} row={row} wide={wide} category={category} />
                 ))}
               </View>
             </View>
@@ -225,7 +228,7 @@ export default function DeckScreen() {
   );
 }
 
-function CheckRowView({ row, first }: { row: CheckRow; first: boolean }) {
+function CheckRowView({ row, wide, category: _category }: { row: CheckRow; wide: boolean; category: Category }) {
   const { t } = useTranslation();
   const palette = usePalette();
   const complete = row.missing === 0;
@@ -242,30 +245,58 @@ function CheckRowView({ row, first }: { row: CheckRow; first: boolean }) {
       <PressableArea
         accessibilityRole="link"
         accessibilityLabel={`${row.name}, ${row.card_id}, ${row.have}/${row.needed}`}
-        boxStyle={[styles.checkRow, !first && { borderTopWidth: 1, borderTopColor: palette.border }]}
-        activeStyle={{ backgroundColor: palette.backgroundAlt }}>
+        boxStyle={[
+          styles.checkRow,
+          { backgroundColor: palette.surface, borderColor: complete ? palette.border : palette.dangerSoft },
+          wide && { flexBasis: '48%' },
+        ]}
+        activeStyle={{ borderColor: palette.borderStrong }}>
         <View style={styles.thumb}>
-          <CardImage uri={row.image_url} label={row.card_id} rounded={radius.xs} />
+          <CardImage uri={row.image_url} label={row.card_id} rounded={radius.sm} />
+          <View style={[styles.qty, { backgroundColor: palette.overlay }]}>
+            <Text variant="label" style={styles.qtyText}>
+              ×{row.needed}
+            </Text>
+          </View>
         </View>
         <View style={styles.checkBody}>
-          <Text weight="medium" numberOfLines={1}>
+          <Text weight="semibold" numberOfLines={1}>
             {row.name}
           </Text>
-          <Text variant="caption" tone="secondary" numberOfLines={1} style={tabular}>
+          <Text variant="mono" tone="muted">
             {row.card_id}
             {row.cost != null ? ` · ${t('card.cost')} ${row.cost}` : ''}
-            {' · '}
+          </Text>
+          <Text variant="caption" tone="secondary" numberOfLines={1}>
             {row.owned > 0 ? t('decks.youHave', { owned: ownedText }) : t('decks.noneOwned')}
             {row.reserved > 0 ? ` · ${t('decks.reserved', { count: row.reserved })}` : ''}
           </Text>
         </View>
-        {complete ? null : <Badge label={t('decks.needMore', { count: row.missing })} tone="danger" />}
-        <Text weight="medium" style={[tabular, styles.figure]}>
-          {row.have}
-          <Text tone="secondary" style={tabular}>{` / ${row.needed}`}</Text>
-        </Text>
+        {complete ? (
+          <Badge label={`${row.have}/${row.needed}`} tone="success" icon="check" />
+        ) : (
+          <View style={styles.status}>
+            <Badge label={t('decks.needMore', { count: row.missing })} tone="danger" />
+            <Text variant="caption" tone="muted">
+              {row.have}/{row.needed}
+            </Text>
+          </View>
+        )}
       </PressableArea>
     </Link>
+  );
+}
+
+function BigStat({ value, label, tone = 'default' }: { value: string; label: string; tone?: 'default' | 'danger' | 'success' }) {
+  return (
+    <View style={styles.bigStat}>
+      <Text variant="heading" tone={tone}>
+        {value}
+      </Text>
+      <Text variant="caption" tone="secondary">
+        {label}
+      </Text>
+    </View>
   );
 }
 
@@ -284,22 +315,37 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint: string;
 }
 
 const styles = StyleSheet.create({
-  object: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg, paddingBottom: spacing.lg, borderBottomWidth: 1 },
-  leaderArt: { width: 56 },
-  titleText: { flex: 1, gap: spacing.xs, minWidth: 220 },
+  hero: { gap: spacing.lg, marginTop: spacing.lg },
+  heroWide: { flexDirection: 'row', alignItems: 'flex-start' },
+  leaderArtWide: { width: 170 },
+  leaderArtSmall: { width: 76 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  titleText: { flex: 1, gap: spacing.xs, minWidth: 0 },
+  heroBody: { flex: 1, gap: spacing.md, minWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 10, height: 10, borderRadius: 5 },
   flex: { flex: 1 },
-  flexShrink: { flexShrink: 1 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, width: '100%' },
-  actionsWide: { width: 'auto', justifyContent: 'flex-end', maxWidth: 560 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xl },
+  bigStat: { gap: 0 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   options: { gap: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   group: { gap: spacing.sm },
-  groupTitle: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
-  list: { borderWidth: 1, borderRadius: radius.lg, overflow: 'hidden' },
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, minHeight: 64 },
-  thumb: { width: 36 },
-  checkBody: { flex: 1, gap: 2, minWidth: 0 },
-  figure: { width: 56, textAlign: 'right' },
+  grid: { gap: spacing.sm },
+  gridWide: { flexDirection: 'row', flexWrap: 'wrap' },
+  checkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.sm,
+    paddingRight: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexGrow: 1,
+  },
+  thumb: { width: 54 },
+  qty: { position: 'absolute', bottom: 3, right: 3, paddingHorizontal: 5, borderRadius: radius.pill },
+  qtyText: { color: '#fff', textTransform: 'none', letterSpacing: 0 },
+  checkBody: { flex: 1, gap: 1, minWidth: 0 },
+  status: { alignItems: 'flex-end', gap: 2 },
 });

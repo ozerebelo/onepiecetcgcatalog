@@ -277,7 +277,7 @@ function IssueList({ title, hint, lines, more }: { title: string; hint?: string;
         </Text>
       ) : null}
       {lines.map((line, i) => (
-        <Text key={i} variant="figure" tone="secondary" numberOfLines={2}>
+        <Text key={i} variant="mono" tone="secondary" numberOfLines={2}>
           {line}
         </Text>
       ))}
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   example: { fontFamily: monoFont, fontSize: 13, lineHeight: 20 },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flex: { flex: 1 },
-  bold: { ...fonts.semibold },
+  bold: { fontFamily: fonts.semibold },
   textarea: { minHeight: 180, paddingTop: spacing.md, fontFamily: monoFont, fontSize: 14 },
   option: { gap: spacing.xs },
   stat: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },

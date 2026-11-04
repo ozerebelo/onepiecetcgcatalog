@@ -73,5 +73,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
   },
-  input: { flex: 1, minHeight: 46, ...fonts.regular, fontSize: fontSize.md, outlineStyle: 'none' } as object,
+  input: { flex: 1, minHeight: 46, fontFamily: fonts.regular, fontSize: fontSize.md, outlineStyle: 'none' } as object,
 });

@@ -48,6 +48,12 @@ export interface SetRow {
   kind: SetKind;
   sort_order: number;
   printing_count: number;
+  /** From the official product list; null when unknown (promos, other products). */
+  release_date: string | null; // ISO date, e.g. "2026-08-28"
+  /** Pack image shown in the apps (our Storage copy once mirrored), or null. */
+  image_url: string | null;
+  /** Official pack image address the importer copies from. */
+  source_image_url: string | null;
 }
 
 /** The game-rules identity of a card. All printings of OP01-016 share one CardRow. */

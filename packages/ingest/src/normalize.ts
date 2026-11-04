@@ -20,7 +20,8 @@ import type { RawCard, RawPack, RawSource } from './source';
 
 export type NormalizedCard = CardRow;
 export type NormalizedPrinting = PrintingRow;
-export type NormalizedSet = SetRow;
+/** Sets as the card data describes them (release dates and pack images come from products.ts). */
+export type NormalizedSet = Omit<SetRow, 'release_date' | 'image_url' | 'source_image_url'>;
 
 export interface Normalized {
   sets: NormalizedSet[];

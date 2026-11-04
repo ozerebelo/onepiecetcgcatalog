@@ -1,4 +1,3 @@
-import { usePathname } from 'expo-router';
 import { TabList, TabSlot, TabTrigger, Tabs, type TabListProps, type TabTriggerSlotProps } from 'expo-router/ui';
 import { Children, isValidElement, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +27,6 @@ export default function AppTabs() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const wide = width >= WIDE_BREAKPOINT;
-  const landing = useIsLanding();
 
   return (
     <Tabs style={styles.root}>
@@ -40,8 +38,9 @@ export default function AppTabs() {
           <TabTrigger name="cards" href="/cards" asChild>
             <NavButton icon="layers" label={t('tabs.cards')} />
           </TabTrigger>
+          {/* Sets live on the Cards page now; /sets only redirects there. The trigger stays registered. */}
           <TabTrigger name="sets" href="/sets" asChild>
-            <NavButton icon="grid" label={t('tabs.sets')} wideOnly />
+            <NavButton icon="grid" label={t('tabs.sets')} hidden />
           </TabTrigger>
           <TabTrigger name="collection" href="/collection" asChild>
             <NavButton icon="book-open" label={t('tabs.collection')} />
@@ -54,23 +53,15 @@ export default function AppTabs() {
           </TabTrigger>
         </NavBar>
       </TabList>
-      <TabSlot style={[styles.slot, !wide && !landing && { paddingBottom: 64 + insets.bottom }]} />
+      <TabSlot style={[styles.slot, !wide && { paddingBottom: 64 + insets.bottom }]} />
     </Tabs>
   );
 }
 
 // TabList passes its own props (role, style); `style` is ignored on purpose so the bar keeps
 // its layout (see the Link/Slot note in components/ui/pressable-area.tsx).
-/** Signed-out visitors on the home page see the landing, which brings its own header. */
-function useIsLanding() {
-  const pathname = usePathname();
-  const { user } = useAuth();
-  return pathname === '/' && !user;
-}
-
 function NavBar({ children, style: _style, ...rest }: TabListProps) {
   const palette = usePalette();
-  const landing = useIsLanding();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const wide = width >= WIDE_BREAKPOINT;
@@ -78,23 +69,13 @@ function NavBar({ children, style: _style, ...rest }: TabListProps) {
   const [home, ...others] = items;
   const account = others.pop();
 
-  // Wide screens: the navigation lives in the web shell's sidebar (components/web-shell.web.tsx).
-  // The triggers still render (hidden) so expo-router/ui registers every tab.
-  if (landing || wide) {
-    return (
-      <View {...rest} style={styles.hidden}>
-        {children}
-      </View>
-    );
-  }
-
   if (!wide) {
     return (
       <View
         {...rest}
         style={[
           styles.bottomBar,
-          { backgroundColor: palette.background, borderTopColor: palette.border, paddingBottom: insets.bottom },
+          { backgroundColor: palette.surface, borderTopColor: palette.border, paddingBottom: insets.bottom },
         ]}>
         {home}
         {others}
@@ -137,14 +118,15 @@ function NavButton({
   isFocused,
   label,
   icon,
-  wideOnly = false,
+  hidden = false,
   ref: _ref,
   children: _children,
   ...props
-}: ButtonProps & { icon: IconName; wideOnly?: boolean }) {
+}: ButtonProps & { icon: IconName; hidden?: boolean }) {
   const palette = usePalette();
   const wide = useWide();
-  if (!wide) return wideOnly ? null : <CompactItem icon={icon} label={label} isFocused={isFocused} {...props} />;
+  if (hidden) return null;
+  if (!wide) return <CompactItem icon={icon} label={label} isFocused={isFocused} {...props} />;
   return (
     <Pressable
       {...props}
@@ -156,7 +138,7 @@ function NavButton({
         isFocused && { backgroundColor: palette.surface },
       ]}>
       <Text
-        style={{ ...(isFocused ? fonts.semibold : fonts.medium), fontSize: 14, color: isFocused ? palette.text : palette.textSecondary }}>
+        style={{ fontFamily: isFocused ? fonts.semibold : fonts.medium, fontSize: 14, color: isFocused ? palette.text : palette.textSecondary }}>
         {label}
       </Text>
       {isFocused ? <View style={[styles.underline, { backgroundColor: palette.primary }]} /> : null}
@@ -177,7 +159,7 @@ function AccountButton({ isFocused, label, ref: _ref, children: _children, ...pr
         {...props}
         accessibilityRole="link"
         style={({ hovered }) => [styles.signIn, { backgroundColor: hovered ? palette.primaryPressed : palette.primary }]}>
-        <Text style={{ color: palette.onPrimary, ...fonts.semibold, fontSize: 14 }}>{t('account.signIn')}</Text>
+        <Text style={{ color: palette.onPrimary, fontFamily: fonts.semibold, fontSize: 14 }}>{t('account.signIn')}</Text>
       </Pressable>
     );
   }
@@ -192,7 +174,7 @@ function AccountButton({ isFocused, label, ref: _ref, children: _children, ...pr
         styles.avatar,
         { backgroundColor: palette.primarySoft, borderColor: isFocused || hovered ? palette.primary : 'transparent' },
       ]}>
-      <Text style={{ color: palette.primary, ...fonts.bold, fontSize: 14 }}>{name.slice(0, 1).toUpperCase()}</Text>
+      <Text style={{ color: palette.primary, fontFamily: fonts.bold, fontSize: 14 }}>{name.slice(0, 1).toUpperCase()}</Text>
     </Pressable>
   );
 }
@@ -205,7 +187,7 @@ function CompactItem({
   ...props
 }: { icon: IconName; label: string; isFocused?: boolean } & Omit<ButtonProps, 'label'>) {
   const palette = usePalette();
-  const color = isFocused ? palette.text : palette.textSecondary;
+  const color = isFocused ? palette.primary : palette.textMuted;
   return (
     <Pressable
       {...props}
@@ -214,7 +196,7 @@ function CompactItem({
       accessibilityState={{ selected: Boolean(isFocused) }}
       style={styles.compactItem}>
       <Icon name={icon} size={20} color={color} />
-      <Text style={{ color, ...(isFocused ? fonts.semibold : fonts.medium), fontSize: 11 }} numberOfLines={1}>
+      <Text style={{ color, fontFamily: isFocused ? fonts.semibold : fonts.medium, fontSize: 11 }} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -223,7 +205,6 @@ function CompactItem({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  hidden: { display: 'none' },
   slot: { flex: 1 },
   topBar: { borderBottomWidth: StyleSheet.hairlineWidth, position: 'sticky' as 'relative', top: 0, zIndex: 10 },
   topInner: {
@@ -250,7 +231,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 10,
     flexDirection: 'row',
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   compactItem: { flex: 1, height: 60, alignItems: 'center', justifyContent: 'center', gap: 3 },
 });

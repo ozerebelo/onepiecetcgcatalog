@@ -9,3 +9,11 @@ export function setDisplayName(set: { name: string; code: string }, kindLabel: s
   const bare = (value: string) => value.replace(/[^a-z0-9]/gi, '').toLowerCase();
   return bare(set.name) === bare(set.code) ? kindLabel : titleCase(set.name);
 }
+
+/** A release date ("2026-08-28", or a timestamp starting with it) for display, without time-zone shifts. */
+export function formatReleaseDate(value: string | null, locale: string, month: 'short' | 'long'): string | null {
+  const match = value ? /^(\d{4})-(\d{2})-(\d{2})/.exec(value) : null;
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toLocaleDateString(locale, { year: 'numeric', month, day: 'numeric', timeZone: 'UTC' });
+}

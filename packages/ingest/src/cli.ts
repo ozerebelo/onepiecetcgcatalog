@@ -6,6 +6,8 @@
  *   pnpm ingest --fetch --dry-run             # normalize and print a summary, no database needed
  *   pnpm ingest --fetch --mirror-images       # also copy new card images into Supabase Storage
  *   pnpm ingest --mirror-only                 # only copy images (no catalog refresh)
+ *   pnpm ingest --fetch --products            # also read release dates + pack images from the official site
+ *   pnpm ingest --products-only               # only refresh product details (no catalog refresh)
  *
  * Environment:
  *   DATABASE_URL        Postgres connection string (Supabase: Dashboard → Connect → Session pooler)
@@ -23,6 +25,7 @@ import pg from 'pg';
 import { connectionConfig, writeCatalog } from './db';
 import { mirrorImages, supabaseImageStore, supabaseUrlFromDatabaseUrl } from './mirror';
 import { normalize } from './normalize';
+import { PRODUCT_SITES, applyProducts, fetchProducts, mirrorPackImages, type ProductEntry } from './products';
 import { PUNK_RECORDS_REPO, fetchPunkRecords, gitRevision, readPunkRecords } from './source';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -37,6 +40,8 @@ async function main() {
       'mirror-images': { type: 'boolean', default: false },
       'mirror-only': { type: 'boolean', default: false },
       'mirror-limit': { type: 'string', default: '12000' },
+      products: { type: 'boolean', default: false },
+      'products-only': { type: 'boolean', default: false },
     },
   });
 
@@ -48,6 +53,11 @@ async function main() {
   const languages = values.languages.split(',').map((l) => l.trim()) as Language[];
   for (const l of languages) {
     if (!LANGUAGES.includes(l)) throw new Error(`Unknown language "${l}" (expected ${LANGUAGES.join(', ')})`);
+  }
+
+  if (values['products-only']) {
+    await runProducts(languages, { dryRun: values['dry-run'], mirror: true });
+    return;
   }
 
   const sourceDir = values.source
@@ -73,6 +83,7 @@ async function main() {
   if (data.warnings.length > 50) console.warn(`  ! ... and ${data.warnings.length - 50} more`);
 
   if (values['dry-run']) {
+    if (values.products) await runProducts(languages, { dryRun: true, mirror: false });
     console.log('Dry run: nothing written.');
     return;
   }
@@ -96,7 +107,55 @@ async function main() {
     await client.end();
   }
 
+  if (values.products) await runProducts(languages, { dryRun: false, mirror: values['mirror-images'] });
   if (values['mirror-images']) await runMirror(Number(values['mirror-limit']));
+}
+
+/**
+ * Release dates and pack images from the official product pages. A failure here (the site being down
+ * or its markup changing) is reported but never fails the import: the card catalog matters more.
+ */
+async function runProducts(languages: Language[], { dryRun, mirror }: { dryRun: boolean; mirror: boolean }) {
+  const found = new Map<Language, Map<string, ProductEntry>>();
+  for (const language of languages) {
+    try {
+      const products = await fetchProducts(language);
+      found.set(language, products);
+      console.log(`products (${language}): ${products.size} listed on ${PRODUCT_SITES[language]}`);
+    } catch (error) {
+      console.warn(`products (${language}): skipped, could not read the product list: ${error instanceof Error ? error.message : error}`);
+    }
+  }
+  if (dryRun) {
+    for (const [language, products] of found) {
+      for (const p of [...products.values()].slice(0, 5)) console.log(`  ${language} ${p.code} ${p.releaseDate ?? '?'} ${p.imageUrl ?? 'no image'}`);
+    }
+    return;
+  }
+
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error('DATABASE_URL is not set');
+  const client = new pg.Client(connectionConfig(databaseUrl, process.env.DATABASE_CA_CERT || undefined));
+  await client.connect();
+  try {
+    for (const [language, products] of found) {
+      const stats = await applyProducts(client, language, products);
+      console.log(`products (${language}): ${stats.matched} sets matched, ${stats.updated} updated`);
+      if (stats.unmatchedSets.length) console.log(`  not on the product list: ${stats.unmatchedSets.join(', ')}`);
+    }
+    if (!mirror) return;
+    const supabaseUrl = process.env.SUPABASE_URL || supabaseUrlFromDatabaseUrl(databaseUrl);
+    const secretKey = process.env.SUPABASE_SECRET_KEY;
+    if (!secretKey || !supabaseUrl) {
+      console.warn('Pack images not copied: SUPABASE_SECRET_KEY / SUPABASE_URL missing (official addresses are kept).');
+      return;
+    }
+    const packs = await mirrorPackImages(client, supabaseImageStore(supabaseUrl, secretKey));
+    console.log(`pack images: ${packs.mirrored} copied, ${packs.failed} failed`);
+    for (const e of packs.errors.slice(0, 20)) console.warn(`  ! ${e}`);
+  } finally {
+    await client.end();
+  }
 }
 
 async function runMirror(limit: number) {

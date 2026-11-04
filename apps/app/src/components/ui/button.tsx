@@ -5,7 +5,7 @@ import { fonts, radius, spacing, usePalette } from '@/theme';
 import { Icon, type IconName } from './icon';
 import { Text } from './text';
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'hero';
 type Size = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -20,7 +20,7 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
   boxStyle?: StyleProp<ViewStyle>;
 }
 
-const HEIGHT: Record<Size, number> = { sm: 32, md: 40, lg: 48 };
+const HEIGHT: Record<Size, number> = { sm: 36, md: 44, lg: 52 };
 
 export function Button({
   title,
@@ -40,11 +40,12 @@ export function Button({
     primary: { bg: palette.primary, hover: palette.primaryPressed, fg: palette.onPrimary },
     secondary: { bg: palette.surfaceAlt, hover: palette.borderStrong, fg: palette.text },
     outline: { bg: 'transparent', hover: palette.surfaceAlt, fg: palette.text, border: palette.borderStrong },
-    ghost: { bg: 'transparent', hover: palette.surfaceAlt, fg: palette.text },
+    ghost: { bg: 'transparent', hover: palette.surfaceAlt, fg: palette.primary },
     danger: { bg: 'transparent', hover: palette.dangerSoft, fg: palette.danger, border: palette.danger },
+    hero: { bg: 'rgba(255,255,255,0.10)', hover: 'rgba(255,255,255,0.18)', fg: palette.heroText, border: 'rgba(255,255,255,0.22)' },
   };
   const v = look[variant];
-  const iconSize = size === 'sm' ? 14 : 16;
+  const iconSize = size === 'sm' ? 15 : 17;
 
   return (
     <Pressable
@@ -70,7 +71,7 @@ export function Button({
         <View style={styles.content}>
           {icon ? <Icon name={icon} size={iconSize} color={v.fg} /> : null}
           <Text
-            style={{ color: v.fg, ...fonts.semibold, fontSize: size === 'lg' ? 16 : 14 }}
+            style={{ color: v.fg, fontFamily: fonts.semibold, fontSize: size === 'sm' ? 13 : size === 'lg' ? 16 : 15 }}
             numberOfLines={1}>
             {title}
           </Text>
@@ -82,6 +83,6 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  base: { borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
   content: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   header: { gap: spacing.sm },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 28 },
   count: { flex: 1 },
-  bold: { ...fonts.semibold },
+  bold: { fontFamily: fonts.semibold },
   panel: { maxHeight: 360 },
   panelContent: { gap: spacing.md, paddingBottom: spacing.md },
   filterRow: { gap: spacing.xs },

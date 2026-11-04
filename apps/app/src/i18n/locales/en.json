@@ -95,12 +95,12 @@
     "printings_other": "{{count}} cards",
     "showVariants": "Show alternate arts",
     "empty": "No sets yet. Run the card import (see docs/SETUP.md).",
+    "eyebrow": "Products",
     "subtitle": "Every booster, starter deck and promo — in English and Japanese.",
     "inserts_one": "Also in this pack · {{count}} special card",
     "inserts_other": "Also in this pack · {{count}} special cards",
     "insertsHint": "Special art (SP) and reprints of older cards that Bandai inserts into these packs. Their card numbers come from the set where they first appeared.",
-    "count_one": "{{count}} set",
-    "count_other": "{{count}} sets"
+    "released": "Released {{date}}"
   },
   "card": {
     "printings": "Printings",
@@ -134,7 +134,8 @@
     "signedInAs": "Signed in as {{email}}",
     "comingSoon": "Track your cards in Collection and check decklists in Decks.",
     "catalogUpdated": "Card data updated {{date}}",
-    "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai."
+    "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai.",
+    "eyebrow": "Your account"
   },
   "auth": {
     "email": "Email",
@@ -208,7 +209,8 @@
     },
     "collectMode": "Tap to collect",
     "collectModeHint": "Tap a card to add a copy; tap − to remove one. Faded cards are ones you don’t own yet.",
-    "nothingHere": "No cards to show with this filter."
+    "nothingHere": "No cards to show with this filter.",
+    "eyebrow": "Your binder"
   },
   "import": {
     "title": "Import cards",
@@ -271,139 +273,94 @@
     "importMore": "Import another list"
   },
   "cardsPage": {
+    "eyebrow": "Card database",
     "title": "Cards",
-    "subtitle": "Every set, newest first. Search to find any card.",
+    "subtitle": "Every set and deck, newest release first. Search to find any card.",
     "setCount_one": "{{total}} product",
     "setCount_other": "{{total}} products",
-    "owned": "{{owned}} / {{total}} owned"
-  },
-  "landing": {
-    "titleLine1": "Every card,",
-    "titleLine2": "every deck.",
-    "lead": "Nakama Binder keeps track of the One Piece cards you own and checks any decklist against them. Free on web, iPhone and Android.",
-    "ctaPrimary": "Start your binder",
-    "ctaShort": "Start",
-    "ctaSecondary": "Browse all {{count}} cards",
-    "menu": "Menu",
-    "close": "Close",
-    "showcaseTitle_one": "One card, one printing",
-    "showcaseTitle_other": "One card, {{count}} printings",
-    "showcaseBody": "{{name}} comes as a base print, parallel arts and reprints, in English and Japanese. Your binder counts every one of them on its own.",
-    "printing": {
-      "base": "Base print",
-      "parallel": "Parallel art",
-      "reprint": "Reprint",
-      "english": "English",
-      "japanese": "Japanese"
-    },
-    "check": {
-      "stage1": "Paste",
-      "stage2": "Match",
-      "stage3": "Check",
-      "stage4": "Copy",
-      "clause1": "Paste any decklist",
-      "clause2": "Every card matched",
-      "clause3": "See what's missing",
-      "clause4": "Copy what to buy",
-      "body": "Lists from OPTCG Sim and most deckbuilders work as they are. Any art or language of a card fills its slot. Try it: change the list, then drag through the steps.",
-      "sliderLabel": "Deck check step",
-      "deckName": "Sample deck · sample binder",
-      "inputLabel": "Decklist",
-      "headerPaste": "{{lines}} lines · {{total}} cards",
-      "headerMatch": "{{count}} of {{lines}} found",
-      "headerCheck": "{{owned}} of {{total}} owned",
-      "headerCopy_one": "{{count}} card to buy",
-      "headerCopy_other": "{{count}} cards to buy",
-      "unknown": "Not a card number we know",
-      "need_one": "need {{count}}",
-      "need_other": "need {{count}}",
-      "copy": "Copy list",
-      "copied": "Copied",
-      "nothingMissing": "Nothing missing: you can build this deck."
-    },
-    "sets": {
-      "title": "Every set since",
-      "body": "Boosters, extra boosters, starter decks and promos, in English and Japanese. New cards arrive from the official card list, usually the day they're published.",
-      "browse": "Browse all sets",
-      "groups": {
-        "booster": "Boosters",
-        "extra": "Extra boosters",
-        "starter": "Starter decks",
-        "other": "Premium & promo"
-      },
-      "count_one": "{{count}} set",
-      "count_other": "{{count}} sets",
-      "printings_one": "{{count}} printing",
-      "printings_other": "{{count}} printings",
-      "more_one": "and {{count}} more: see every set",
-      "more_other": "and {{count}} more: see every set",
-      "all": "See all {{count}} sets",
-      "titleCode": "OP-01",
-      "kind": {
-        "booster": "Booster",
-        "extra": "Extra booster",
-        "starter": "Starter deck",
-        "other": "Premium or promo"
-      }
-    },
-    "sheets": {
-      "title": "Built for the whole binder",
-      "import": {
-        "title": "Thousands at once",
-        "body": "Paste a list or upload a spreadsheet and bring in thousands of cards in one go. Export a backup whenever you like."
-      },
-      "languages": {
-        "title": "English and Japanese",
-        "body": "Both card lists, every printing, side by side. Keep an English-only view for official events."
-      },
-      "sets": {
-        "title": "Set by set",
-        "body": "Tap through a booster like a binder page and watch the gaps close as your completion grows."
-      },
-      "built": {
-        "title": "Built decks held back",
-        "body": "Mark a deck as built and the cards sleeved in it stop counting for your next one, so nothing is counted twice."
-      }
-    },
-    "closing": {
-      "title": "Your binder, ready in a minute",
-      "before": "Keep my cards under",
-      "placeholder": "you@example.com",
-      "after": "and",
-      "submit": "start",
-      "note": "Next you choose a password. We email you a link to confirm, and your binder is ready."
-    },
-    "footer": {
-      "statement": "Nakama Binder is a free binder for One Piece Card Game players, made by fans.",
-      "updated": "The card list updates every day from the official site."
-    },
-    "stats": {
-      "cards": "different cards",
-      "printings": "printings and alt arts",
-      "sets": "products"
+    "owned": "{{owned}} / {{total}} owned",
+    "undated": "Other products",
+    "kinds": {
+      "all": "All",
+      "booster": "Boosters",
+      "extra": "Extra boosters",
+      "starter": "Starter decks",
+      "other": "Promos & other"
     }
   },
+  "landing": {
+    "eyebrow": "One Piece Card Game companion · EN + JP",
+    "titleLine1": "Every card you own.",
+    "titleLine2": "Every deck you want.",
+    "lead": "Track your collection down to the exact alt art, paste any decklist and instantly see what you have and what you're missing — on the web, iPhone and Android.",
+    "ctaPrimary": "Start your binder — free",
+    "ctaSecondary": "Browse {{count}} cards",
+    "stats": {
+      "cards": "different cards",
+      "printings": "printings & alt arts",
+      "sets": "products",
+      "languages": "card languages"
+    },
+    "featuresEyebrow": "Built for players",
+    "featuresTitle": "Your whole collection, finally organised",
+    "features": {
+      "printings": {
+        "title": "Every printing, tracked",
+        "body": "Base, parallel, manga and reprint versions — in English and Japanese — each counted separately."
+      },
+      "decks": {
+        "title": "Check any decklist",
+        "body": "Paste a list from OPTCG Sim or any deckbuilder and see exactly which cards you're missing."
+      },
+      "sets": {
+        "title": "Collect set by set",
+        "body": "Tap through any booster like a binder page and watch your completion grow."
+      },
+      "import": {
+        "title": "Bring your collection",
+        "body": "Import thousands of cards from a list or spreadsheet in one go, and export a backup anytime."
+      },
+      "updated": {
+        "title": "Always up to date",
+        "body": "New cards arrive automatically from the official card list, usually the day they're published."
+      },
+      "everywhere": {
+        "title": "Everywhere you play",
+        "body": "Web, iPhone and Android, synced through your account — your binder is always in your pocket."
+      }
+    },
+    "deckEyebrow": "Deck check",
+    "deckTitle": "Know what to buy before you build",
+    "deckBody": "Any art or language of a card fills its slot, so your alt arts count. Hold back cards that are already sleeved in your built decks, and copy the missing list straight into a shop order.",
+    "deckPoint1": "Paste from OPTCG Sim and most deckbuilders",
+    "deckPoint2": "English-only mode for official events",
+    "deckPoint3": "One tap to copy what you're missing",
+    "demoDeck": "Example deck",
+    "demoProgress": "38 / 51 owned",
+    "latestEyebrow": "Newest set",
+    "viewSet": "View set",
+    "closingTitle": "Set sail with your collection",
+    "closingBody": "Free to use. Sign up with your email and start adding cards in seconds."
+  },
   "dashboard": {
+    "eyebrow": "Dashboard",
+    "greeting": "Welcome back, {{name}}",
+    "subtitle": "Here's where your collection stands.",
     "checkDeck": "Check a decklist",
     "stats": {
       "copies": "Cards owned",
       "printings": "Printings",
       "cards": "Different cards",
-      "decks": "Decks",
-      "cardsHint": "of {{total}} in the game",
-      "decksHint_one": "{{count}} built",
-      "decksHint_other": "{{count}} built"
+      "decks": "Decks"
     },
     "yourDecks": "Your decks",
     "seeAll": "See all",
     "latestSet": "Newest set",
     "continueCollecting": "Continue collecting",
-    "recent": "Recently added",
-    "title": "Your binder",
-    "importCards": "Import cards",
-    "latestProgress": "{{owned}} of {{total}} printings"
+    "recent": "Recently added"
   },
   "decks": {
+    "eyebrow": "Deck check",
     "title": "Decks",
     "subtitle": "Save decklists and see what you're missing from your collection.",
     "signedOutTitle": "Check decklists against your collection",
@@ -481,15 +438,6 @@
     "youHave": "You have {{owned}}",
     "noneOwned": "You don't own this card",
     "reserved_one": "{{count}} in built decks",
-    "reserved_other": "{{count}} in built decks",
-    "columns": {
-      "deck": "Deck",
-      "status": "Status",
-      "owned": "Cards owned"
-    },
-    "missingCount_one": "{{count}} missing",
-    "missingCount_other": "{{count}} missing",
-    "toBuy": "to buy before you can build it",
-    "readyToBuild": "ready to build"
+    "reserved_other": "{{count}} in built decks"
   }
 }

@@ -63,6 +63,7 @@ the SQL Editor earlier are detected and recorded, not re-run. Manually: `DATABAS
 | `20261104000100_collection.sql` | Phase 2 — collections |
 | `20261105000100_card_images.sql` | Card images served from your own storage |
 | `20261106000100_decks.sql` | Phase 3 — decks and deck checking |
+| `20261107000100_set_covers.sql`, `20261108000100_set_products.sql` | Cards page: set covers, release dates and pack images |
 
 ## 3. Configure sign-in
 
@@ -124,6 +125,10 @@ copies each image once into a public Storage bucket called `card-images` (resize
 
 The first run copies all ~10,000 images (around 10–20 minutes); daily runs only copy new cards.
 Storage use is roughly 0.4–0.6 GB, inside the free plan's 1 GB.
+
+The same job also reads the official **Products** pages (`--products`) for each set's release date and
+pack image, and copies the pack images into the same bucket under `sets/` (about 120 small images).
+The Cards page shows packs newest first; without the secret it keeps the official addresses.
 
 ## 5. Run the app locally
 

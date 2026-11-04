@@ -43,6 +43,11 @@
   ordinary, identified request (`packages/ingest/src/mirror.ts`); `printings.source_image_url` keeps
   the official address and `printings.image_url` points at our copy (or at the official image until
   it has been copied). A cache-busting `?v=` suffix changes if the official image ever changes.
+- **Release dates and pack images come from the official Products pages** (`packages/ingest/src/products.ts`,
+  `--products`): each listing gives the product code (`[OP-17]` / `【OP-17】`), a release date and the pack
+  image, matched to `sets` by language + code. Pack images are copied like card images
+  (`card-images/sets/<lang>/<code>.webp`). Promos and "other" products have no listing and keep nulls;
+  for those the Cards page falls back to `set_covers()`, one striking card per set.
 
 ## Data model
 
@@ -54,7 +59,7 @@ sets (one row per product per language)            cards (game identity, one per
   name          "ROMANCE DAWN"                       attributes[], types[], effect, trigger,
   kind          booster|extra|premium|starter|       effect_ja, trigger_ja, block_number
                 promo|other                          search_text (generated, trigram-indexed)
-  printing_count                                              ▲
+  printing_count, release_date, image_url (pack)             ▲
         ▲                                                     │
         │                printings (what you can own)         │
         └──────────────── id         "en:OP01-016_p2" ────────┘
@@ -170,7 +175,7 @@ theme/               Colors (light/dark), spacing, card colors
 |---|---|---|
 | **1 ✅** | Foundation | Accounts, EN+JP catalog + daily import, search, sets, card pages |
 | **2 ✅** | Collection | `collection_items` with RLS; +/− on card pages; "tap to collect" set grids with progress and owned/missing filters; bulk paste / CSV / Sim-format import with exact preview (add / set / replace all); CSV + list export; Collection tab with search and filters |
-| **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. Landing page, signed-in dashboard, special inserts separated on set pages. **Design pass:** one typeface (Epilogue); a "colour chapters" landing page built from the game's card colours with a live deck check; app screens with a web top bar (phone bottom bar), noun titles, divided KPI strips and list rows. The Cards page shows every set as a cover (`set_covers()` picks one card per set), newest first per product type, and switches to card results when searching. *Missing → wishlist moves to phase 4.* |
+| **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. New design system (Space Grotesk + Inter, ink/parchment palettes), landing page, signed-in dashboard, web top navigation / phone bottom bar, special inserts separated on set pages. Sets merged into the Cards page: every product as its pack image, newest release first (dates and packs from the official Products pages), with a type filter; searching switches to card results. *Missing → wishlist moves to phase 4.* |
 | **4** | Extras | Wishlist (incl. "add a deck's missing cards") & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
 | **5** | Scanning & stores | Camera scanning (card-number OCR on device), Google sign-in / Sign in with Apple, App Store / Play Store release, more UI languages |
 

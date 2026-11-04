@@ -53,7 +53,7 @@ export function CardTile({
       onPress={href ? undefined : onPress}
       boxStyle={[styles.tile, { width }]}
       activeStyle={styles.lift}>
-      <View style={[styles.imageWrap, {}, dimmed && styles.dimmed]}>
+      <View style={[styles.imageWrap, { boxShadow: palette.shadow }, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
         {badge ? (
           <View style={[styles.badge, styles.bottomRight, { backgroundColor: palette.overlay }]}>
@@ -72,10 +72,10 @@ export function CardTile({
       ) : null}
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
       <View style={styles.meta}>
-        <Text variant="figure" tone="secondary" numberOfLines={1} style={styles.code}>
+        <Text variant="mono" tone="muted" numberOfLines={1}>
           {code}
         </Text>
-        <Text variant="body" weight="medium" numberOfLines={1}>
+        <Text variant="caption" weight="semibold" numberOfLines={1}>
           {name}
         </Text>
       </View>
@@ -92,7 +92,6 @@ export function CardTile({
 }
 
 const styles = StyleSheet.create({
-  code: { fontSize: 13 },
   tile: { gap: spacing.xs + 2, marginBottom: spacing.lg },
   lift: { transform: [{ translateY: -3 }] },
   imageWrap: { borderRadius: radius.md },

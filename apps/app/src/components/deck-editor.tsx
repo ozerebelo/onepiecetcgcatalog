@@ -108,7 +108,7 @@ export function DeckEditor({ deckId, initialName = '', initialList = '', initial
           </View>
           {preview.data ? (
             <>
-              <ProgressBar value={total ? have / total : 0} tone={have >= total && total > 0 ? 'accent' : 'neutral'} />
+              <ProgressBar value={total ? have / total : 0} tone={have >= total && total > 0 ? 'success' : 'primary'} />
               <Text tone="secondary">{t('decks.youOwn', { have, total })}</Text>
               <DeckProblems problems={problems} />
               {unknown.length > 0 ? (

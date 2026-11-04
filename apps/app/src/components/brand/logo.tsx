@@ -5,15 +5,15 @@ import { Text } from '@/components/ui/text';
 import { fonts } from '@/theme';
 
 /**
- * Brand mark: a ship's wheel in straw-hat yellow on a red tile.
+ * Brand mark: a ship's wheel in treasure gold on a straw-hat-red tile.
  * Original artwork (not derived from any One Piece logo).
  */
 export function LogoMark({ size = 32 }: { size?: number }) {
   const spokes = Array.from({ length: 8 }, (_, i) => i * 45);
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64" accessibilityElementsHidden importantForAccessibility="no">
-      <Rect x="0" y="0" width="64" height="64" rx="16" fill="#ED4B44" />
-      <G stroke="#F2C21A" strokeLinecap="round">
+      <Rect x="0" y="0" width="64" height="64" rx="16" fill="#E0303F" />
+      <G stroke="#F4B942" strokeLinecap="round">
         {spokes.map((angle) => (
           <Line
             key={angle}
@@ -26,8 +26,8 @@ export function LogoMark({ size = 32 }: { size?: number }) {
         ))}
         <Circle cx="32" cy="32" r="15" fill="none" strokeWidth="4.5" />
       </G>
-      <Circle cx="32" cy="32" r="6" fill="#F2C21A" />
-      <Circle cx="32" cy="32" r="2.5" fill="#ED4B44" />
+      <Circle cx="32" cy="32" r="6" fill="#F4B942" />
+      <Circle cx="32" cy="32" r="2.5" fill="#E0303F" />
     </Svg>
   );
 }
@@ -47,5 +47,5 @@ export function Logo({ size = 30, color, showName = true }: { size?: number; col
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  name: { ...fonts.bold, letterSpacing: -0.4 },
+  name: { fontFamily: fonts.display, letterSpacing: -0.4 },
 });

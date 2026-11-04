@@ -1,5 +1,6 @@
 import { isOwnSetCard, rarityShort } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +18,7 @@ import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { fetchSet, fetchSetPrintings, type SetPrinting } from '@/lib/api';
-import { titleCase } from '@/lib/format';
+import { formatReleaseDate, titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { spacing, usePalette } from '@/theme';
 
@@ -31,7 +32,7 @@ type Row = { type: 'header'; key: string; title: string; hint?: string } | { typ
  */
 export default function SetScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const palette = usePalette();
   const { user } = useAuth();
   const { columns, tileWidth } = useGridColumns();
@@ -99,7 +100,7 @@ export default function SetScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('collection.removeOne', { card: item.code })}
               hitSlop={8}
-              style={[styles.minus, { backgroundColor: palette.surfaceRaised, borderColor: palette.border }]}>
+              style={[styles.minus, { backgroundColor: palette.surfaceRaised, borderColor: palette.border, boxShadow: palette.shadow }]}>
               <Icon name="minus" size={16} />
             </Pressable>
           ) : null
@@ -121,13 +122,25 @@ export default function SetScreen() {
 
   const header = set.data ? (
     <View style={styles.header}>
-      <View style={styles.titleBlock}>
-        <Text variant="title" accessibilityRole="header" aria-level={1}>
-          {titleCase(set.data.name)}
-        </Text>
-        <Text variant="body" tone="secondary">
-          {set.data.code} · {t(`sets.kinds.${set.data.kind}`)} · {t(`languages.${set.data.language}`)}
-        </Text>
+      <View style={styles.titleRow}>
+        {set.data.image_url ? (
+          <View style={styles.pack}>
+            <Image source={{ uri: set.data.image_url }} style={StyleSheet.absoluteFill} contentFit="contain" accessibilityLabel={set.data.name} />
+          </View>
+        ) : null}
+        <View style={[styles.titleBlock, styles.flexShrink]}>
+          <Text variant="eyebrow" tone="primary">
+            {set.data.code} · {t(`sets.kinds.${set.data.kind}`)} · {t(`languages.${set.data.language}`)}
+          </Text>
+          <Text variant="title">{titleCase(set.data.name)}</Text>
+          {set.data.release_date ? (
+            <Text variant="caption" tone="secondary">
+              {t('sets.released', {
+                date: formatReleaseDate(set.data.release_date, i18n.language, 'long'),
+              })}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       {user ? (
@@ -137,7 +150,7 @@ export default function SetScreen() {
               {t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}
             </Text>
           </View>
-          <ProgressBar value={percent / 100} tone={percent === 100 ? 'accent' : 'neutral'} />
+          <ProgressBar value={percent / 100} tone={percent === 100 ? 'success' : 'primary'} />
         </Panel>
       ) : (
         <Link href="/auth/sign-in" asChild>
@@ -229,6 +242,9 @@ function ToggleRow({ label, value, onChange }: { label: string; value: boolean; 
 const styles = StyleSheet.create({
   header: { paddingTop: spacing.xl, paddingBottom: spacing.lg, gap: spacing.md },
   titleBlock: { gap: spacing.xs },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  pack: { width: 88, height: 88, borderRadius: 12, overflow: 'hidden', backgroundColor: '#FFFFFF' },
+  flexShrink: { flexShrink: 1 },
   progressPanel: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },

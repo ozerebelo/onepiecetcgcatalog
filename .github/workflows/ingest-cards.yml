@@ -58,4 +58,4 @@ jobs:
         run: pnpm db:migrate
       - name: Import cards and copy images
         if: steps.config.outputs.skip != 'true'
-        run: pnpm ingest --fetch --mirror-images ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: pnpm ingest --fetch --products --mirror-images ${{ inputs.dry_run && '--dry-run' || '' }}

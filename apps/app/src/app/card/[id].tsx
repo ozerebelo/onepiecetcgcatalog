@@ -139,9 +139,7 @@ function CardInfo({ card }: { card: CardDetail }) {
   return (
     <View style={styles.info}>
       <View style={styles.titleBlock}>
-        <Text variant="title" accessibilityRole="header" aria-level={1}>
-          {card.name}
-        </Text>
+        <Text variant="title">{card.name}</Text>
         {hasEnglish && card.name_ja ? (
           <Text tone="secondary">{card.name_ja}</Text>
         ) : !hasEnglish ? (
@@ -259,7 +257,7 @@ function PrintingThumb({
           </View>
         ) : null}
       </View>
-      <Text variant="figure" numberOfLines={1}>
+      <Text variant="mono" numberOfLines={1}>
         {t(`languages.short.${printing.language}`)} · {rarityShort(printing.rarity)}
       </Text>
       <Text variant="caption" tone="secondary" numberOfLines={1}>
@@ -283,12 +281,12 @@ const styles = StyleSheet.create({
   titleBlock: { gap: 2 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   tag: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.pill },
-  tagText: { ...fonts.semibold },
+  tagText: { fontFamily: fonts.semibold },
   dot: { width: 10, height: 10, borderRadius: 5 },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xl, paddingVertical: spacing.md, borderTopWidth: 1, borderBottomWidth: 1 },
   stat: { gap: 2 },
   section: { gap: spacing.xs },
-  link: { ...fonts.semibold },
+  link: { fontFamily: fonts.semibold },
   printings: { gap: spacing.sm, paddingVertical: spacing.xs },
   thumb: { width: 104, gap: 2, padding: 3, borderWidth: 2, borderRadius: radius.md },
   collectionBox: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
