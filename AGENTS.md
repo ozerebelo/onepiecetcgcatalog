@@ -36,6 +36,9 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
   screens, bottom bar on phones); screens pushed on top of the tabs (card, set, deck, import, auth) get
   `components/web-stack-header.tsx`. Keep their links in sync. Sets live on the Cards page (set artwork,
   newest release first); `/sets` only redirects there, and its tab trigger stays registered but hidden.
+- **List screens scroll as a whole page.** Use `<Screen bleed>` with the list's
+  `contentContainerStyle={listColumn}` and put the page header in `ListHeaderComponent`. A list nested
+  inside the centred column puts its scrollbar in the middle of the window on web.
 - **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,
   `PageHeader`, `Button`, `Text` variants/weights). Custom fonts use one family per weight — set
   `weight`/`fontFamily`, never `fontWeight`.

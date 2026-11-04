@@ -39,6 +39,16 @@ const SETS: TableSpec = {
     sort_order: 'integer',
     printing_count: 'integer',
   },
+  // The card data names a few sets only by their code ("OP15-EB04"). The products step (products.ts)
+  // fills in the real name from the official product list; keep it when the source still has none.
+  updateExpressions: {
+    name: `case
+        when regexp_replace(lower(excluded.name), '[^a-z0-9]', '', 'g')
+           = regexp_replace(lower(excluded.code), '[^a-z0-9]', '', 'g')
+        then sets.name
+        else excluded.name
+      end`,
+  },
 };
 
 const CARDS: TableSpec = {
@@ -111,7 +121,7 @@ async function upsert(client: pg.ClientBase, spec: TableSpec, rows: object[]): P
     on conflict (id) do update set
       ${updatable.map((c) => `"${c}" = ${spec.updateExpressions?.[c] ?? `excluded."${c}"`}`).join(',\n      ')}
     where (${compared.map((c) => `${spec.table}."${c}"`).join(', ')})
-      is distinct from (${compared.map((c) => `excluded."${c}"`).join(', ')})
+      is distinct from (${compared.map((c) => spec.updateExpressions?.[c] ?? `excluded."${c}"`).join(', ')})
     returning (xmax = 0) as inserted`;
 
   for (let i = 0; i < rows.length; i += CHUNK_SIZE) {

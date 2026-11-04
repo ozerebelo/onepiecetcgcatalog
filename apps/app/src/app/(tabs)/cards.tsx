@@ -1,17 +1,17 @@
 import { type Language, type SetKind, type SetRow } from '@binder/core';
-import { keepPreviousData, useInfiniteQuery, useQuery, type InfiniteData, type UseInfiniteQueryResult } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
-import { SearchHeader, useCardFilters, type CardFilters } from '@/components/card-filters';
+import { SearchHeader, useCardFilters } from '@/components/card-filters';
 import { CardTile } from '@/components/card-tile';
 import { Chip } from '@/components/ui/chip';
 import { PageHeader, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
-import { Screen } from '@/components/ui/screen';
+import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
@@ -27,19 +27,41 @@ import {
   type SetCover,
 } from '@/lib/api';
 import { formatReleaseDate, setDisplayName } from '@/lib/format';
-import { radius, spacing, tabular, usePalette } from '@/theme';
+import { CARD_ASPECT_RATIO, radius, spacing, tabular, usePalette } from '@/theme';
 
 const SORTS: readonly SearchSort[] = ['relevance', 'number', 'name', 'cost'];
 
-/** Product-type filter on the set timeline. Premium boosters sit with the boosters. */
-type KindFilter = 'all' | 'booster' | 'extra' | 'starter' | 'other';
-const KIND_FILTERS: KindFilter[] = ['all', 'booster', 'extra', 'starter', 'other'];
+/** The type filter. "Sets" are the main boosters (premium boosters included). */
+type KindFilter = 'all' | 'sets' | 'extra' | 'starter' | 'other';
+const KIND_FILTERS: KindFilter[] = ['all', 'sets', 'extra', 'starter', 'other'];
 const kindGroup = (kind: SetKind): Exclude<KindFilter, 'all'> =>
-  kind === 'booster' || kind === 'premium' ? 'booster' : kind === 'extra' || kind === 'starter' ? kind : 'other';
+  kind === 'booster' || kind === 'premium' ? 'sets' : kind === 'extra' || kind === 'starter' ? kind : 'other';
+
+/** Two sections: sets and extra boosters first, then starter decks and promos. */
+const SECTIONS = [
+  { key: 'boosters', groups: ['sets', 'extra'] },
+  { key: 'decks', groups: ['starter', 'other'] },
+] as const;
+
+const SET_TILE_GAP = spacing.md;
+const CARD_TILE_GAP = spacing.sm;
+
+type Row =
+  | {
+      type: 'heading';
+      key: string;
+      label: string;
+      count: number;
+      first: boolean;
+    }
+  | { type: 'sets'; key: string; sets: SetRow[] }
+  | { type: 'cards'; key: string; cards: CardSearchResult[] };
 
 /**
- * Cards: every set as its pack, newest release first. Typing a search or picking a filter switches
- * the page to matching cards across all sets; one search header serves both views.
+ * Cards: every product with its artwork, newest release first — sets and extra boosters, then
+ * starter decks and promos. Typing a search or picking a filter switches the same list to matching
+ * cards. It is one full-width list (the whole page scrolls, header included), so the search box keeps
+ * its focus when the view switches.
  */
 export default function CardsScreen() {
   const { t, i18n } = useTranslation();
@@ -48,8 +70,19 @@ export default function CardsScreen() {
   const [language, setLanguage] = useState<Language>('en');
   const [kind, setKind] = useState<KindFilter>('all');
   const searching = params.query.trim() !== '' || filters.activeFilterCount > 0;
+  const setGrid = useGridColumns(220, SET_TILE_GAP);
+  const cardGrid = useGridColumns(110, CARD_TILE_GAP);
 
-  const sets = useQuery({ queryKey: ['sets', language], queryFn: () => fetchSets(language) });
+  const sets = useQuery({
+    queryKey: ['sets', language],
+    queryFn: () => fetchSets(language),
+  });
+  const covers = useQuery({
+    queryKey: ['set-covers', language],
+    queryFn: () => fetchSetCovers(language),
+    staleTime: 60 * 60 * 1000,
+  });
+  const progress = useSetProgress(language);
   const search = useInfiniteQuery({
     queryKey: ['search-cards', params],
     queryFn: ({ pageParam }) => searchCards(params, pageParam),
@@ -58,14 +91,53 @@ export default function CardsScreen() {
     placeholderData: keepPreviousData,
     enabled: searching,
   });
-  const resultCount = search.data?.pages[0]?.[0]?.total_count ?? 0;
+  const cards = useMemo(() => search.data?.pages.flat() ?? [], [search.data]);
+  const resultCount = cards[0]?.total_count ?? 0;
   const visibleSets = useMemo(
     () => (sets.data ?? []).filter((s) => kind === 'all' || kindGroup(s.kind) === kind),
     [sets.data, kind],
   );
 
-  return (
-    <Screen>
+  const rows = useMemo<Row[]>(() => {
+    const out: Row[] = [];
+    if (searching) {
+      for (let i = 0; i < cards.length; i += cardGrid.columns)
+        out.push({
+          type: 'cards',
+          key: `c-${i}`,
+          cards: cards.slice(i, i + cardGrid.columns),
+        });
+      return out;
+    }
+    const newestFirst = (a: SetRow, b: SetRow) =>
+      (b.release_date ?? '').localeCompare(a.release_date ?? '') ||
+      // same day (e.g. several starter decks) or no date: by product number, newest first
+      b.sort_order - a.sort_order;
+    for (const section of SECTIONS) {
+      const group = visibleSets
+        .filter((s) => (section.groups as readonly string[]).includes(kindGroup(s.kind)))
+        .sort(newestFirst);
+      if (!group.length) continue;
+      out.push({
+        type: 'heading',
+        key: `h-${section.key}`,
+        label: t(`cardsPage.sections.${section.key}`),
+        count: group.length,
+        first: out.length === 0,
+      });
+      for (let i = 0; i < group.length; i += setGrid.columns) {
+        out.push({
+          type: 'sets',
+          key: `${section.key}-${i}`,
+          sets: group.slice(i, i + setGrid.columns),
+        });
+      }
+    }
+    return out;
+  }, [searching, cards, cardGrid.columns, visibleSets, setGrid.columns, t]);
+
+  const header = (
+    <View style={styles.header}>
       <PageHeader title={t('cardsPage.title')} subtitle={t('cardsPage.subtitle')} />
       <SearchHeader
         filters={filters}
@@ -77,7 +149,10 @@ export default function CardsScreen() {
               ? t('search.results', { count: resultCount })
               : ' '
             : sets.isSuccess
-              ? t('cardsPage.setCount', { count: visibleSets.length, total: visibleSets.length.toLocaleString(i18n.language) })
+              ? t('cardsPage.setCount', {
+                  count: visibleSets.length,
+                  total: visibleSets.length.toLocaleString(i18n.language),
+                })
               : ' '
         }
         fetching={searching ? search.isFetching && !search.isFetchingNextPage : sets.isFetching}
@@ -95,116 +170,160 @@ export default function CardsScreen() {
           )
         }
       />
-      {searching ? (
-        <CardResults search={search} filters={filters} />
-      ) : (
-        <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.kindsBar} contentContainerStyle={styles.kinds}>
-            {KIND_FILTERS.map((k) => (
-              <Chip key={k} label={t(`cardsPage.kinds.${k}`)} selected={kind === k} onPress={() => setKind(k)} />
-            ))}
-          </ScrollView>
-          {sets.isPending ? (
+      {!searching ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.kindsBar}
+          contentContainerStyle={styles.kinds}>
+          {KIND_FILTERS.map((k) => (
+            <Chip key={k} label={t(`cardsPage.kinds.${k}`)} selected={kind === k} onPress={() => setKind(k)} />
+          ))}
+        </ScrollView>
+      ) : null}
+    </View>
+  );
+
+  const pending = searching ? search.isPending : sets.isPending;
+  const error = searching ? (search.isError && cards.length === 0 ? search.error : null) : sets.isError ? sets.error : null;
+
+  return (
+    <Screen bleed>
+      <FlatList
+        data={pending || error ? [] : rows}
+        keyExtractor={(row) => row.key}
+        ListHeaderComponent={header}
+        contentContainerStyle={listColumn}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onEndReachedThreshold={0.6}
+        onEndReached={() => {
+          if (searching && search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
+        }}
+        ListEmptyComponent={
+          pending ? (
             <LoadingView />
-          ) : sets.isError ? (
-            <ErrorView error={sets.error} onRetry={() => sets.refetch()} />
+          ) : error ? (
+            <ErrorView error={error} onRetry={() => (searching ? search.refetch() : sets.refetch())} />
+          ) : searching ? (
+            <EmptyView
+              message={t('search.noResults')}
+              action={
+                filters.activeFilterCount > 0
+                  ? {
+                      label: t('search.clearFilters'),
+                      onPress: filters.clearFilters,
+                    }
+                  : undefined
+              }
+            />
           ) : (
-            <SetTimeline sets={visibleSets} language={language} />
-          )}
-        </>
-      )}
+            <EmptyView message={t('sets.empty')} />
+          )
+        }
+        ListFooterComponent={search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} /> : undefined}
+        renderItem={({ item }) => {
+          if (item.type === 'heading') {
+            return (
+              <View style={[styles.sectionTitle, item.first && styles.firstSection]}>
+                <Text variant="heading" accessibilityRole="header">
+                  {item.label}
+                </Text>
+                <Text variant="caption" tone="secondary" style={tabular}>
+                  {t('cardsPage.setCount', {
+                    count: item.count,
+                    total: item.count.toLocaleString(i18n.language),
+                  })}
+                </Text>
+              </View>
+            );
+          }
+          if (item.type === 'sets') {
+            return (
+              <View style={[styles.row, { gap: SET_TILE_GAP, marginBottom: spacing.lg }]}>
+                {item.sets.map((set) => (
+                  <SetTile
+                    key={set.id}
+                    set={set}
+                    cover={covers.data?.[set.id]}
+                    width={setGrid.tileWidth}
+                    owned={progress.data ? (progress.data[set.id] ?? 0) : undefined}
+                  />
+                ))}
+              </View>
+            );
+          }
+          return (
+            <View style={[styles.row, { gap: CARD_TILE_GAP }]}>
+              {item.cards.map((card) => (
+                <CardTile
+                  key={card.id}
+                  href={{ pathname: '/card/[id]', params: { id: card.id } }}
+                  imageUrl={card.image_url}
+                  code={card.id}
+                  name={card.name}
+                  width={cardGrid.tileWidth}
+                  badge={card.printing_count > 1 ? t('search.arts', { count: card.printing_count }) : null}
+                />
+              ))}
+            </View>
+          );
+        }}
+      />
     </Screen>
   );
 }
 
-type Row = { type: 'heading'; label: string; key: string } | { type: 'packs'; sets: SetRow[]; key: string };
-
-/** Sets newest first, in sections by release year; products without a date come last. */
-function SetTimeline({ sets, language }: { sets: SetRow[]; language: Language }) {
-  const { t } = useTranslation();
-  const { columns, tileWidth } = useGridColumns(220, spacing.md);
-  const covers = useQuery({ queryKey: ['set-covers', language], queryFn: () => fetchSetCovers(language), staleTime: 60 * 60 * 1000 });
-  const progress = useSetProgress(language);
-
-  const rows = useMemo(() => {
-    const sorted = [...sets].sort(
-      (a, b) =>
-        (b.release_date ?? '').localeCompare(a.release_date ?? '') ||
-        // same day (e.g. six starter decks): by product number, newest first
-        b.sort_order - a.sort_order,
-    );
-    const groups = new Map<string, SetRow[]>();
-    for (const set of sorted) {
-      const label = set.release_date ? set.release_date.slice(0, 4) : t('cardsPage.undated');
-      // release_date is "YYYY-MM-DD" (Postgres date); only the year is used here.
-      groups.set(label, [...(groups.get(label) ?? []), set]);
-    }
-    const out: Row[] = [];
-    for (const [label, group] of groups) {
-      out.push({ type: 'heading', label, key: `h-${label}` });
-      for (let i = 0; i < group.length; i += columns) out.push({ type: 'packs', sets: group.slice(i, i + columns), key: `${label}-${i}` });
-    }
-    return out;
-  }, [sets, columns, t]);
-
-  return (
-    <FlatList
-      data={rows}
-      keyExtractor={(row) => row.key}
-      contentContainerStyle={styles.list}
-      ListEmptyComponent={<EmptyView message={t('sets.empty')} />}
-      renderItem={({ item, index }) =>
-        item.type === 'heading' ? (
-          <Text variant="heading" accessibilityRole="header" style={[styles.year, index === 0 && styles.firstYear]}>
-            {item.label}
-          </Text>
-        ) : (
-          <View style={styles.packRow}>
-            {item.sets.map((set) => (
-              <SetTile
-                key={set.id}
-                set={set}
-                cover={covers.data?.[set.id]}
-                width={tileWidth}
-                owned={progress.data ? (progress.data[set.id] ?? 0) : undefined}
-              />
-            ))}
-          </View>
-        )
-      }
-    />
-  );
-}
-
 /**
- * One product: its key artwork (the illustration on the pack; without one, a card from the set),
- * then code, name, release date and progress.
+ * One product: its key artwork (the illustration on the pack), then name, release date, card count
+ * and progress. Without artwork it shows a card from the set, zoomed onto the illustration so the
+ * "SAMPLE" mark printed lower on official card images stays out of view.
  */
 function SetTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; width: number; owned?: number }) {
   const { t, i18n } = useTranslation();
   const palette = usePalette();
-  const name = setDisplayName(set, t(`sets.kinds.${set.kind}`));
+  const name = setDisplayName(set, t(`cardsPage.kindNames.${kindGroup(set.kind)}`));
   const date = formatReleaseDate(set.release_date, i18n.language, 'short');
   const complete = owned !== undefined && owned > 0 && owned >= set.printing_count;
-  const artwork = set.image_url ?? cover?.image_url ?? null;
+  const cardArtWidth = width * 1.3;
 
   return (
     <Link href={{ pathname: '/set/[id]', params: { id: set.id } }} asChild>
       <PressableArea
         accessibilityRole="link"
         accessibilityLabel={`${set.code}, ${name}`}
-        boxStyle={[styles.tile, { width, backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow }]}
+        boxStyle={[
+          styles.tile,
+          {
+            width,
+            backgroundColor: palette.surface,
+            borderColor: palette.border,
+            boxShadow: palette.shadow,
+          },
+        ]}
         activeStyle={styles.lift}>
         <View style={[styles.art, { backgroundColor: palette.surfaceAlt }]}>
-          {artwork ? (
+          {set.image_url ? (
             <Image
-              source={{ uri: artwork }}
+              source={{ uri: set.image_url }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
-              // card art (fallback) shows its illustration, not the text box at the bottom
-              contentPosition={set.image_url ? 'center' : { top: '12%', left: '50%' }}
               transition={150}
               accessibilityLabel={name}
+            />
+          ) : cover?.image_url ? (
+            <Image
+              source={{ uri: cover.image_url }}
+              style={{
+                position: 'absolute',
+                width: cardArtWidth,
+                height: cardArtWidth / CARD_ASPECT_RATIO,
+                left: (width - cardArtWidth) / 2,
+                top: -cardArtWidth * 0.06,
+              }}
+              contentFit="cover"
+              transition={150}
+              accessibilityLabel={cover.name}
             />
           ) : null}
           <View style={[styles.code, { backgroundColor: palette.overlay }]}>
@@ -218,11 +337,17 @@ function SetTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; 
             {name}
           </Text>
           <Text variant="caption" tone="muted" style={tabular}>
-            {date ? `${date} · ${t('sets.printings', { count: set.printing_count })}` : t('sets.printings', { count: set.printing_count })}
+            {date
+              ? `${date} · ${t('sets.printings', { count: set.printing_count })}`
+              : t('sets.printings', { count: set.printing_count })}
           </Text>
           {owned !== undefined ? (
             <View style={styles.progress}>
-              <ProgressBar value={set.printing_count ? owned / set.printing_count : 0} tone={complete ? 'success' : 'primary'} height={4} />
+              <ProgressBar
+                value={set.printing_count ? owned / set.printing_count : 0}
+                tone={complete ? 'success' : 'primary'}
+                height={4}
+              />
               <Text variant="caption" tone="secondary" style={tabular}>
                 {t('cardsPage.owned', { owned, total: set.printing_count })}
               </Text>
@@ -234,70 +359,37 @@ function SetTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; 
   );
 }
 
-/** Matching cards across every set (shown while searching or filtering). */
-function CardResults({
-  search,
-  filters,
-}: {
-  search: UseInfiniteQueryResult<InfiniteData<CardSearchResult[]>>;
-  filters: CardFilters<SearchSort>;
-}) {
-  const { t } = useTranslation();
-  const palette = usePalette();
-  const { columns, tileWidth } = useGridColumns();
-  const cards = useMemo(() => search.data?.pages.flat() ?? [], [search.data]);
-
-  if (search.isPending) return <LoadingView />;
-  if (search.isError && cards.length === 0) return <ErrorView error={search.error} onRetry={() => search.refetch()} />;
-  return (
-    <FlatList
-      key={columns}
-      data={cards}
-      numColumns={columns}
-      keyExtractor={(item) => item.id}
-      columnWrapperStyle={columns > 1 ? styles.cardRow : undefined}
-      contentContainerStyle={styles.list}
-      keyboardDismissMode="on-drag"
-      onEndReachedThreshold={0.6}
-      onEndReached={() => {
-        if (search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
-      }}
-      ListEmptyComponent={
-        <EmptyView
-          message={t('search.noResults')}
-          action={filters.activeFilterCount > 0 ? { label: t('search.clearFilters'), onPress: filters.clearFilters } : undefined}
-        />
-      }
-      ListFooterComponent={search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} color={palette.primary} /> : undefined}
-      renderItem={({ item }) => (
-        <CardTile
-          href={{ pathname: '/card/[id]', params: { id: item.id } }}
-          imageUrl={item.image_url}
-          code={item.id}
-          name={item.name}
-          width={tileWidth}
-          badge={item.printing_count > 1 ? t('search.arts', { count: item.printing_count }) : null}
-        />
-      )}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
-  list: { paddingTop: spacing.sm, paddingBottom: spacing.xxxl, flexGrow: 1 },
-  cardRow: { gap: spacing.sm },
+  header: { gap: spacing.lg, paddingBottom: spacing.sm },
   footer: { marginVertical: spacing.lg },
   kindsBar: { flexGrow: 0, flexShrink: 0 },
   kinds: { gap: spacing.sm, paddingVertical: spacing.xs },
-  year: { marginTop: spacing.xl, marginBottom: spacing.md },
-  firstYear: { marginTop: spacing.sm },
-  packRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
-  tile: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  lift: { transform: [{ translateY: -4 }] },
-  art: { aspectRatio: 4 / 3, width: '100%' },
-  code: { position: 'absolute', left: spacing.sm, top: spacing.sm, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  sectionTitle: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+    marginTop: spacing.xxl,
+    marginBottom: spacing.md,
+  },
+  firstSection: { marginTop: spacing.md },
+  row: { flexDirection: 'row' },
+  tile: {
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  lift: Platform.OS === 'web' ? { transform: [{ translateY: -4 }] } : {},
+  art: { aspectRatio: 4 / 3, width: '100%', overflow: 'hidden' },
+  code: {
+    position: 'absolute',
+    left: spacing.sm,
+    top: spacing.sm,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+  },
   codeText: { color: '#FFFFFF' },
-  tileBody: { paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.md, gap: 4 },
+  tileBody: { padding: spacing.md, gap: 4 },
   name: { minHeight: 42 },
   progress: { gap: 4, marginTop: spacing.xs },
 });

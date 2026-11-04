@@ -36,6 +36,19 @@ export function Screen({ children, scroll = false, narrow = false, bleed = false
   );
 }
 
+/**
+ * Content style for a full-width list (Screen `bleed`): the list itself spans the window, so its
+ * scrollbar sits at the window edge, while its content stays in the centered max-width column.
+ */
+export const listColumn: ViewStyle = {
+  width: '100%',
+  maxWidth: MAX_CONTENT_WIDTH,
+  alignSelf: 'center',
+  paddingHorizontal: spacing.lg,
+  paddingBottom: spacing.xxxl,
+  flexGrow: 1,
+};
+
 /** Centered max-width column for use inside full-bleed pages. */
 export function Container({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.column, style]}>{children}</View>;

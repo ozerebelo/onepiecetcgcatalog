@@ -1,7 +1,8 @@
 /**
- * Product details from the official "Products" pages: release date and key artwork per set.
+ * Product details from the official "Products" pages: release date and key artwork per set, and the
+ * name of the few sets the card data knows only by their code (e.g. "OP15-EB04").
  *
- * The card dataset has neither. The official list (one per language) is paginated by category; each
+ * The card dataset has no dates or artwork. The official list (one per language) is paginated by category; each
  * entry carries the product code in its title ("BOOSTER PACK -ROMANCE DAWN- [OP-01]", Japanese uses
  * 【OP-01】), a <time datetime="YYYY-MM-DD"> and a link to the product's own page. That page shows the
  * artwork printed on the pack:
@@ -62,6 +63,21 @@ const decode = (s: string) =>
 export function productCode(title: string): string | null {
   const match = /[[【]\s*([A-Z0-9]+(?:-[A-Z0-9]+)*)\s*[\]】]\s*$/i.exec(title.trim());
   return match?.[1] ? match[1].toUpperCase() : null;
+}
+
+const JA_PRODUCT_TYPES =
+  /^(?:ブースターパック|エクストラブースター|プレミアムブースター|スタートデッキ(?:EX)?|アルティメットデッキ)\s*/;
+
+/**
+ * The product's own name from its title, without the product type and code:
+ * "BOOSTER PACK -ADVENTURE ON KAMI’S ISLAND- [OP15-EB04]" → "ADVENTURE ON KAMI’S ISLAND",
+ * "ブースターパック 神の島の冒険【OP-15】" → "神の島の冒険". Null when nothing is left.
+ */
+export function productName(title: string): string | null {
+  const bare = title.replace(/\s*[[【][^\]】]*[\]】]\s*$/, '').trim();
+  const dashed = /\s[-–—]\s*(.+?)\s*[-–—]\s*$/.exec(bare)?.[1];
+  const name = (dashed ?? bare.replace(JA_PRODUCT_TYPES, '')).replace(/\s+/g, ' ').trim();
+  return name || null;
 }
 
 /** All product entries on one page of the official list. */
@@ -171,6 +187,8 @@ export async function setsNeedingArtwork(client: pg.ClientBase, language: Langua
  * Writes release dates and artwork addresses onto matching sets (same language and code).
  * Only changed rows are touched; nothing is ever cleared.
  */
+const PLACEHOLDER_NAME = `regexp_replace(lower(name), '[^a-z0-9]', '', 'g') = regexp_replace(lower(code), '[^a-z0-9]', '', 'g')`;
+
 export async function applyProducts(
   client: pg.ClientBase,
   language: Language,
@@ -191,14 +209,17 @@ export async function applyProducts(
     }
     stats.matched++;
     const art = artwork.get(code)?.url ?? null;
+    // The name only replaces a placeholder: sets the card data names by their code alone.
     const result = await client.query(
       `update public.sets
           set release_date = coalesce($2::date, release_date),
-              source_image_url = coalesce($3, source_image_url)
+              source_image_url = coalesce($3, source_image_url),
+              name = case when ${PLACEHOLDER_NAME} then coalesce($4, name) else name end
         where id = $1
           and (release_date is distinct from coalesce($2::date, release_date)
-               or source_image_url is distinct from coalesce($3, source_image_url))`,
-      [set.id, product.releaseDate, art],
+               or source_image_url is distinct from coalesce($3, source_image_url)
+               or (${PLACEHOLDER_NAME} and $4::text is not null and name is distinct from $4))`,
+      [set.id, product.releaseDate, art, productName(product.title)],
     );
     stats.updated += result.rowCount ?? 0;
   }

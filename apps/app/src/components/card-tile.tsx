@@ -1,7 +1,9 @@
 import { Link, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { printingLabel } from '@/lib/format';
 import { radius, spacing, usePalette } from '@/theme';
 
 import { CardImage } from './card-image';
@@ -42,8 +44,10 @@ export function CardTile({
   overlay,
   accessibilityHint,
 }: CardTileProps) {
+  const { t } = useTranslation();
   const palette = usePalette();
-  const label = quantity > 0 ? `${name}, ${code}, ×${quantity}` : `${name}, ${code}`;
+  const codeLabel = printingLabel(code, t);
+  const label = quantity > 0 ? `${name}, ${codeLabel}, ×${quantity}` : `${name}, ${codeLabel}`;
 
   const body = (
     <PressableArea
@@ -73,7 +77,7 @@ export function CardTile({
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
       <View style={styles.meta}>
         <Text variant="mono" tone="muted" numberOfLines={1}>
-          {code}
+          {codeLabel}
         </Text>
         <Text variant="caption" weight="semibold" numberOfLines={1}>
           {name}

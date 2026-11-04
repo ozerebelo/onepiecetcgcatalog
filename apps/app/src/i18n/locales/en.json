@@ -82,21 +82,18 @@
     "arts_other": "{{count}} arts"
   },
   "sets": {
-    "title": "Sets",
     "kinds": {
-      "booster": "Booster packs",
-      "extra": "Extra boosters",
-      "premium": "Premium boosters",
-      "starter": "Starter decks",
+      "booster": "Set",
+      "extra": "Extra booster",
+      "premium": "Premium booster",
+      "starter": "Starter deck",
       "promo": "Promotional cards",
-      "other": "Other products"
+      "other": "Other product"
     },
     "printings_one": "{{count}} card",
     "printings_other": "{{count}} cards",
     "showVariants": "Show alternate arts",
     "empty": "No sets yet. Run the card import (see docs/SETUP.md).",
-    "eyebrow": "Products",
-    "subtitle": "Every booster, starter deck and promo — in English and Japanese.",
     "inserts_one": "Also in this pack · {{count}} special card",
     "inserts_other": "Also in this pack · {{count}} special cards",
     "insertsHint": "Special art (SP) and reprints of older cards that Bandai inserts into these packs. Their card numbers come from the set where they first appeared.",
@@ -118,8 +115,8 @@
     "japaneseOnly": "Not released in English yet",
     "variants": {
       "base": "Base",
-      "parallel": "Parallel",
-      "parallelN": "Parallel {{n}}",
+      "parallel": "Alt art",
+      "parallelN": "Alt art {{n}}",
       "reprint": "Reprint",
       "reprintN": "Reprint {{n}}"
     }
@@ -273,19 +270,27 @@
     "importMore": "Import another list"
   },
   "cardsPage": {
-    "eyebrow": "Card database",
     "title": "Cards",
     "subtitle": "Every set and deck, newest release first. Search to find any card.",
     "setCount_one": "{{total}} product",
     "setCount_other": "{{total}} products",
     "owned": "{{owned}} / {{total}} owned",
-    "undated": "Other products",
+    "sections": {
+      "boosters": "Sets & extra boosters",
+      "decks": "Starter decks & promos"
+    },
     "kinds": {
       "all": "All",
-      "booster": "Boosters",
+      "sets": "Sets",
       "extra": "Extra boosters",
       "starter": "Starter decks",
       "other": "Promos & other"
+    },
+    "kindNames": {
+      "sets": "Set",
+      "extra": "Extra booster",
+      "starter": "Starter deck",
+      "other": "Promotional cards"
     }
   },
   "landing": {

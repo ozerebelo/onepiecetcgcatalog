@@ -44,6 +44,13 @@ export default function RootLayout() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
+  // Web: let the browser draw scrollbars and form controls to match the theme (dark track in dark mode).
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.style.colorScheme = scheme === 'dark' ? 'dark' : 'light';
+    }
+  }, [scheme]);
+
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navigationTheme = {
     ...base,

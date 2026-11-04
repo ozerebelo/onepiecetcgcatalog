@@ -10,7 +10,7 @@ import { SearchHeader, useCardFilters } from '@/components/card-filters';
 import { CardTile } from '@/components/card-tile';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/panel';
-import { Screen } from '@/components/ui/screen';
+import { Screen, listColumn } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { collectionKeys, useCollectionSummary } from '@/hooks/use-collection';
@@ -93,8 +93,8 @@ function CollectionView({ userId }: { userId: string }) {
     }
   };
 
-  return (
-    <Screen>
+  const header = (
+    <View>
       <PageHeader
         title={t('collection.title')}
         subtitle={
@@ -149,66 +149,70 @@ function CollectionView({ userId }: { userId: string }) {
           </Link>
         </View>
       ) : (
-        <>
-          <SearchHeader
-            filters={filters}
-            sortOptions={SORTS}
-            sortLabel={(s) => t(`collection.sorts.${s}`)}
-            countLabel={
-              search.isSuccess
-                ? t('collection.results', {
-                    count: first?.total_count ?? 0,
-                    copies: number(first?.total_quantity ?? 0),
-                  })
-                : ' '
-            }
-            fetching={search.isFetching && !search.isFetchingNextPage}
-          />
-          {search.isPending ? (
+        <SearchHeader
+          filters={filters}
+          sortOptions={SORTS}
+          sortLabel={(s) => t(`collection.sorts.${s}`)}
+          countLabel={
+            search.isSuccess
+              ? t('collection.results', {
+                  count: first?.total_count ?? 0,
+                  copies: number(first?.total_quantity ?? 0),
+                })
+              : ' '
+          }
+          fetching={search.isFetching && !search.isFetchingNextPage}
+        />
+      )}
+    </View>
+  );
+
+  return (
+    <Screen bleed>
+      <FlatList
+        key={columns}
+        data={isEmptyCollection ? [] : items}
+        numColumns={columns}
+        keyExtractor={(item) => item.printing_id}
+        columnWrapperStyle={columns > 1 ? styles.row : undefined}
+        contentContainerStyle={listColumn}
+        ListHeaderComponent={header}
+        keyboardDismissMode="on-drag"
+        onEndReachedThreshold={0.6}
+        onEndReached={() => {
+          if (search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
+        }}
+        ListEmptyComponent={
+          isEmptyCollection ? undefined : search.isPending ? (
             <LoadingView />
-          ) : search.isError && items.length === 0 ? (
+          ) : search.isError ? (
             <ErrorView error={search.error} onRetry={() => search.refetch()} />
           ) : (
-            <FlatList
-              key={columns}
-              data={items}
-              numColumns={columns}
-              keyExtractor={(item) => item.printing_id}
-              columnWrapperStyle={columns > 1 ? styles.row : undefined}
-              contentContainerStyle={styles.list}
-              keyboardDismissMode="on-drag"
-              onEndReachedThreshold={0.6}
-              onEndReached={() => {
-                if (search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
-              }}
-              ListEmptyComponent={
-                <EmptyView
-                  message={t('search.noResults')}
-                  action={
-                    filters.activeFilterCount > 0
-                      ? { label: t('search.clearFilters'), onPress: filters.clearFilters }
-                      : undefined
-                  }
-                />
+            <EmptyView
+              message={t('search.noResults')}
+              action={
+                filters.activeFilterCount > 0
+                  ? { label: t('search.clearFilters'), onPress: filters.clearFilters }
+                  : undefined
               }
-              ListFooterComponent={
-                search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} color={palette.primary} /> : undefined
-              }
-              renderItem={({ item }) => (
-                <CardTile
-                  href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
-                  imageUrl={item.image_url}
-                  code={item.code}
-                  name={item.name}
-                  width={tileWidth}
-                  quantity={item.quantity}
-                  badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
-                />
-              )}
             />
-          )}
-        </>
-      )}
+          )
+        }
+        ListFooterComponent={
+          search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} color={palette.primary} /> : undefined
+        }
+        renderItem={({ item }) => (
+          <CardTile
+            href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
+            imageUrl={item.image_url}
+            code={item.code}
+            name={item.name}
+            width={tileWidth}
+            quantity={item.quantity}
+            badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
+          />
+        )}
+      />
     </Screen>
   );
 }
@@ -217,7 +221,6 @@ const styles = StyleSheet.create({
   top: { gap: spacing.sm },
   card: { gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   emptyCard: { marginTop: spacing.xl },
-  list: { paddingTop: spacing.sm, paddingBottom: spacing.xxl, flexGrow: 1 },
   row: { gap: spacing.sm },
   footer: { marginVertical: spacing.lg },
 });

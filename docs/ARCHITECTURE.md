@@ -132,6 +132,9 @@ an atomic delta, and the server's number is applied once the last pending tap fo
   codes are only borrowed when they name a single product.
 - Premium boosters are mostly reprints, so set codes come from product labels, not card prefixes.
 - A few promos are listed under two products; they're stored once.
+- A few sets are named only by their code in the dataset (EN OP15-EB04, JP OP-15, JP EB-04). The
+  `--products` step fills in the product's name from its official title ("BOOSTER PACK -ADVENTURE ON
+  KAMI'S ISLAND- [OP15-EB04]"), and the card import keeps that name while the source still has none.
 
 ## Security model
 

@@ -13,6 +13,7 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { fetchCard, type CardDetail, type PrintingWithSet } from '@/lib/api';
+import { printingLabel, variantName } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { CARD_COLORS, fonts, radius, spacing, usePalette } from '@/theme';
 
@@ -62,7 +63,7 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
         ) : null}
         {selected ? (
           <Text variant="caption" tone="secondary" style={styles.center}>
-            {selected.code} · {selected.set.code} · {t(`rarities.${selected.rarity}`)} ·{' '}
+            {printingLabel(selected.code, t)} · {selected.set.code} · {t(`rarities.${selected.rarity}`)} ·{' '}
             {t(`languages.short.${selected.language}`)}
           </Text>
         ) : null}
@@ -219,11 +220,7 @@ function Tag({ label, dotColor }: { label: string; dotColor?: string }) {
 
 function useVariantLabel() {
   const { t } = useTranslation();
-  return (variant: VariantKind, index: number) => {
-    if (variant === 'base') return t('card.variants.base');
-    if (index <= 1) return t(`card.variants.${variant}`);
-    return t(`card.variants.${variant}N`, { n: index });
-  };
+  return (variant: VariantKind, index: number) => variantName(variant, index, t);
 }
 
 function PrintingThumb({

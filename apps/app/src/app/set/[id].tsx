@@ -11,7 +11,7 @@ import { AppSwitch } from '@/components/ui/app-switch';
 import { Icon } from '@/components/ui/icon';
 import { Panel, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
-import { Screen } from '@/components/ui/screen';
+import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
@@ -187,7 +187,7 @@ export default function SetScreen() {
   ) : null;
 
   return (
-    <Screen edges={[]}>
+    <Screen edges={[]} bleed>
       <Stack.Screen options={{ title: set.data?.code ?? '' }} />
       {set.isPending || printings.isPending ? (
         <LoadingView />
@@ -205,7 +205,7 @@ export default function SetScreen() {
         <FlatList
           data={rows}
           keyExtractor={(row) => row.key}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={listColumn}
           ListHeaderComponent={header ?? undefined}
           ListEmptyComponent={<EmptyView message={t('collection.nothingHere')} />}
           renderItem={({ item: row }) =>
@@ -250,7 +250,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   controls: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  list: { paddingBottom: spacing.xxxl },
   cardRow: { flexDirection: 'row', gap: spacing.sm },
   sectionHeader: { paddingTop: spacing.xl, paddingBottom: spacing.lg, gap: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, marginTop: spacing.sm },
   minus: {

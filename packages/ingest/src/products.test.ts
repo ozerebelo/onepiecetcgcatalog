@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import sharp from 'sharp';
 
-import { ARTWORK_HEIGHT, ARTWORK_WIDTH, artworkKind, fetchArtwork, findArtwork, parseProductList, productCode, toArtworkWebp } from './products';
+import { ARTWORK_HEIGHT, ARTWORK_WIDTH, artworkKind, fetchArtwork, findArtwork, parseProductList, productCode, productName, toArtworkWebp } from './products';
 
 // Excerpts of the official product lists (en.onepiece-cardgame.com / www.onepiece-cardgame.com).
 const EN = `
@@ -151,5 +151,24 @@ describe('fetchArtwork', () => {
     const ja = new Map([['OP-10', { code: 'OP-10', title: 'OP-10', releaseDate: null, pageUrl: 'https://www.onepiece-cardgame.com/products/op10.html' }]]);
     const art = await fetchArtwork(['OP-10'], { en: listing(['OP-10']), ja }, fetchImpl);
     expect(art.get('OP-10')).toEqual({ url: 'https://www.onepiece-cardgame.com/renewal/images/products/boosters/op10/mv.webp', kind: 'clean' });
+  });
+});
+
+describe('productName', () => {
+  it('takes the name between the dashes of an English title', () => {
+    expect(productName('BOOSTER PACK -ADVENTURE ON KAMI’S ISLAND- [OP15-EB04]')).toBe('ADVENTURE ON KAMI’S ISLAND');
+    expect(productName('BOOSTER PACK  -THE DOMINANCE OF GOD- [OP-18]')).toBe('THE DOMINANCE OF GOD');
+    expect(productName('EXTRA BOOSTER -ONE PIECE HEROINES EDITION vol.2- [EB-05]')).toBe('ONE PIECE HEROINES EDITION vol.2');
+    expect(productName('STARTER DECK -YELLOW Eustass"Captain"Kid- [ST-36]')).toBe('YELLOW Eustass"Captain"Kid');
+    expect(productName('Mini Case Set -Luffy/Shanks/Hancock- [TS-03]')).toBe('Luffy/Shanks/Hancock');
+  });
+  it('drops the product type from a Japanese title', () => {
+    expect(productName('ブースターパック 神の島の冒険【OP-15】')).toBe('神の島の冒険');
+    expect(productName('エクストラブースター EGGHEAD CRISIS【EB-04】')).toBe('EGGHEAD CRISIS');
+    expect(productName('スタートデッキEX ルフィ&エース【ST-30】')).toBe('ルフィ&エース');
+  });
+  it('keeps titles without a type or dashes whole', () => {
+    expect(productName('Devil Fruits Collection Vol.1 [DF-01]')).toBe('Devil Fruits Collection Vol.1');
+    expect(productName('[OP-01]')).toBeNull();
   });
 });
