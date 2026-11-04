@@ -9,13 +9,15 @@ Instructions for anyone (human or AI) changing this codebase. Product context, d
 - `packages/core` — pure TypeScript domain logic shared by app and importer. Put parsers, deck-check
   logic etc. here, with vitest tests.
 - `packages/ingest` — card-data importer.
-- `supabase/migrations` — schema. `supabase/tests/database` — pgTAP tests.
+- `apps/e2e` — Playwright browser tests (web build + local Supabase). Update them when UI text changes.
+- `supabase/migrations` — schema. `supabase/tests/database` — pgTAP tests. `supabase/templates` — auth emails.
 
 ## Commands (run from the repo root)
 
 ```bash
 pnpm typecheck && pnpm lint && pnpm test   # must pass before committing
 pnpm db:test                               # migrations + pgTAP on a throwaway Postgres (no Docker)
+pnpm e2e                                   # browser tests vs a local Supabase (setup: apps/e2e/README.md)
 pnpm build:web                             # production web export
 pnpm ingest --fetch --dry-run              # normalize the latest card data without a database
 DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does this automatically on main)

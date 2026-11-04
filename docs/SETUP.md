@@ -80,8 +80,50 @@ In the dashboard, **Authentication → URL Configuration**:
 **Authentication → Providers → Email**: keep **Confirm email** on.
 
 > ⚠️ **Before inviting real users:** Supabase's built-in email sender is only meant for testing and is
-> limited to a handful of emails per hour. Set up a real sender under **Authentication → Emails →
-> SMTP Settings** (e.g. Resend, Postmark or Amazon SES — all have free tiers).
+> limited to a handful of emails per hour. Past that, confirmation and password-reset emails silently
+> stop arriving. Set up a real sender (below) first.
+
+#### Email sender (custom SMTP) — about an hour, once
+
+Any SMTP provider works; these steps use **Resend** (free: 3,000 emails/month, 100/day). Every
+provider needs a **domain you own**, because mail "from" a domain you can't prove is yours lands in
+spam or is refused. A subdomain such as `mail.yourdomain.com` keeps it separate from anything else.
+
+1. Create a [Resend](https://resend.com) account → **Domains → Add domain** → enter the domain.
+2. Add the DNS records Resend shows (SPF/MX and DKIM, optionally DMARC) at your domain's DNS host
+   (your registrar, Cloudflare, or Vercel → *Domains* if Vercel manages it). Wait until Resend says
+   **Verified** (minutes to a few hours).
+3. Resend → **API Keys → Create** (permission *Sending access*, limited to that domain). Copy it — it is
+   the SMTP password. Keep it only in Supabase; never in the app, the repo or GitHub.
+4. Supabase dashboard → **Authentication → Emails → SMTP Settings** → enable custom SMTP:
+   | Field | Value |
+   |---|---|
+   | Sender email | `no-reply@yourdomain.com` (on the verified domain) |
+   | Sender name | `Nakama Binder` |
+   | Host | `smtp.resend.com` |
+   | Port | `465` |
+   | Username | `resend` |
+   | Password | the API key from step 3 |
+5. **Authentication → Rate Limits**: the email limit starts at 30/hour once custom SMTP is on; raise it
+   if you expect more sign-ups than that.
+6. Test it: sign up with a fresh address on the live site and check the email arrives (and not in spam).
+
+Postmark (`smtp.postmarkapp.com`, port 587, server API token as username and password) or Amazon SES
+work the same way.
+
+#### Branded emails
+
+The repo has branded versions of the three auth emails in `supabase/templates/` (they're also what
+the local stack and the browser tests send). In **Authentication → Emails → Templates**, for each one
+set the subject and paste the file's HTML:
+
+| Template | Subject | File |
+|---|---|---|
+| Confirm signup | `Confirm your Nakama Binder email` | `confirmation.html` |
+| Reset password | `Reset your Nakama Binder password` | `recovery.html` |
+| Change email address | `Confirm your new Nakama Binder email` | `email_change.html` |
+
+The others (magic link, invite, reauthentication) aren't used by the app.
 
 ## 4. Import the card data
 
@@ -185,7 +227,10 @@ Database tests (schema, security rules, search):
 - With Docker: `npx supabase start` then `npx supabase test db`
 - Without Docker (needs Postgres 15+ and pgTAP installed): `pnpm db:test`
 
-CI (`.github/workflows/ci.yml`) runs all of these on every pull request.
+Browser tests (the web app against a local Supabase, sign-up emails included): see
+[`apps/e2e/README.md`](../apps/e2e/README.md), then `pnpm e2e`.
+
+CI (`.github/workflows/ci.yml`) runs all of these on every pull request and push to `main`.
 
 ---
 

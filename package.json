@@ -11,6 +11,7 @@
     "web": "pnpm --filter @binder/app web",
     "build:web": "pnpm --filter @binder/app build:web",
     "test": "pnpm -r --if-present test",
+    "e2e": "pnpm --filter @binder/e2e e2e",
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
     "ingest": "pnpm --filter @binder/ingest ingest",

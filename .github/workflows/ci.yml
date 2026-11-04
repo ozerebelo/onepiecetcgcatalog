@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -41,3 +42,53 @@ jobs:
           version: latest
       - run: supabase db start
       - run: supabase test db
+
+  browser:
+    name: Browser tests (web app + local Supabase)
+    runs-on: ubuntu-latest
+    env:
+      # Card data revision the tests' counts are written against (e.g. 39 cards match "zoro").
+      PUNK_RECORDS_REV: dfa5297c577f1532b13db08da90e2b99818a8b79
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Start local Supabase (database, auth, API, test inbox)
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,storage-api,postgres-meta,supavisor
+      - name: Read the local stack's keys
+        # These are the CLI's fixed demo keys for local stacks, not secrets.
+        run: |
+          supabase status -o env | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=' | sed 's/"//g' >> "$GITHUB_ENV"
+      - name: Import the pinned card data
+        run: |
+          git init -q .cache/punk-records
+          git -C .cache/punk-records fetch -q --depth 1 https://github.com/buhbbl/punk-records.git "$PUNK_RECORDS_REV"
+          git -C .cache/punk-records checkout -q FETCH_HEAD
+          pnpm ingest --source .cache/punk-records
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Build the web app against the local stack
+        run: pnpm build:web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          EXPO_PUBLIC_SUPABASE_KEY: ${{ env.ANON_KEY }}
+      - run: pnpm --filter @binder/e2e exec playwright install --with-deps chromium
+      - name: Browser tests
+        run: pnpm e2e
+        env:
+          E2E_SUPABASE_SERVICE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            apps/e2e/playwright-report/
+            apps/e2e/test-results/
+          retention-days: 14
