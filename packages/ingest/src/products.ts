@@ -40,7 +40,7 @@ export interface ProductEntry {
   pageUrl: string | null; // the product's own page
 }
 
-export type ArtworkKind = 'clean' | 'banner';
+export type ArtworkKind = 'clean' | 'banner' | 'curated';
 export interface Artwork {
   url: string;
   kind: ArtworkKind;
@@ -113,6 +113,50 @@ export function artworkKind(url: string): ArtworkKind {
   return /\/mv_0?1\.(webp|png|jpe?g)$/i.test(url) ? 'banner' : 'clean';
 }
 
+/**
+ * Products whose page is a one-off campaign page with no single artwork picture: the header is
+ * built from separate layers (characters, backgrounds, lettering). Their tile artwork is put
+ * together from those official pictures instead. Stored as `curated:<code>:<recipe hash>` in
+ * `sets.source_image_url`, so changing a recipe re-renders it on the next run.
+ */
+export type ArtworkRecipe =
+  /** One picture, cut to a region given in fractions of its size; 'contain' fits the whole region
+   *  over its own stretched left edge instead of filling the frame. */
+  | { type: 'crop'; url: string; region: { left: number; top: number; width: number; height: number }; fit?: 'cover' | 'contain' }
+  /** A cut-out character placed over a background. */
+  | { type: 'over'; background: string; foreground: string }
+  /** Several portraits side by side, each optionally over its own background; `keepTop` keeps only
+   *  that fraction of each portrait's height (the rest is empty). */
+  | { type: 'row'; panels: string[]; panelBackground?: string; keepTop?: number };
+
+const EN_BOOSTERS = 'https://en.onepiece-cardgame.com/products/boosters';
+export const CURATED_ARTWORK: Record<string, ArtworkRecipe> = {
+  // Awakening of the New Era: Gear 5 Luffy over the page's yellow burst.
+  'OP-05': { type: 'over', background: `${EN_BOOSTERS}/op05/images/pc/mv_bg.jpg`, foreground: `${EN_BOOSTERS}/op05/images/mv_chara.png` },
+  // Emperors in the New World: the four Emperors' portraits from the page header.
+  'OP-09': {
+    type: 'row',
+    panels: ['bu', 'lf', 'sk', 'tc'].map((who) => `${EN_BOOSTERS}/op09/images/mv_${who}.webp`),
+  },
+  // Carrying On His Will: the three brothers from the page's character section.
+  'OP-13': {
+    type: 'row',
+    panels: ['ace', 'luffy', 'sabo'].map((who) => `${EN_BOOSTERS}/op13/images/the-three-brothers/chara/img_${who}.webp`),
+    panelBackground: `${EN_BOOSTERS}/op13/images/the-three-brothers/chara/bg_chara-fire01.webp`,
+    keepTop: 0.6,
+  },
+  // The World's Strongest Warriors: the release banner from the official home page (Elbaf Luffy).
+  'OP-17': {
+    type: 'crop',
+    url: 'https://en.onepiece-cardgame.com/onepiececg/bccard/en/banner/2026/08/06/TwCkamzyMsWIK27F/mv_sp.webp',
+    region: { left: 0, top: 0.01, width: 1, height: 0.5 },
+    fit: 'contain',
+  },
+};
+
+export const curatedSource = (code: string, recipe: ArtworkRecipe) =>
+  `curated:${code}:${versionFor(JSON.stringify(recipe))}`;
+
 /** Every listed product of one language (first listing wins when a code appears twice). */
 export async function fetchProducts(language: Language, fetchImpl: typeof fetch = fetch): Promise<Map<string, ProductEntry>> {
   const site = PRODUCT_SITES[language];
@@ -140,7 +184,9 @@ export async function fetchArtwork(
   fetchImpl: typeof fetch = fetch,
 ): Promise<Map<string, Artwork>> {
   const out = new Map<string, Artwork>();
+  codes = [...codes];
   for (const code of codes) {
+    if (CURATED_ARTWORK[code]) continue;
     const found: Artwork[] = [];
     for (const language of ['en', 'ja'] as const) {
       const pageUrl = listings[language]?.get(code)?.pageUrl;
@@ -162,6 +208,11 @@ export async function fetchArtwork(
   const uses = new Map<string, number>();
   for (const art of out.values()) uses.set(art.url, (uses.get(art.url) ?? 0) + 1);
   for (const [code, art] of out) if ((uses.get(art.url) ?? 0) > 1) out.delete(code);
+  // Campaign pages without a usable picture: artwork put together from the page's own pictures.
+  for (const code of codes) {
+    const recipe = CURATED_ARTWORK[code];
+    if (recipe && !out.has(code)) out.set(code, { url: curatedSource(code, recipe), kind: 'curated' });
+  }
   return out;
 }
 
@@ -174,13 +225,18 @@ export interface ProductStats {
 
 /** Codes of a language's sets that still need artwork (none yet, or not a product-page picture). */
 export async function setsNeedingArtwork(client: pg.ClientBase, language: Language): Promise<string[]> {
-  const rows = await client.query<{ code: string }>(
-    `select code from public.sets
+  const rows = await client.query<{ code: string; source_image_url: string | null }>(
+    `select code, source_image_url from public.sets
       where language = $1 and kind not in ('promo', 'other')
         and (source_image_url is null or source_image_url !~* '/mv(_0?1)?\\.(webp|png|jpe?g)$')`,
     [language],
   );
-  return rows.rows.map((r) => r.code.toUpperCase());
+  return rows.rows
+    .filter((r) => {
+      const recipe = CURATED_ARTWORK[r.code.toUpperCase()];
+      return !(recipe && r.source_image_url === curatedSource(r.code.toUpperCase(), recipe));
+    })
+    .map((r) => r.code.toUpperCase());
 }
 
 /**
@@ -252,6 +308,75 @@ export async function toArtworkWebp(input: Uint8Array, kind: ArtworkKind): Promi
     .toBuffer();
 }
 
+async function fetchPicture(url: string, fetchImpl: typeof fetch): Promise<Buffer> {
+  const response = await fetchImpl(url, { headers: { 'User-Agent': USER_AGENT } });
+  if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+  return Buffer.from(await response.arrayBuffer());
+}
+
+/** Renders a curated artwork recipe (see CURATED_ARTWORK) to the stored 800×600 WebP. */
+export async function renderRecipe(recipe: ArtworkRecipe, fetchImpl: typeof fetch = fetch): Promise<Uint8Array> {
+  const W = ARTWORK_WIDTH;
+  const H = ARTWORK_HEIGHT;
+  const finish = (image: sharp.Sharp) => image.webp({ quality: 80 }).toBuffer();
+
+  if (recipe.type === 'crop') {
+    const input = await fetchPicture(recipe.url, fetchImpl);
+    const { width = 1, height = 1 } = await sharp(input).metadata();
+    const { left, top, width: w, height: h } = recipe.region;
+    const cut = await sharp(input)
+      .extract({ left: Math.round(width * left), top: Math.round(height * top), width: Math.round(width * w), height: Math.round(height * h) })
+      .toBuffer();
+    if (recipe.fit !== 'contain') {
+      return finish(sharp(cut).resize({ width: W, height: H, fit: 'cover', position: sharp.strategy.attention }));
+    }
+    // The empty sides are the picture's own left edge (its plain background) stretched and blurred.
+    const cutWidth = Math.round(width * w);
+    const strip = await sharp(cut).extract({ left: 0, top: 0, width: Math.max(1, Math.round(cutWidth * 0.12)), height: Math.round(height * h) }).toBuffer();
+    const backdrop = await sharp(strip).resize({ width: W, height: H, fit: 'fill' }).blur(16).toBuffer();
+    const figure = await sharp(cut).resize({ width: W, height: H, fit: 'inside' }).toBuffer({ resolveWithObject: true });
+    return finish(
+      sharp(backdrop).composite([{ input: figure.data, left: Math.round((W - figure.info.width) / 2), top: Math.round((H - figure.info.height) / 2) }]),
+    );
+  }
+
+  if (recipe.type === 'over') {
+    const [background, foreground] = await Promise.all([fetchPicture(recipe.background, fetchImpl), fetchPicture(recipe.foreground, fetchImpl)]);
+    const base = await sharp(background).resize({ width: W, height: H, fit: 'cover' }).toBuffer();
+    const figure = await sharp(foreground)
+      .resize({ width: Math.round(W * 0.92), height: Math.round(H * 0.94), fit: 'inside' })
+      .toBuffer({ resolveWithObject: true });
+    return finish(
+      sharp(base).composite([
+        { input: figure.data, left: Math.round((W - figure.info.width) / 2), top: H - figure.info.height },
+      ]),
+    );
+  }
+
+  // row: equal-width panels, each cropped around its face (attention), with a hairline between.
+  const gap = 4;
+  const n = recipe.panels.length;
+  const panelWidth = Math.floor((W - gap * (n - 1)) / n);
+  const backdrop = recipe.panelBackground ? await fetchPicture(recipe.panelBackground, fetchImpl) : null;
+  const panels = await Promise.all(
+    recipe.panels.map(async (url) => {
+      let picture = await fetchPicture(url, fetchImpl);
+      if (recipe.keepTop) {
+        const { width = 1, height = 1 } = await sharp(picture).metadata();
+        picture = await sharp(picture).extract({ left: 0, top: 0, width, height: Math.round(height * recipe.keepTop) }).toBuffer();
+      }
+      if (backdrop) {
+        const { width = 1, height = 1 } = await sharp(picture).metadata();
+        const back = await sharp(backdrop).resize({ width, height, fit: 'cover' }).toBuffer();
+        picture = await sharp(back).composite([{ input: picture }]).toBuffer();
+      }
+      return sharp(picture).resize({ width: panelWidth, height: H, fit: 'cover', position: 'top' }).toBuffer();
+    }),
+  );
+  const canvas = sharp({ create: { width: W, height: H, channels: 3, background: '#111111' } });
+  return finish(canvas.composite(panels.map((input, i) => ({ input, left: i * (panelWidth + gap), top: 0 }))));
+}
+
 const artworkVersion = (sourceUrl: string) => versionFor(`${sourceUrl}#${ARTWORK_VERSION}`);
 
 /**
@@ -273,9 +398,16 @@ export async function mirrorArtwork(
   await store.ensureBucket();
   for (const row of todo) {
     try {
-      const response = await fetchImpl(row.source_image_url, { headers: { 'User-Agent': USER_AGENT } });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const webp = await toArtworkWebp(new Uint8Array(await response.arrayBuffer()), artworkKind(row.source_image_url));
+      let webp: Uint8Array;
+      if (row.source_image_url.startsWith('curated:')) {
+        const recipe = CURATED_ARTWORK[row.code.toUpperCase()];
+        if (!recipe) throw new Error('no artwork recipe for this code any more');
+        webp = await renderRecipe(recipe, fetchImpl);
+      } else {
+        const response = await fetchImpl(row.source_image_url, { headers: { 'User-Agent': USER_AGENT } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        webp = await toArtworkWebp(new Uint8Array(await response.arrayBuffer()), artworkKind(row.source_image_url));
+      }
       const safeCode = row.code.replace(/[^A-Za-z0-9-]/g, '_');
       const url = await store.upload(`sets/${row.language}/${safeCode}.webp`, webp, 'image/webp');
       await client.query('update public.sets set image_url = $2 where id = $1', [row.id, `${url}?v=${artworkVersion(row.source_image_url)}`]);

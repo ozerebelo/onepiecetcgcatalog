@@ -1,13 +1,14 @@
-import { isOwnSetCard, rarityShort } from '@binder/core';
+import { CATEGORIES, isOwnSetCard, rarityShort, type Category } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { CardTile } from '@/components/card-tile';
 import { AppSwitch } from '@/components/ui/app-switch';
+import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
 import { Panel, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
@@ -39,6 +40,7 @@ export default function SetScreen() {
   const [showVariants, setShowVariants] = useState(true);
   const [ownedFilter, setOwnedFilter] = useState<OwnedFilter>('all');
   const [collectMode, setCollectMode] = useState(false);
+  const [type, setType] = useState<Category | 'all'>('all');
 
   const set = useQuery({ queryKey: ['set', id], queryFn: () => fetchSet(id) });
   const printings = useQuery({ queryKey: ['set-printings', id], queryFn: () => fetchSetPrintings(id) });
@@ -51,11 +53,17 @@ export default function SetScreen() {
     [printings.data, showVariants],
   );
   const ownedCount = variantFiltered.filter((p) => (owned[p.id] ?? 0) > 0).length;
+  // Card types present in this product, in the game's order (Leader, Character, Event, Stage).
+  const types = useMemo(() => {
+    const present = new Set((printings.data ?? []).map((p) => p.card?.category));
+    return CATEGORIES.filter((c) => present.has(c));
+  }, [printings.data]);
   const percent = variantFiltered.length ? Math.round((ownedCount / variantFiltered.length) * 100) : 0;
 
   const rows = useMemo<Row[]>(() => {
     if (!set.data) return [];
     const visible = variantFiltered.filter((p) => {
+      if (type !== 'all' && p.card?.category !== type) return false;
       const has = (owned[p.id] ?? 0) > 0;
       return ownedFilter === 'all' || (ownedFilter === 'owned' ? has : !has);
     });
@@ -76,7 +84,7 @@ export default function SetScreen() {
           ]
         : []),
     ];
-  }, [set.data, variantFiltered, owned, ownedFilter, columns, t]);
+  }, [set.data, variantFiltered, owned, ownedFilter, type, columns, t]);
 
   const renderTile = (item: SetPrinting) => {
     const quantity = owned[item.id] ?? 0;
@@ -161,6 +169,15 @@ export default function SetScreen() {
           </PressableArea>
         </Link>
       )}
+
+      {types.length > 1 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typesBar} contentContainerStyle={styles.types}>
+          <Chip label={t('sets.types.all')} selected={type === 'all'} onPress={() => setType('all')} />
+          {types.map((c) => (
+            <Chip key={c} label={t(`sets.types.${c}`)} selected={type === c} onPress={() => setType(c)} />
+          ))}
+        </ScrollView>
+      ) : null}
 
       <View style={styles.controls}>
         {user ? (
@@ -248,6 +265,8 @@ const styles = StyleSheet.create({
   progressPanel: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
+  typesBar: { flexGrow: 0, flexShrink: 0 },
+  types: { gap: spacing.sm },
   controls: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   cardRow: { flexDirection: 'row', gap: spacing.sm },

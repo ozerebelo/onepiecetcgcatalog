@@ -48,8 +48,12 @@
   `sets` by language + code; each product's own page gives the artwork printed on its pack — a clean key
   visual on newer pages (preferred, from either language), the artwork part of a banner on older ones.
   Artwork is cropped to 800×600 and copied like card images (`card-images/sets/<lang>/<code>.webp`).
-  Pictures shared by several products (ST-01–04, ST-15–20) are skipped. Without artwork (promos,
-  campaign pages) the Cards page falls back to `set_covers()`, one striking card per set.
+  Pictures shared by several products (ST-01–04, ST-15–20) are skipped. A few boosters have one-off
+  campaign pages whose header is built from separate layers (OP-05, OP-09, OP-13, OP-17); their artwork
+  is composed from that page's own pictures by a recipe in `CURATED_ARTWORK` (stored as
+  `curated:<code>:<hash>`, so editing a recipe re-renders it). Without artwork (shared-page starter
+  decks, promos) the Cards page falls back to `set_covers()`, one striking card per set (a starter
+  deck's leader).
 
 ## Data model
 

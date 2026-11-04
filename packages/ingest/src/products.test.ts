@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import sharp from 'sharp';
 
-import { ARTWORK_HEIGHT, ARTWORK_WIDTH, artworkKind, fetchArtwork, findArtwork, parseProductList, productCode, productName, toArtworkWebp } from './products';
+import { ARTWORK_HEIGHT, ARTWORK_WIDTH, CURATED_ARTWORK, artworkKind, curatedSource, fetchArtwork, findArtwork, parseProductList, productCode, productName, renderRecipe, toArtworkWebp } from './products';
 
 // Excerpts of the official product lists (en.onepiece-cardgame.com / www.onepiece-cardgame.com).
 const EN = `
@@ -170,5 +170,31 @@ describe('productName', () => {
   it('keeps titles without a type or dashes whole', () => {
     expect(productName('Devil Fruits Collection Vol.1 [DF-01]')).toBe('Devil Fruits Collection Vol.1');
     expect(productName('[OP-01]')).toBeNull();
+  });
+});
+
+describe('curated artwork (campaign pages without a single picture)', () => {
+  const png = (width: number, height: number, alpha = false) =>
+    sharp({ create: { width, height, channels: alpha ? 4 : 3, background: alpha ? { r: 200, g: 40, b: 40, alpha: 0.8 } : '#d4a017' } })
+      .png()
+      .toBuffer();
+
+  it('uses the recipe without reading the product page', async () => {
+    const fetchImpl = (async () => {
+      throw new Error('no page should be fetched');
+    }) as unknown as typeof fetch;
+    const art = await fetchArtwork(['OP-05'], {}, fetchImpl);
+    expect(art.get('OP-05')).toEqual({ url: curatedSource('OP-05', CURATED_ARTWORK['OP-05']!), kind: 'curated' });
+    expect(art.get('OP-05')?.url).toMatch(/^curated:OP-05:[0-9a-f]{10}$/);
+  });
+
+  it.each(Object.keys(CURATED_ARTWORK))('renders %s to the stored size', async (code) => {
+    const fetchImpl = (async (url: string) =>
+      new Response(new Uint8Array(await png(url.includes('banner') ? 735 : 750, url.includes('banner') ? 1920 : 1000, /chara|mv_|img_/.test(url))), {
+        status: 200,
+      })) as unknown as typeof fetch;
+    const out = await renderRecipe(CURATED_ARTWORK[code]!, fetchImpl);
+    const meta = await sharp(out).metadata();
+    expect([meta.format, meta.width, meta.height]).toEqual(['webp', ARTWORK_WIDTH, ARTWORK_HEIGHT]);
   });
 });

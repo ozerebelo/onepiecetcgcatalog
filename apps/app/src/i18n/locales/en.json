@@ -97,7 +97,15 @@
     "inserts_one": "Also in this pack · {{count}} special card",
     "inserts_other": "Also in this pack · {{count}} special cards",
     "insertsHint": "Special art (SP) and reprints of older cards that Bandai inserts into these packs. Their card numbers come from the set where they first appeared.",
-    "released": "Released {{date}}"
+    "released": "Released {{date}}",
+    "types": {
+      "all": "All types",
+      "Leader": "Leaders",
+      "Character": "Characters",
+      "Event": "Events",
+      "Stage": "Stages",
+      "Don": "DON!!"
+    }
   },
   "card": {
     "printings": "Printings",

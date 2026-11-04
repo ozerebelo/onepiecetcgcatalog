@@ -25,6 +25,8 @@ export function Landing() {
   const palette = usePalette();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
+  // Feature grid: 3 columns on desktop, 2 on tablets, 1 on phones (basis leaves room for the gaps).
+  const featureBasis = width >= 1000 ? '28%' : width >= 640 ? '40%' : '100%';
   const stats = useQuery({ queryKey: ['catalog-stats'], queryFn: fetchCatalogStats, staleTime: 60 * 60 * 1000 });
   const showcase = useQuery({ queryKey: ['showcase'], queryFn: fetchShowcase, staleTime: 60 * 60 * 1000 });
   const n = (value: number | undefined) => (value == null ? '—' : value.toLocaleString(i18n.language));
@@ -82,16 +84,16 @@ export function Landing() {
       </Container>
 
       {/* Features */}
-      <Container style={[styles.section, wide && styles.split, wide && styles.alignStart]}>
-        <View style={[styles.featuresIntro, wide && { flex: 2 }]}>
+      <Container style={styles.section}>
+        <View style={styles.featuresIntro}>
           <Text variant="title" accessibilityRole="header">
             {t('landing.featuresTitle')}
           </Text>
           <Text tone="secondary">{t('landing.featuresLead')}</Text>
         </View>
-        <View style={[styles.featureGrid, wide && { flex: 3 }]}>
+        <View style={styles.featureGrid}>
           {FEATURES.map((key) => (
-            <View key={key} style={[styles.feature, { borderTopColor: palette.border, flexBasis: wide ? '46%' : '100%' }]}>
+            <View key={key} style={[styles.feature, { borderTopColor: palette.border, flexBasis: featureBasis }]}>
               <Text variant="subheading">{t(`landing.features.${key}.title`)}</Text>
               <Text tone="secondary">{t(`landing.features.${key}.body`)}</Text>
             </View>
@@ -296,11 +298,10 @@ const styles = StyleSheet.create({
   stat: { alignItems: 'center', minWidth: 140, gap: 2 },
   section: { gap: spacing.xl },
   center: { textAlign: 'center' },
-  featuresIntro: { gap: spacing.md, maxWidth: 420 },
+  featuresIntro: { gap: spacing.md, maxWidth: 620 },
   featureGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.xxl, rowGap: spacing.xl },
   feature: { flexGrow: 1, gap: 6, paddingTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth },
   split: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxxl },
-  alignStart: { alignItems: 'flex-start' },
   latest: { gap: spacing.xl },
   latestArt: { aspectRatio: 4 / 3, borderRadius: radius.xl, overflow: 'hidden', minHeight: 200 },
   latestText: { gap: spacing.md },
