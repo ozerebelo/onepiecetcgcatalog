@@ -1,4 +1,4 @@
-import { TabList, TabSlot, TabTrigger, Tabs, type TabTriggerSlotProps } from 'expo-router/ui';
+import { TabList, TabSlot, TabTrigger, Tabs, type TabListProps, type TabTriggerSlotProps } from 'expo-router/ui';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -6,41 +6,60 @@ import { MAX_CONTENT_WIDTH, radius, spacing, usePalette } from '@/theme';
 
 import { Text } from './ui/text';
 
-/** Web navigation: a top bar with the brand and tab links. */
+/**
+ * Web navigation: a top bar with the brand and tab links.
+ *
+ * Structure matters: expo-router/ui only registers tabs whose <TabTrigger>s are the direct
+ * children of <TabList> (or of TabList's single `asChild` child), and <TabList> must be a
+ * direct child of <Tabs>. If triggers are wrapped in other views they render fine but clicks
+ * silently do nothing. The bar layout therefore lives in <TopBar>, the asChild of TabList.
+ */
 export default function AppTabs() {
+  const { t } = useTranslation();
+
+  return (
+    <Tabs style={styles.root}>
+      <TabList asChild>
+        <TopBar>
+          <TabTrigger name="index" href="/" asChild>
+            <TabButton>{t('tabs.cards')}</TabButton>
+          </TabTrigger>
+          <TabTrigger name="sets" href="/sets" asChild>
+            <TabButton>{t('tabs.sets')}</TabButton>
+          </TabTrigger>
+          <TabTrigger name="collection" href="/collection" asChild>
+            <TabButton>{t('tabs.collection')}</TabButton>
+          </TabTrigger>
+          <TabTrigger name="account" href="/account" asChild>
+            <TabButton>{t('tabs.account')}</TabButton>
+          </TabTrigger>
+        </TopBar>
+      </TabList>
+      <TabSlot style={styles.slot} />
+    </Tabs>
+  );
+}
+
+// TabList passes its own props (role, style) through; `style` is ignored on purpose so the
+// bar keeps its layout (see the Link/Slot note in components/ui/pressable-area.tsx).
+function TopBar({ children, style: _style, ...rest }: TabListProps) {
   const palette = usePalette();
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const compact = width < 560;
 
   return (
-    <Tabs style={styles.root}>
-      <View style={[styles.bar, { backgroundColor: palette.surface, borderBottomColor: palette.border }]}>
-        <View style={styles.inner}>
-          <Text variant="subheading" style={styles.brand} numberOfLines={1} accessibilityLabel={t('app.name')}>
-            <Text variant="subheading" tone="primary">
-              ⚓
-            </Text>
-            {compact ? '' : ` ${t('app.name')}`}
+    <View {...rest} style={[styles.bar, { backgroundColor: palette.surface, borderBottomColor: palette.border }]}>
+      <View style={styles.inner}>
+        <Text variant="subheading" style={styles.brand} numberOfLines={1} accessibilityLabel={t('app.name')}>
+          <Text variant="subheading" tone="primary">
+            ⚓
           </Text>
-          <TabList style={styles.list}>
-            <TabTrigger name="index" href="/" asChild>
-              <TabButton>{t('tabs.cards')}</TabButton>
-            </TabTrigger>
-            <TabTrigger name="sets" href="/sets" asChild>
-              <TabButton>{t('tabs.sets')}</TabButton>
-            </TabTrigger>
-            <TabTrigger name="collection" href="/collection" asChild>
-              <TabButton>{t('tabs.collection')}</TabButton>
-            </TabTrigger>
-            <TabTrigger name="account" href="/account" asChild>
-              <TabButton>{t('tabs.account')}</TabButton>
-            </TabTrigger>
-          </TabList>
-        </View>
+          {compact ? '' : ` ${t('app.name')}`}
+        </Text>
+        <View style={styles.list}>{children}</View>
       </View>
-      <TabSlot style={styles.slot} />
-    </Tabs>
+    </View>
   );
 }
 
@@ -51,6 +70,8 @@ function TabButton({ children, isFocused, ref: _ref, ...props }: TabTriggerSlotP
   return (
     <Pressable
       {...props}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: Boolean(isFocused) }}
       style={({ pressed }) => [
         styles.tab,
         isFocused && { backgroundColor: palette.surfaceAlt },

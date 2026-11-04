@@ -168,6 +168,7 @@ export function normalize(source: RawSource): Normalized {
         set_id: setId,
         rarity: raw.rarity as Rarity,
         name,
+        source_image_url: raw.img_full_url,
         image_url: raw.img_full_url,
       });
 

@@ -61,6 +61,7 @@ code that needs it.
 |---|---|
 | `20261103000100_catalog.sql`, `20261103000200_profiles.sql` | Phase 1 |
 | `20261104000100_collection.sql` | Phase 2 — collections |
+| `20261105000100_card_images.sql` | Card images served from your own storage |
 
 ## 3. Configure sign-in
 
@@ -107,6 +108,20 @@ The workflow in `.github/workflows/ingest-cards.yml` re-imports every day. In th
   talking to your real database; without it the connection is still encrypted.
 
 You can run it manually any time from the **Actions** tab → **Import card data** → **Run workflow**.
+
+### Card images (copied into your Supabase Storage)
+
+The official card-list site doesn't allow its images to be shown on other websites, so the import job
+copies each image once into a public Storage bucket called `card-images` (resized to WebP, about
+10× smaller than the originals). Add two more repository secrets:
+
+- `SUPABASE_URL` — your Project URL, `https://<project-ref>.supabase.co`
+- `SUPABASE_SECRET_KEY` — **Project Settings → API Keys → Secret keys** (`sb_secret_…`; older
+  projects: the `service_role` key). It can write to your whole project: only ever store it as a
+  GitHub secret, never in the app or in Vercel.
+
+The first run copies all ~10,000 images (around 10–20 minutes); daily runs only copy new cards.
+Storage use is roughly 0.4–0.6 GB, inside the free plan's 1 GB.
 
 ## 5. Run the app locally
 
@@ -174,5 +189,5 @@ CI (`.github/workflows/ci.yml`) runs all of these on every pull request.
 | Card list is empty | Run the import (step 4). Check **Table Editor → cards** has rows. |
 | Confirmation email link opens a blank page / error | The link's URL isn't in **Redirect URLs** (step 3). |
 | "Email rate limit exceeded" | Configure custom SMTP (step 3 warning). |
-| Card images don't load | Images come from the official card list site; check it's reachable from your network. |
+| Card images don't load | Check the last **Import card data** run: the `images:` line says how many were copied. Without the `SUPABASE_URL` / `SUPABASE_SECRET_KEY` secrets images aren't copied (the log says "Image mirroring skipped"). |
 | Import fails with a certificate error | Use the Session pooler URI; if you set `DATABASE_CA_CERT`, make sure it's the full PEM text. |

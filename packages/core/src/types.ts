@@ -81,7 +81,10 @@ export interface PrintingRow {
   set_id: string;
   rarity: Rarity;
   name: string; // localized name as printed
+  /** What the apps display: our Storage copy once mirrored, otherwise the official image. */
   image_url: string;
+  /** Official image address (import source). */
+  source_image_url: string;
 }
 
 /** How many copies of one printing a user owns (rows with 0 copies don't exist). */

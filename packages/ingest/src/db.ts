@@ -21,6 +21,10 @@ interface TableSpec {
   table: 'sets' | 'cards' | 'printings';
   /** column name -> Postgres type used to decode the JSON payload */
   columns: Record<string, string>;
+  /** Custom SQL for `on conflict do update` (default: take the incoming value). */
+  updateExpressions?: Record<string, string>;
+  /** Columns ignored when deciding whether a row changed. */
+  excludeFromChangeCheck?: string[];
 }
 
 const SETS: TableSpec = {
@@ -70,8 +74,21 @@ const PRINTINGS: TableSpec = {
     set_id: 'text',
     rarity: 'text',
     name: 'text',
+    source_image_url: 'text',
     image_url: 'text',
   },
+  // image_url may point at our Storage copy of the image (see mirror.ts). Keep it on
+  // refreshes, unless the official image address changed — then show the new official
+  // image until it is mirrored again.
+  updateExpressions: {
+    image_url: `case
+        when printings.image_url = printings.source_image_url
+          or printings.source_image_url is distinct from excluded.source_image_url
+        then excluded.image_url
+        else printings.image_url
+      end`,
+  },
+  excludeFromChangeCheck: ['image_url'],
 };
 
 const CHUNK_SIZE = 2000;
@@ -85,15 +102,16 @@ async function upsert(client: pg.ClientBase, spec: TableSpec, rows: object[]): P
   const cols = Object.keys(spec.columns);
   const quoted = cols.map((c) => `"${c}"`);
   const updatable = cols.filter((c) => c !== 'id');
+  const compared = updatable.filter((c) => !spec.excludeFromChangeCheck?.includes(c));
   const recordDef = cols.map((c) => `"${c}" ${spec.columns[c]}`).join(', ');
 
   const sql = `
     insert into public.${spec.table} (${quoted.join(', ')})
     select ${quoted.join(', ')} from jsonb_to_recordset($1::jsonb) as x(${recordDef})
     on conflict (id) do update set
-      ${updatable.map((c) => `"${c}" = excluded."${c}"`).join(',\n      ')}
-    where (${updatable.map((c) => `${spec.table}."${c}"`).join(', ')})
-      is distinct from (${updatable.map((c) => `excluded."${c}"`).join(', ')})
+      ${updatable.map((c) => `"${c}" = ${spec.updateExpressions?.[c] ?? `excluded."${c}"`}`).join(',\n      ')}
+    where (${compared.map((c) => `${spec.table}."${c}"`).join(', ')})
+      is distinct from (${compared.map((c) => `excluded."${c}"`).join(', ')})
     returning (xmax = 0) as inserted`;
 
   for (let i = 0; i < rows.length; i += CHUNK_SIZE) {

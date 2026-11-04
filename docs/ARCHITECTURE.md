@@ -19,9 +19,9 @@
 │ Expo app (apps/app)      │ ───────────────────────────▶ │ Supabase                 │
 │ web (Vercel) / iOS / And │   publishable key + user JWT │ Postgres + RLS + Auth    │
 └──────────────────────────┘                              └──────────────────────────┘
-          │ card images (hotlinked)
+          │ card images (copied once by the importer, resized to WebP)
           ▼
-   official card list image CDN
+   Supabase Storage bucket "card-images" (public, CDN-cached)
 ```
 
 ### Why these choices
@@ -37,9 +37,12 @@
   actively maintained (automated updates) and covers both languages. We consume only its generated
   JSON (its pipeline code is AGPL; the card data itself belongs to Bandai). If it ever stops being
   updated, `packages/ingest/src/source.ts` is the only file that knows about it.
-- **Images are hotlinked** from the official card list rather than re-hosted, to avoid redistributing
-  Bandai's artwork. The web app sends no `Referer` header. If the official site starts blocking this,
-  mirror images into Supabase Storage / a CDN and rewrite `printings.image_url` in the importer.
+- **Images are copied into our own Supabase Storage** (public bucket `card-images`, 560px WebP). The
+  official site refuses images embedded on other websites (hotlinking was tried in phase 1 and failed
+  in production), and its PNGs are ~10× larger. The importer downloads each image once with an
+  ordinary, identified request (`packages/ingest/src/mirror.ts`); `printings.source_image_url` keeps
+  the official address and `printings.image_url` points at our copy (or at the official image until
+  it has been copied). A cache-busting `?v=` suffix changes if the official image ever changes.
 
 ## Data model
 

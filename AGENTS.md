@@ -28,6 +28,9 @@ pnpm ingest --fetch --dry-run              # normalize the latest card data with
 - **Never style the child of `<Link asChild>` with `style`.** On web, Link merges the child's `style`
   with an object spread, which drops style functions and breaks style arrays. Use `PressableArea`
   (`boxStyle` prop) or `Button` (`boxStyle`) as the Link child. See `components/ui/pressable-area.tsx`.
+- **Web tabs (`components/app-tabs.web.tsx`):** `<TabTrigger>`s must be direct children of `<TabList>`
+  (or of its single `asChild` child) and `<TabList>` a direct child of `<Tabs>`. Wrapping them in other
+  views renders fine but makes clicks silently do nothing. Test navigation by clicking, not `goto`.
 - **All user-facing strings go through i18n** (`useTranslation()`, keys in
   `apps/app/src/i18n/locales/en.json`).
 - Add Expo-ecosystem dependencies with `npx expo install <pkg>` (from `apps/app`) so versions match the
