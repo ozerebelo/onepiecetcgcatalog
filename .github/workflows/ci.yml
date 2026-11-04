@@ -71,7 +71,7 @@ jobs:
           git init -q .cache/punk-records
           git -C .cache/punk-records fetch -q --depth 1 https://github.com/buhbbl/punk-records.git "$PUNK_RECORDS_REV"
           git -C .cache/punk-records checkout -q FETCH_HEAD
-          pnpm ingest --source .cache/punk-records
+          pnpm ingest --source "$GITHUB_WORKSPACE/.cache/punk-records"
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Build the web app against the local stack

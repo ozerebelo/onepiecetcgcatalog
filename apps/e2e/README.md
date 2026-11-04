@@ -21,7 +21,7 @@ npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime,stor
 ```bash
 git clone https://github.com/buhbbl/punk-records.git .cache/punk-records
 git -C .cache/punk-records checkout dfa5297c577f1532b13db08da90e2b99818a8b79
-DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres pnpm ingest --source .cache/punk-records
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres pnpm ingest --source "$PWD/.cache/punk-records"
 ```
 
 ```bash
