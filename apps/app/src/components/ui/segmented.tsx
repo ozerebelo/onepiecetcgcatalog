@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { radius, spacing, usePalette } from '@/theme';
+import { elevation, radius, spacing, usePalette } from '@/theme';
 
 import { Text } from './text';
 
@@ -17,7 +17,7 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
     <View
       accessibilityRole="radiogroup"
       accessibilityLabel={accessibilityLabel}
-      style={[styles.container, { backgroundColor: palette.surfaceAlt }]}>
+      style={[styles.container, { backgroundColor: palette.surfaceAlt, borderColor: palette.border }]}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -25,9 +25,14 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
             key={option.value}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}
+            accessibilityLabel={option.label}
             onPress={() => onChange(option.value)}
-            style={[styles.segment, selected && [styles.selected, { backgroundColor: palette.surface }]]}>
-            <Text variant="caption" tone={selected ? 'default' : 'secondary'} style={{ fontWeight: '700' }}>
+            style={({ hovered }) => [
+              styles.segment,
+              selected && [{ backgroundColor: palette.surfaceRaised }, elevation(palette)],
+              !selected && hovered && { backgroundColor: palette.border },
+            ]}>
+            <Text variant="caption" weight="semibold" tone={selected ? 'default' : 'secondary'}>
               {option.label}
             </Text>
           </Pressable>
@@ -38,19 +43,6 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', borderRadius: radius.md, padding: 3, alignSelf: 'flex-start' },
-  segment: {
-    minHeight: 32,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selected: {
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
+  container: { flexDirection: 'row', borderRadius: radius.md, padding: 3, alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth },
+  segment: { minHeight: 32, paddingHorizontal: spacing.md, borderRadius: radius.sm + 1, alignItems: 'center', justifyContent: 'center' },
 });

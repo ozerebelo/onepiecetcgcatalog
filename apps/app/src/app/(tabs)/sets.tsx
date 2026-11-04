@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionList, StyleSheet, View } from 'react-native';
 
+import { PageHeader } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
@@ -12,7 +13,7 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { useSetProgress } from '@/hooks/use-collection';
 import { fetchSets } from '@/lib/api';
-import { radius, spacing, usePalette } from '@/theme';
+import { fonts, radius, spacing, usePalette } from '@/theme';
 
 export default function SetsScreen() {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ export default function SetsScreen() {
   return (
     <Screen>
       <View style={styles.header}>
-        <Text variant="title">{t('sets.title')}</Text>
+        <PageHeader eyebrow={t('sets.eyebrow')} title={t('sets.title')} subtitle={t('sets.subtitle')} />
         <Segmented
           accessibilityLabel={t('search.language')}
           value={language}
@@ -108,7 +109,7 @@ function SetRowItem({ set, owned }: { set: SetRow; owned?: number }) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: spacing.md, gap: spacing.md },
+  header: { gap: spacing.md },
   list: { paddingBottom: spacing.xxl },
   sectionHeader: { marginTop: spacing.xl, marginBottom: spacing.sm },
   row: {
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   code: { minWidth: 84, paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center' },
-  codeText: { fontWeight: '700' },
+  codeText: { fontFamily: fonts.bold },
   rowText: { flex: 1, gap: 2 },
   track: { height: 4, borderRadius: radius.pill, overflow: 'hidden', marginTop: 4 },
   fill: { height: '100%' },

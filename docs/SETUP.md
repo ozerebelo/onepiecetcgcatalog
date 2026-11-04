@@ -62,6 +62,7 @@ the SQL Editor earlier are detected and recorded, not re-run. Manually: `DATABAS
 | `20261103000100_catalog.sql`, `20261103000200_profiles.sql` | Phase 1 |
 | `20261104000100_collection.sql` | Phase 2 — collections |
 | `20261105000100_card_images.sql` | Card images served from your own storage |
+| `20261106000100_decks.sql` | Phase 3 — decks and deck checking |
 
 ## 3. Configure sign-in
 

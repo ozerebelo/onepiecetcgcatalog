@@ -68,7 +68,22 @@ ingest_runs                     bookkeeping for "card data updated <date>"
 
 collection_items (phase 2)      PK (user_id, printing_id), quantity 1..9999
                                 rows with 0 copies are deleted, so the table holds only owned cards
+
+decks (phase 3)                 id, user_id, name, leader_card_id, notes, is_built, card_count
+deck_cards                      PK (deck_id, card_id), quantity 1..50  — cards, not printings
 ```
+
+### Deck API (SQL functions, `security invoker`)
+
+| Function | Purpose |
+|---|---|
+| `check_cards(items, languages, reserve_built, exclude_deck)` | Checks any list (saved or not) against the collection: per card `needed / owned / reserved / have / missing` + owned printings. Any printing in an allowed language counts; with `reserve_built`, copies used by other *built* decks are held back. |
+| `check_deck(deck_id, languages, reserve_built)` | Same for a saved deck (never reserves against itself). |
+| `save_deck(id?, name, items, notes)` | Creates or replaces a deck and its full list in one transaction; skips unknown card numbers; detects the leader. |
+| `deck_summaries(languages)` | Decks with leader art and owned/total counts for the Decks screen and dashboard. |
+
+Decklist parsing, tournament-rule warnings and Sim/shopping-list export live in
+`packages/core/src/deck.ts`.
 
 ### Collection API (SQL functions, `security invoker` — RLS applies)
 
@@ -137,7 +152,8 @@ pagination in one round trip:
 
 ```
 app/                 Expo Router routes (file = screen)
-  (tabs)/            Cards (search), Sets, Account
+  (tabs)/            Home (landing / dashboard), Cards, Sets, Collection, Decks, Account
+  deck/              new, [id] (check view), [id]/edit
   card/[id].tsx      Card detail with all printings
   set/[id].tsx       Product grid
   auth/*             Sign in / up, password reset, email-link landing pages
@@ -154,8 +170,8 @@ theme/               Colors (light/dark), spacing, card colors
 |---|---|---|
 | **1 ✅** | Foundation | Accounts, EN+JP catalog + daily import, search, sets, card pages |
 | **2 ✅** | Collection | `collection_items` with RLS; +/− on card pages; "tap to collect" set grids with progress and owned/missing filters; bulk paste / CSV / Sim-format import with exact preview (add / set / replace all); CSV + list export; Collection tab with search and filters |
-| **3** | Decks (core) | `decks`, `deck_cards (deck_id, card_id, quantity)`; Sim-format parser in `packages/core` (unit-tested); owned / missing per card with any-printing matching; English-only toggle; copy/export missing list; saved decks; optional "cards committed to other built decks" toggle; missing → wishlist |
-| **4** | Extras | Wishlist & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
+| **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. New design system (Space Grotesk + Inter, ink/parchment palettes), landing page, signed-in dashboard, web top navigation / phone bottom bar, special inserts separated on set pages. *Missing → wishlist moves to phase 4.* |
+| **4** | Extras | Wishlist (incl. "add a deck's missing cards") & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
 | **5** | Scanning & stores | Camera scanning (card-number OCR on device), Google sign-in / Sign in with Apple, App Store / Play Store release, more UI languages |
 
 ## Known limitations

@@ -28,7 +28,7 @@ interface CardTileProps {
   accessibilityHint?: string;
 }
 
-/** Grid tile: card image, number and name. */
+/** Grid tile: card image (lifts on hover), number and name. */
 export function CardTile({
   href,
   onPress,
@@ -51,8 +51,9 @@ export function CardTile({
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       onPress={href ? undefined : onPress}
-      boxStyle={[styles.tile, { width }]}>
-      <View style={dimmed && styles.dimmed}>
+      boxStyle={[styles.tile, { width }]}
+      activeStyle={styles.lift}>
+      <View style={[styles.imageWrap, { boxShadow: palette.shadow }, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
         {badge ? (
           <View style={[styles.badge, styles.bottomRight, { backgroundColor: palette.overlay }]}>
@@ -70,12 +71,14 @@ export function CardTile({
         </View>
       ) : null}
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
-      <Text variant="mono" tone="secondary" numberOfLines={1}>
-        {code}
-      </Text>
-      <Text variant="caption" numberOfLines={1} style={styles.name}>
-        {name}
-      </Text>
+      <View style={styles.meta}>
+        <Text variant="mono" tone="muted" numberOfLines={1}>
+          {code}
+        </Text>
+        <Text variant="caption" weight="semibold" numberOfLines={1}>
+          {name}
+        </Text>
+      </View>
     </PressableArea>
   );
 
@@ -89,10 +92,12 @@ export function CardTile({
 }
 
 const styles = StyleSheet.create({
-  tile: { gap: 2, marginBottom: spacing.md },
-  dimmed: { opacity: 0.35 },
-  name: { fontWeight: '600' },
-  badge: { position: 'absolute', paddingHorizontal: 6, paddingVertical: 2, borderRadius: radius.pill },
+  tile: { gap: spacing.xs + 2, marginBottom: spacing.lg },
+  lift: { transform: [{ translateY: -3 }] },
+  imageWrap: { borderRadius: radius.md },
+  dimmed: { opacity: 0.32 },
+  meta: { gap: 1, paddingHorizontal: 2 },
+  badge: { position: 'absolute', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill },
   bottomRight: { right: 6, bottom: 6 },
   topRight: { right: 6, top: 6 },
   topLeft: { position: 'absolute', left: 6, top: 6 },

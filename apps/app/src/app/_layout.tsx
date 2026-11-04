@@ -1,24 +1,49 @@
 import '@/i18n';
 
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
+import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfigMissing } from '@/components/config-missing';
+import { WebStackHeader } from '@/components/web-stack-header';
 import { isSupabaseConfigured } from '@/lib/env';
 import { queryClient } from '@/lib/query-client';
 import { setupWeb } from '@/lib/web-setup';
 import { AuthProvider } from '@/providers/auth';
-import { usePalette } from '@/theme';
+import { fonts, usePalette } from '@/theme';
 
 setupWeb();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const scheme = useColorScheme();
   const palette = usePalette();
+  const [fontsLoaded, fontError] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
+  });
+  const ready = fontsLoaded || Boolean(fontError);
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navigationTheme = {
     ...base,
@@ -26,11 +51,13 @@ export default function RootLayout() {
       ...base.colors,
       primary: palette.primary,
       background: palette.background,
-      card: palette.surface,
+      card: palette.background,
       text: palette.text,
       border: palette.border,
     },
   };
+
+  if (!ready) return null;
 
   return (
     <SafeAreaProvider>
@@ -52,12 +79,25 @@ export default function RootLayout() {
 
 function RootStack() {
   const { t } = useTranslation();
+  const palette = usePalette();
   return (
-    <Stack screenOptions={{ headerBackTitle: t('common.back') }}>
+    <Stack
+      screenOptions={{
+        headerBackTitle: t('common.back'),
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: palette.background },
+        headerTitleStyle: { fontFamily: fonts.displayMedium, fontSize: 17 },
+        headerTintColor: palette.text,
+        // Website: keep the site navigation on detail pages (native apps use the native header).
+        ...(Platform.OS === 'web' ? { header: (props) => <WebStackHeader {...props} /> } : null),
+      }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="card/[id]" options={{ title: '' }} />
       <Stack.Screen name="set/[id]" options={{ title: '' }} />
       <Stack.Screen name="collection/import" options={{ title: t('import.title') }} />
+      <Stack.Screen name="deck/new" options={{ title: t('decks.newTitle') }} />
+      <Stack.Screen name="deck/[id]/index" options={{ title: '' }} />
+      <Stack.Screen name="deck/[id]/edit" options={{ title: t('decks.editTitle') }} />
       <Stack.Screen name="auth/sign-in" options={{ title: t('account.signIn') }} />
       <Stack.Screen name="auth/sign-up" options={{ title: t('account.signUp') }} />
       <Stack.Screen name="auth/forgot-password" options={{ title: t('auth.resetTitle') }} />

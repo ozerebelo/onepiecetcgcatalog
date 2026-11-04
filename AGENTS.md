@@ -32,6 +32,12 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
 - **Web tabs (`components/app-tabs.web.tsx`):** `<TabTrigger>`s must be direct children of `<TabList>`
   (or of its single `asChild` child) and `<TabList>` a direct child of `<Tabs>`. Wrapping them in other
   views renders fine but makes clicks silently do nothing. Test navigation by clicking, not `goto`.
+- **Web navigation lives in two places:** tab screens use `components/app-tabs.web.tsx` (top bar on wide
+  screens, bottom bar on phones); screens pushed on top of the tabs (card, set, deck, import, auth) get
+  `components/web-stack-header.tsx`. Keep their links in sync.
+- **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,
+  `PageHeader`, `Button`, `Text` variants/weights). Custom fonts use one family per weight — set
+  `weight`/`fontFamily`, never `fontWeight`.
 - **All user-facing strings go through i18n** (`useTranslation()`, keys in
   `apps/app/src/i18n/locales/en.json`).
 - Add Expo-ecosystem dependencies with `npx expo install <pkg>` (from `apps/app`) so versions match the

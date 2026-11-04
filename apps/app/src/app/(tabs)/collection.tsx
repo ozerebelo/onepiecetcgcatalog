@@ -9,6 +9,7 @@ import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { SearchHeader, useCardFilters } from '@/components/card-filters';
 import { CardTile } from '@/components/card-tile';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/panel';
 import { Screen } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
@@ -94,38 +95,45 @@ function CollectionView({ userId }: { userId: string }) {
 
   return (
     <Screen>
+      <PageHeader
+        eyebrow={t('collection.eyebrow')}
+        title={t('collection.title')}
+        subtitle={
+          summary.data
+            ? t('collection.summary', {
+                copies: number(summary.data.total_quantity),
+                printings: number(summary.data.unique_printings),
+                cards: number(summary.data.unique_cards),
+              })
+            : undefined
+        }
+        actions={
+          <>
+            <Link href="/collection/import" asChild>
+              <Button title={t('collection.import')} icon="upload" size="sm" />
+            </Link>
+            <Button
+              title={t('collection.exportCsv')}
+              icon="download"
+              variant="outline"
+              size="sm"
+              loading={exporting === 'csv'}
+              disabled={isEmptyCollection}
+              onPress={() => runExport('csv')}
+            />
+            <Button
+              title={t('collection.copyList')}
+              icon="clipboard"
+              variant="outline"
+              size="sm"
+              loading={exporting === 'list'}
+              disabled={isEmptyCollection}
+              onPress={() => runExport('list')}
+            />
+          </>
+        }
+      />
       <View style={styles.top}>
-        <Text variant="title">{t('collection.title')}</Text>
-        {summary.data ? (
-          <Text tone="secondary">
-            {t('collection.summary', {
-              copies: number(summary.data.total_quantity),
-              printings: number(summary.data.unique_printings),
-              cards: number(summary.data.unique_cards),
-            })}
-          </Text>
-        ) : null}
-        <View style={styles.actions}>
-          <Link href="/collection/import" asChild>
-            <Button title={t('collection.import')} boxStyle={styles.action} />
-          </Link>
-          <Button
-            title={t('collection.exportCsv')}
-            variant="secondary"
-            boxStyle={styles.action}
-            loading={exporting === 'csv'}
-            disabled={isEmptyCollection}
-            onPress={() => runExport('csv')}
-          />
-          <Button
-            title={t('collection.copyList')}
-            variant="secondary"
-            boxStyle={styles.action}
-            loading={exporting === 'list'}
-            disabled={isEmptyCollection}
-            onPress={() => runExport('list')}
-          />
-        </View>
         {notice ? (
           <Text variant="caption" tone="success" accessibilityLiveRegion="polite">
             {notice}
@@ -134,7 +142,7 @@ function CollectionView({ userId }: { userId: string }) {
       </View>
 
       {isEmptyCollection ? (
-        <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+        <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow }]}>
           <Text variant="heading">{t('collection.emptyTitle')}</Text>
           <Text tone="secondary">{t('collection.emptyBody')}</Text>
           <Link href="/sets" asChild>
@@ -207,9 +215,7 @@ function CollectionView({ userId }: { userId: string }) {
 }
 
 const styles = StyleSheet.create({
-  top: { paddingTop: spacing.md, gap: spacing.sm },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  action: { minHeight: 40, paddingHorizontal: spacing.md },
+  top: { gap: spacing.sm },
   card: { gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   emptyCard: { marginTop: spacing.xl },
   list: { paddingTop: spacing.sm, paddingBottom: spacing.xxl, flexGrow: 1 },

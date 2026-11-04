@@ -7,7 +7,9 @@
     "cards": "Cards",
     "sets": "Sets",
     "account": "Account",
-    "collection": "Collection"
+    "collection": "Collection",
+    "home": "Home",
+    "decks": "Decks"
   },
   "common": {
     "retry": "Try again",
@@ -92,7 +94,12 @@
     "printings_one": "{{count}} card",
     "printings_other": "{{count}} cards",
     "showVariants": "Show alternate arts",
-    "empty": "No sets yet. Run the card import (see docs/SETUP.md)."
+    "empty": "No sets yet. Run the card import (see docs/SETUP.md).",
+    "eyebrow": "Products",
+    "subtitle": "Every booster, starter deck and promo — in English and Japanese.",
+    "inserts_one": "Also in this pack · {{count}} special card",
+    "inserts_other": "Also in this pack · {{count}} special cards",
+    "insertsHint": "Special art (SP) and reprints of older cards that Bandai inserts into these packs. Their card numbers come from the set where they first appeared."
   },
   "card": {
     "printings": "Printings",
@@ -124,9 +131,10 @@
     "signUp": "Create account",
     "signOut": "Sign out",
     "signedInAs": "Signed in as {{email}}",
-    "comingSoon": "Track your cards in the Collection tab. Deck checking is coming next.",
+    "comingSoon": "Track your cards in Collection and check decklists in Decks.",
     "catalogUpdated": "Card data updated {{date}}",
-    "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai."
+    "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai.",
+    "eyebrow": "Your account"
   },
   "auth": {
     "email": "Email",
@@ -200,7 +208,8 @@
     },
     "collectMode": "Tap to collect",
     "collectModeHint": "Tap a card to add a copy; tap − to remove one. Faded cards are ones you don’t own yet.",
-    "nothingHere": "No cards to show with this filter."
+    "nothingHere": "No cards to show with this filter.",
+    "eyebrow": "Your binder"
   },
   "import": {
     "title": "Import cards",
@@ -261,5 +270,162 @@
     "doneTitle": "Import complete",
     "viewCollection": "View collection",
     "importMore": "Import another list"
+  },
+  "cardsPage": {
+    "eyebrow": "Card database",
+    "title": "Cards",
+    "browseSets": "Browse sets"
+  },
+  "landing": {
+    "eyebrow": "One Piece Card Game companion · EN + JP",
+    "titleLine1": "Every card you own.",
+    "titleLine2": "Every deck you want.",
+    "lead": "Track your collection down to the exact alt art, paste any decklist and instantly see what you have and what you're missing — on the web, iPhone and Android.",
+    "ctaPrimary": "Start your binder — free",
+    "ctaSecondary": "Browse {{count}} cards",
+    "stats": {
+      "cards": "different cards",
+      "printings": "printings & alt arts",
+      "sets": "products",
+      "languages": "card languages"
+    },
+    "featuresEyebrow": "Built for players",
+    "featuresTitle": "Your whole collection, finally organised",
+    "features": {
+      "printings": {
+        "title": "Every printing, tracked",
+        "body": "Base, parallel, manga and reprint versions — in English and Japanese — each counted separately."
+      },
+      "decks": {
+        "title": "Check any decklist",
+        "body": "Paste a list from OPTCG Sim or any deckbuilder and see exactly which cards you're missing."
+      },
+      "sets": {
+        "title": "Collect set by set",
+        "body": "Tap through any booster like a binder page and watch your completion grow."
+      },
+      "import": {
+        "title": "Bring your collection",
+        "body": "Import thousands of cards from a list or spreadsheet in one go, and export a backup anytime."
+      },
+      "updated": {
+        "title": "Always up to date",
+        "body": "New cards arrive automatically from the official card list, usually the day they're published."
+      },
+      "everywhere": {
+        "title": "Everywhere you play",
+        "body": "Web, iPhone and Android, synced through your account — your binder is always in your pocket."
+      }
+    },
+    "deckEyebrow": "Deck check",
+    "deckTitle": "Know what to buy before you build",
+    "deckBody": "Any art or language of a card fills its slot, so your alt arts count. Hold back cards that are already sleeved in your built decks, and copy the missing list straight into a shop order.",
+    "deckPoint1": "Paste from OPTCG Sim and most deckbuilders",
+    "deckPoint2": "English-only mode for official events",
+    "deckPoint3": "One tap to copy what you're missing",
+    "demoDeck": "Example deck",
+    "demoProgress": "38 / 51 owned",
+    "latestEyebrow": "Newest set",
+    "viewSet": "View set",
+    "closingTitle": "Set sail with your collection",
+    "closingBody": "Free to use. Sign up with your email and start adding cards in seconds."
+  },
+  "dashboard": {
+    "eyebrow": "Dashboard",
+    "greeting": "Welcome back, {{name}}",
+    "subtitle": "Here's where your collection stands.",
+    "checkDeck": "Check a decklist",
+    "stats": {
+      "copies": "Cards owned",
+      "printings": "Printings",
+      "cards": "Different cards",
+      "decks": "Decks"
+    },
+    "yourDecks": "Your decks",
+    "seeAll": "See all",
+    "latestSet": "Newest set",
+    "continueCollecting": "Continue collecting",
+    "recent": "Recently added"
+  },
+  "decks": {
+    "eyebrow": "Deck check",
+    "title": "Decks",
+    "subtitle": "Save decklists and see what you're missing from your collection.",
+    "signedOutTitle": "Check decklists against your collection",
+    "signedOutBody": "Create a free account, add the cards you own, then paste any decklist to see what you have and what you're missing.",
+    "new": "New deck",
+    "newTitle": "New deck",
+    "editTitle": "Edit deck",
+    "emptyTitle": "No decks yet",
+    "emptyBody": "Paste a decklist from OPTCG Sim or any deckbuilder to check it against your collection.",
+    "built": "Built",
+    "noLeader": "No leader",
+    "complete": "Complete",
+    "ownedOf": "{{owned}} / {{total}} owned",
+    "name": "Deck name",
+    "namePlaceholder": "e.g. Red Zoro aggro",
+    "listLabel": "Decklist",
+    "listHint": "One card per line, like 4xOP01-016. Art suffixes and languages are ignored — any version counts.",
+    "preview": "Preview",
+    "cardCount_one": "{{count}} card",
+    "cardCount_other": "{{count}} cards",
+    "youOwn": "You own {{have}} of these {{total}} cards.",
+    "unknownCards_one": "{{count}} card number not found: {{codes}}",
+    "unknownCards_other": "{{count}} card numbers not found: {{codes}}",
+    "ignoredLines_one": "{{count}} line without a card number was ignored.",
+    "ignoredLines_other": "{{count}} lines without a card number were ignored.",
+    "notes": "Notes (optional)",
+    "notesPlaceholder": "Strategy, side-deck ideas, tournament results…",
+    "saveNew": "Save deck",
+    "errors": {
+      "nameRequired": "Give your deck a name."
+    },
+    "problems": {
+      "none": "Legal deck: 1 leader, 50 cards, max 4 copies.",
+      "noLeader": "No leader card in this list.",
+      "multipleLeaders_one": "{{count}} leaders — a deck uses exactly one.",
+      "multipleLeaders_other": "{{count}} leaders — a deck uses exactly one.",
+      "wrongSize_one": "{{count}} card besides the leader — a deck needs exactly 50.",
+      "wrongSize_other": "{{count}} cards besides the leader — a deck needs exactly 50.",
+      "tooManyCopies": "{{count}} copies of {{card}} — the limit is 4."
+    },
+    "cardsOwned": "cards owned",
+    "cardsMissing": "cards missing",
+    "copyMissing": "Copy missing",
+    "copyShopping": "Shopping list",
+    "copyDeck": "Copy decklist",
+    "copiedMissing_one": "Copied {{count}} missing card (Sim format).",
+    "copiedMissing_other": "Copied {{count}} missing cards (Sim format).",
+    "copiedShopping": "Shopping list copied.",
+    "copiedDeck": "Decklist copied (Sim format).",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteTitle": "Delete this deck?",
+    "deleteBody": "“{{name}}” will be removed. Your collection is not affected.",
+    "englishOnly": "English cards only",
+    "englishOnlyHint": "Ignore Japanese copies (for official English events).",
+    "reserveBuilt": "Hold back cards in built decks",
+    "reserveBuiltHint": "Copies sleeved in your other built decks don't count as available.",
+    "isBuilt": "I've built this deck",
+    "isBuiltHint": "Its cards are in use and can be held back when checking other decks.",
+    "filters": {
+      "all": "All · {{count}}",
+      "missing": "Missing · {{count}}",
+      "owned": "Complete · {{count}}"
+    },
+    "nothingMissing": "Nothing missing — this deck is complete!",
+    "groups": {
+      "Leader": "Leader",
+      "Character": "Characters",
+      "Event": "Events",
+      "Stage": "Stages",
+      "Don": "DON!!"
+    },
+    "needMore_one": "Need {{count}}",
+    "needMore_other": "Need {{count}}",
+    "youHave": "You have {{owned}}",
+    "noneOwned": "You don't own this card",
+    "reserved_one": "{{count}} in built decks",
+    "reserved_other": "{{count}} in built decks"
   }
 }

@@ -16,7 +16,7 @@ import { importCollection, type ImportMode, type ImportSummary } from '@/lib/api
 import { pickTextFile, type PickedTextFile } from '@/lib/files';
 import { confirmAction, notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
-import { monoFont, radius, spacing, usePalette } from '@/theme';
+import { fonts, monoFont, radius, spacing, usePalette } from '@/theme';
 
 type Step =
   | { name: 'edit' }
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   example: { fontFamily: monoFont, fontSize: 13, lineHeight: 20 },
   fileRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flex: { flex: 1 },
-  bold: { fontWeight: '700' },
+  bold: { fontFamily: fonts.semibold },
   textarea: { minHeight: 180, paddingTop: spacing.md, fontFamily: monoFont, fontSize: 14 },
   option: { gap: spacing.xs },
   stat: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },

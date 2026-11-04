@@ -21,16 +21,16 @@ export function Chip({ label, selected = false, onPress, dotColor }: ChipProps) 
       accessibilityState={{ checked: selected }}
       accessibilityLabel={label}
       hitSlop={4}
-      style={({ pressed }) => [
+      style={({ pressed, hovered }) => [
         styles.chip,
         {
-          backgroundColor: selected ? palette.text : palette.surface,
-          borderColor: selected ? palette.text : palette.border,
+          backgroundColor: selected ? palette.primarySoft : hovered ? palette.surfaceAlt : palette.surface,
+          borderColor: selected ? palette.primary : palette.border,
         },
-        pressed && { opacity: 0.75 },
+        pressed && { opacity: 0.8 },
       ]}>
       {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
-      <Text variant="caption" style={{ color: selected ? palette.background : palette.text, fontWeight: '600' }}>
+      <Text variant="caption" weight="semibold" style={{ color: selected ? palette.primary : palette.text }}>
         {label}
       </Text>
     </Pressable>

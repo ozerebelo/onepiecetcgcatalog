@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'reac
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import type { CardSearchParams } from '@/lib/api';
-import { CARD_COLORS, spacing, usePalette } from '@/theme';
+import { CARD_COLORS, fonts, spacing, usePalette } from '@/theme';
 
 import { Chip } from './ui/chip';
 import { Segmented } from './ui/segmented';
@@ -213,10 +213,10 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
 }
 
 const styles = StyleSheet.create({
-  header: { paddingTop: spacing.md, gap: spacing.sm },
+  header: { gap: spacing.sm },
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 28 },
   count: { flex: 1 },
-  bold: { fontWeight: '700' },
+  bold: { fontFamily: fonts.semibold },
   panel: { maxHeight: 360 },
   panelContent: { gap: spacing.md, paddingBottom: spacing.md },
   filterRow: { gap: spacing.xs },

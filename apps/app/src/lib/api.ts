@@ -3,6 +3,8 @@ import type {
   Category,
   CollectionExportRow,
   Color,
+  DeckItem,
+  DeckRow,
   ImportItem,
   Language,
   PrintingRow,
@@ -278,4 +280,149 @@ export async function importCollection(items: ImportItem[], mode: ImportMode, dr
 export async function exportCollection(): Promise<CollectionExportRow[]> {
   const result = await getSupabase().rpc('export_collection');
   return (unwrap(result) as CollectionExportRow[] | null) ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Landing page
+// ---------------------------------------------------------------------------
+
+export interface CatalogStats {
+  cards: number;
+  printings: number;
+  sets: number;
+}
+
+export async function fetchCatalogStats(): Promise<CatalogStats> {
+  const supabase = getSupabase();
+  const count = async (table: 'cards' | 'printings' | 'sets') => {
+    const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
+    if (error) throw new ApiError(error.message);
+    return count ?? 0;
+  };
+  const [cards, printings, sets] = await Promise.all([count('cards'), count('printings'), count('sets')]);
+  return { cards, printings, sets };
+}
+
+export interface Showcase {
+  set: SetRow;
+  printings: Pick<PrintingRow, 'id' | 'card_id' | 'code' | 'name' | 'image_url' | 'rarity'>[];
+}
+
+/** The newest English booster and some of its most striking printings (alt arts / secret rares). */
+export async function fetchShowcase(): Promise<Showcase | null> {
+  const supabase = getSupabase();
+  const sets = await supabase
+    .from('sets')
+    .select('*')
+    .eq('language', 'en')
+    .eq('kind', 'booster')
+    .order('sort_order', { ascending: false })
+    .limit(1);
+  const set = (unwrap(sets) as SetRow[])[0];
+  if (!set) return null;
+  const printings = await supabase
+    .from('printings')
+    .select('id, card_id, code, name, image_url, rarity')
+    .eq('set_id', set.id)
+    .in('rarity', ['SecretRare', 'Leader', 'SuperRare'])
+    .neq('variant', 'base')
+    .order('card_id')
+    .limit(12);
+  return { set, printings: unwrap(printings) as Showcase['printings'] };
+}
+
+// ---------------------------------------------------------------------------
+// Decks (signed-in users; RLS scopes everything to the caller)
+// ---------------------------------------------------------------------------
+
+export interface DeckSummary {
+  id: string;
+  name: string;
+  leader_card_id: string | null;
+  leader_name: string | null;
+  leader_colors: Color[] | null;
+  leader_image_url: string | null;
+  is_built: boolean;
+  card_count: number;
+  owned_count: number;
+  updated_at: string;
+}
+
+export async function fetchDeckSummaries(languages: Language[] | null): Promise<DeckSummary[]> {
+  const result = await getSupabase().rpc('deck_summaries', { p_languages: languages });
+  return (unwrap(result) as DeckSummary[]).map((d) => ({
+    ...d,
+    card_count: Number(d.card_count),
+    owned_count: Number(d.owned_count),
+  }));
+}
+
+export async function fetchDeck(id: string): Promise<DeckRow | null> {
+  const result = await getSupabase().from('decks').select('*').eq('id', id).maybeSingle();
+  if (result.error) throw new ApiError(result.error.message);
+  return result.data as DeckRow | null;
+}
+
+export async function fetchDeckItems(id: string): Promise<DeckItem[]> {
+  const result = await getSupabase().from('deck_cards').select('card_id, quantity').eq('deck_id', id).order('card_id');
+  return unwrap(result) as DeckItem[];
+}
+
+export interface CheckRow {
+  card_id: string;
+  known: boolean;
+  name: string | null;
+  category: Category | null;
+  colors: Color[] | null;
+  cost: number | null;
+  image_url: string | null;
+  needed: number;
+  owned: number;
+  reserved: number;
+  have: number;
+  missing: number;
+  owned_printings: { printing_id: string; code: string; language: Language; quantity: number }[];
+}
+
+export interface CheckOptions {
+  languages: Language[] | null;
+  reserveBuilt: boolean;
+}
+
+export async function checkDeck(id: string, options: CheckOptions): Promise<CheckRow[]> {
+  const result = await getSupabase().rpc('check_deck', {
+    p_deck_id: id,
+    p_languages: options.languages,
+    p_reserve_built: options.reserveBuilt,
+  });
+  return unwrap(result) as CheckRow[];
+}
+
+export async function checkCards(items: DeckItem[], options: CheckOptions): Promise<CheckRow[]> {
+  const result = await getSupabase().rpc('check_cards', {
+    p_items: items,
+    p_languages: options.languages,
+    p_reserve_built: options.reserveBuilt,
+  });
+  return unwrap(result) as CheckRow[];
+}
+
+export async function saveDeck(
+  id: string | null,
+  name: string,
+  items: DeckItem[],
+  notes: string | null,
+): Promise<{ id: string; card_count: number; skipped: string[] }> {
+  const result = await getSupabase().rpc('save_deck', { p_deck_id: id, p_name: name, p_items: items, p_notes: notes });
+  return unwrap(result) as { id: string; card_count: number; skipped: string[] };
+}
+
+export async function deleteDeck(id: string): Promise<void> {
+  const { error } = await getSupabase().from('decks').delete().eq('id', id);
+  if (error) throw new ApiError(error.message);
+}
+
+export async function setDeckBuilt(id: string, built: boolean): Promise<void> {
+  const { error } = await getSupabase().from('decks').update({ is_built: built }).eq('id', id);
+  if (error) throw new ApiError(error.message);
 }

@@ -8,12 +8,12 @@ import { usePalette } from '@/theme';
  */
 export function AppSwitch(props: SwitchProps) {
   const palette = usePalette();
-  const webProps = Platform.OS === 'web' ? ({ activeThumbColor: palette.surface } as object) : {};
+  const webProps = Platform.OS === 'web' ? ({ activeThumbColor: '#FFFFFF' } as object) : {};
   return (
     <Switch
-      trackColor={{ true: palette.primary, false: palette.border }}
-      thumbColor={palette.surface}
-      ios_backgroundColor={palette.border}
+      trackColor={{ true: palette.primary, false: palette.borderStrong }}
+      thumbColor="#FFFFFF"
+      ios_backgroundColor={palette.borderStrong}
       {...webProps}
       {...props}
     />

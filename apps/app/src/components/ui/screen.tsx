@@ -10,14 +10,16 @@ interface ScreenProps {
   scroll?: boolean;
   /** Narrow centered column for forms. */
   narrow?: boolean;
+  /** Full-bleed content (landing page sections handle their own width). */
+  bleed?: boolean;
   edges?: Edge[];
   contentStyle?: StyleProp<ViewStyle>;
 }
 
 /** Page container: theme background, safe areas, and a centered max-width column on wide screens. */
-export function Screen({ children, scroll = false, narrow = false, edges = ['top'], contentStyle }: ScreenProps) {
+export function Screen({ children, scroll = false, narrow = false, bleed = false, edges = ['top'], contentStyle }: ScreenProps) {
   const palette = usePalette();
-  const column = [styles.column, narrow && styles.narrow, contentStyle];
+  const column = bleed ? [styles.bleed, contentStyle] : [styles.column, narrow && styles.narrow, contentStyle];
 
   return (
     <SafeAreaView edges={edges} style={[styles.flex, { backgroundColor: palette.background }]}>
@@ -34,9 +36,15 @@ export function Screen({ children, scroll = false, narrow = false, edges = ['top
   );
 }
 
+/** Centered max-width column for use inside full-bleed pages. */
+export function Container({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.column, style]}>{children}</View>;
+}
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingBottom: spacing.xxl },
-  column: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', paddingHorizontal: spacing.lg },
-  narrow: { maxWidth: 440, paddingTop: spacing.xl, gap: spacing.lg },
+  scrollContent: { flexGrow: 1, paddingBottom: spacing.xxxl },
+  column: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', paddingHorizontal: spacing.lg, gap: spacing.lg },
+  bleed: { width: '100%' },
+  narrow: { maxWidth: 460, paddingTop: spacing.xl },
 });

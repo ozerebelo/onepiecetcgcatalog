@@ -95,3 +95,21 @@ export interface CollectionItemRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface DeckRow {
+  id: string;
+  user_id: string;
+  name: string;
+  leader_card_id: string | null;
+  notes: string | null;
+  is_built: boolean;
+  card_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeckCardRow {
+  deck_id: string;
+  card_id: string;
+  quantity: number; // 1..50
+}

@@ -1,42 +1,61 @@
-import type { ComponentProps } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 
-import { fontSize, radius, spacing, usePalette } from '@/theme';
+import { fonts, fontSize, radius, spacing, usePalette } from '@/theme';
 
+import { Icon, type IconName } from './icon';
 import { Text } from './text';
 
 export type TextFieldProps = ComponentProps<typeof TextInput> & {
   label?: string;
   error?: string | null;
+  hint?: string;
+  icon?: IconName;
 };
 
-/** Labeled text input. `ref` is forwarded to the underlying TextInput (React 19 ref-as-prop). */
-export function TextField({ label, error, style, ...rest }: TextFieldProps) {
+/** Labeled text input with focus ring. `ref` is forwarded to the TextInput (React 19 ref-as-prop). */
+export function TextField({ label, error, hint, icon, style, onFocus, onBlur, ...rest }: TextFieldProps) {
   const palette = usePalette();
+  const [focused, setFocused] = useState(false);
   return (
     <View style={styles.container}>
       {label ? (
-        <Text variant="caption" tone="secondary" style={styles.label}>
+        <Text variant="caption" weight="semibold" tone="secondary">
           {label}
         </Text>
       ) : null}
-      <TextInput
-        placeholderTextColor={palette.textMuted}
-        accessibilityLabel={label}
+      <View
         style={[
-          styles.input,
+          styles.box,
           {
-            color: palette.text,
             backgroundColor: palette.surface,
-            borderColor: error ? palette.danger : palette.border,
+            borderColor: error ? palette.danger : focused ? palette.primary : palette.border,
+            boxShadow: focused ? `0 0 0 3px ${palette.primarySoft}` : undefined,
           },
-          style,
-        ]}
-        {...rest}
-      />
+        ]}>
+        {icon ? <Icon name={icon} size={18} color={palette.textMuted} /> : null}
+        <TextInput
+          placeholderTextColor={palette.textMuted}
+          accessibilityLabel={label}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          style={[styles.input, { color: palette.text }, style]}
+          {...rest}
+        />
+      </View>
       {error ? (
         <Text variant="caption" tone="danger" accessibilityLiveRegion="polite">
           {error}
+        </Text>
+      ) : hint ? (
+        <Text variant="caption" tone="muted">
+          {hint}
         </Text>
       ) : null}
     </View>
@@ -45,12 +64,14 @@ export function TextField({ label, error, style, ...rest }: TextFieldProps) {
 
 const styles = StyleSheet.create({
   container: { gap: spacing.xs },
-  label: { fontWeight: '600' },
-  input: {
+  box: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     minHeight: 48,
     borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    fontSize: fontSize.md,
   },
+  input: { flex: 1, minHeight: 46, fontFamily: fonts.regular, fontSize: fontSize.md, outlineStyle: 'none' } as object,
 });
