@@ -27,7 +27,7 @@ import {
   type SetCover,
 } from '@/lib/api';
 import { formatReleaseDate, setDisplayName } from '@/lib/format';
-import { radius, spacing, usePalette } from '@/theme';
+import { radius, spacing, tabular, usePalette } from '@/theme';
 
 const SORTS: readonly SearchSort[] = ['relevance', 'number', 'name', 'cost'];
 
@@ -66,7 +66,7 @@ export default function CardsScreen() {
 
   return (
     <Screen>
-      <PageHeader eyebrow={t('cardsPage.eyebrow')} title={t('cardsPage.title')} subtitle={t('cardsPage.subtitle')} />
+      <PageHeader title={t('cardsPage.title')} subtitle={t('cardsPage.subtitle')} />
       <SearchHeader
         filters={filters}
         sortOptions={SORTS}
@@ -122,7 +122,7 @@ type Row = { type: 'heading'; label: string; key: string } | { type: 'packs'; se
 /** Sets newest first, in sections by release year; products without a date come last. */
 function SetTimeline({ sets, language }: { sets: SetRow[]; language: Language }) {
   const { t } = useTranslation();
-  const { columns, tileWidth } = useGridColumns(150);
+  const { columns, tileWidth } = useGridColumns(220, spacing.md);
   const covers = useQuery({ queryKey: ['set-covers', language], queryFn: () => fetchSetCovers(language), staleTime: 60 * 60 * 1000 });
   const progress = useSetProgress(language);
 
@@ -161,7 +161,7 @@ function SetTimeline({ sets, language }: { sets: SetRow[]; language: Language })
         ) : (
           <View style={styles.packRow}>
             {item.sets.map((set) => (
-              <PackTile
+              <SetTile
                 key={set.id}
                 set={set}
                 cover={covers.data?.[set.id]}
@@ -176,13 +176,17 @@ function SetTimeline({ sets, language }: { sets: SetRow[]; language: Language })
   );
 }
 
-/** One product: its pack image (or, without one, a card from the set), code, name, date and progress. */
-function PackTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; width: number; owned?: number }) {
+/**
+ * One product: its key artwork (the illustration on the pack; without one, a card from the set),
+ * then code, name, release date and progress.
+ */
+function SetTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; width: number; owned?: number }) {
   const { t, i18n } = useTranslation();
   const palette = usePalette();
   const name = setDisplayName(set, t(`sets.kinds.${set.kind}`));
   const date = formatReleaseDate(set.release_date, i18n.language, 'short');
   const complete = owned !== undefined && owned > 0 && owned >= set.printing_count;
+  const artwork = set.image_url ?? cover?.image_url ?? null;
 
   return (
     <Link href={{ pathname: '/set/[id]', params: { id: set.id } }} asChild>
@@ -191,44 +195,39 @@ function PackTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover;
         accessibilityLabel={`${set.code}, ${name}`}
         boxStyle={[styles.tile, { width, backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow }]}
         activeStyle={styles.lift}>
-        <View style={[styles.pack, set.image_url ? styles.packLight : { backgroundColor: palette.surfaceAlt }]}>
-          {set.image_url ? (
-            <Image source={{ uri: set.image_url }} style={StyleSheet.absoluteFill} contentFit="contain" transition={150} accessibilityLabel={name} />
-          ) : cover?.image_url ? (
+        <View style={[styles.art, { backgroundColor: palette.surfaceAlt }]}>
+          {artwork ? (
             <Image
-              source={{ uri: cover.image_url }}
+              source={{ uri: artwork }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
-              contentPosition={{ top: '10%', left: '50%' }}
+              // card art (fallback) shows its illustration, not the text box at the bottom
+              contentPosition={set.image_url ? 'center' : { top: '12%', left: '50%' }}
               transition={150}
-              accessibilityLabel={cover.name}
+              accessibilityLabel={name}
             />
           ) : null}
+          <View style={[styles.code, { backgroundColor: palette.overlay }]}>
+            <Text variant="mono" style={styles.codeText}>
+              {set.code}
+            </Text>
+          </View>
         </View>
         <View style={styles.tileBody}>
-          <Text variant="eyebrow" tone="primary">
-            {set.code}
-          </Text>
           <Text variant="subheading" numberOfLines={2} style={styles.name}>
             {name}
           </Text>
-          {date ? (
-            <Text variant="caption" tone="muted">
-              {date}
-            </Text>
-          ) : null}
+          <Text variant="caption" tone="muted" style={tabular}>
+            {date ? `${date} · ${t('sets.printings', { count: set.printing_count })}` : t('sets.printings', { count: set.printing_count })}
+          </Text>
           {owned !== undefined ? (
             <View style={styles.progress}>
-              <ProgressBar value={set.printing_count ? owned / set.printing_count : 0} tone={complete ? 'success' : 'primary'} height={5} />
-              <Text variant="caption" tone="secondary">
+              <ProgressBar value={set.printing_count ? owned / set.printing_count : 0} tone={complete ? 'success' : 'primary'} height={4} />
+              <Text variant="caption" tone="secondary" style={tabular}>
                 {t('cardsPage.owned', { owned, total: set.printing_count })}
               </Text>
             </View>
-          ) : (
-            <Text variant="caption" tone="secondary">
-              {t('sets.printings', { count: set.printing_count })}
-            </Text>
-          )}
+          ) : null}
         </View>
       </PressableArea>
     </Link>
@@ -292,12 +291,13 @@ const styles = StyleSheet.create({
   kinds: { gap: spacing.sm, paddingVertical: spacing.xs },
   year: { marginTop: spacing.xl, marginBottom: spacing.md },
   firstYear: { marginTop: spacing.sm },
-  packRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+  packRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
   tile: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   lift: { transform: [{ translateY: -4 }] },
-  pack: { aspectRatio: 1, width: '100%' },
-  packLight: { backgroundColor: '#FFFFFF' },
-  tileBody: { padding: spacing.md, gap: 3 },
+  art: { aspectRatio: 4 / 3, width: '100%' },
+  code: { position: 'absolute', left: spacing.sm, top: spacing.sm, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  codeText: { color: '#FFFFFF' },
+  tileBody: { paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.md, gap: 4 },
   name: { minHeight: 42 },
   progress: { gap: 4, marginTop: spacing.xs },
 });

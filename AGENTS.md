@@ -34,7 +34,7 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
   views renders fine but makes clicks silently do nothing. Test navigation by clicking, not `goto`.
 - **Web navigation lives in two places:** tab screens use `components/app-tabs.web.tsx` (top bar on wide
   screens, bottom bar on phones); screens pushed on top of the tabs (card, set, deck, import, auth) get
-  `components/web-stack-header.tsx`. Keep their links in sync. Sets live on the Cards page (pack covers,
+  `components/web-stack-header.tsx`. Keep their links in sync. Sets live on the Cards page (set artwork,
   newest release first); `/sets` only redirects there, and its tab trigger stays registered but hidden.
 - **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,
   `PageHeader`, `Button`, `Text` variants/weights). Custom fonts use one family per weight — set

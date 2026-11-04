@@ -96,7 +96,6 @@ function CollectionView({ userId }: { userId: string }) {
   return (
     <Screen>
       <PageHeader
-        eyebrow={t('collection.eyebrow')}
         title={t('collection.title')}
         subtitle={
           summary.data

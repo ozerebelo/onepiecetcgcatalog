@@ -125,7 +125,7 @@ export default function SetScreen() {
       <View style={styles.titleRow}>
         {set.data.image_url ? (
           <View style={styles.pack}>
-            <Image source={{ uri: set.data.image_url }} style={StyleSheet.absoluteFill} contentFit="contain" accessibilityLabel={set.data.name} />
+            <Image source={{ uri: set.data.image_url }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={set.data.name} />
           </View>
         ) : null}
         <View style={[styles.titleBlock, styles.flexShrink]}>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   header: { paddingTop: spacing.xl, paddingBottom: spacing.lg, gap: spacing.md },
   titleBlock: { gap: spacing.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  pack: { width: 88, height: 88, borderRadius: 12, overflow: 'hidden', backgroundColor: '#FFFFFF' },
+  pack: { width: 136, aspectRatio: 4 / 3, borderRadius: 12, overflow: 'hidden' },
   flexShrink: { flexShrink: 1 },
   progressPanel: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

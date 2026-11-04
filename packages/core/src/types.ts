@@ -50,9 +50,9 @@ export interface SetRow {
   printing_count: number;
   /** From the official product list; null when unknown (promos, other products). */
   release_date: string | null; // ISO date, e.g. "2026-08-28"
-  /** Pack image shown in the apps (our Storage copy once mirrored), or null. */
+  /** The set's key artwork (the illustration on the pack), our Storage copy; null until copied. */
   image_url: string | null;
-  /** Official pack image address the importer copies from. */
+  /** Official artwork address the importer copies from. */
   source_image_url: string | null;
 }
 

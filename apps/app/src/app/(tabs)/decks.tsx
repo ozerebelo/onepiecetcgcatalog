@@ -27,7 +27,7 @@ export default function DecksScreen() {
   if (!user) {
     return (
       <Screen scroll narrow>
-        <PageHeader eyebrow={t('decks.eyebrow')} title={t('decks.title')} />
+        <PageHeader title={t('decks.title')} />
         <Panel>
           <Text variant="heading">{t('decks.signedOutTitle')}</Text>
           <Text tone="secondary">{t('decks.signedOutBody')}</Text>
@@ -45,7 +45,6 @@ export default function DecksScreen() {
   return (
     <Screen scroll>
       <PageHeader
-        eyebrow={t('decks.eyebrow')}
         title={t('decks.title')}
         subtitle={t('decks.subtitle')}
         actions={

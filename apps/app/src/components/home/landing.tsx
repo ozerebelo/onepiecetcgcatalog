@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -7,22 +8,16 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { Logo } from '@/components/brand/logo';
 import { CardImage } from '@/components/card-image';
 import { Button } from '@/components/ui/button';
-import { Icon, type IconName } from '@/components/ui/icon';
+import { Icon } from '@/components/ui/icon';
 import { Badge, Panel } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Container } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { fetchCatalogStats, fetchShowcase, type Showcase } from '@/lib/api';
-import { MAX_CONTENT_WIDTH, WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
+import { formatReleaseDate, titleCase } from '@/lib/format';
+import { MAX_CONTENT_WIDTH, WIDE_BREAKPOINT, radius, spacing, tabular, usePalette } from '@/theme';
 
-const FEATURES: { icon: IconName; key: string }[] = [
-  { icon: 'layers', key: 'printings' },
-  { icon: 'check-square', key: 'decks' },
-  { icon: 'grid', key: 'sets' },
-  { icon: 'upload-cloud', key: 'import' },
-  { icon: 'refresh-cw', key: 'updated' },
-  { icon: 'smartphone', key: 'everywhere' },
-];
+const FEATURES = ['printings', 'decks', 'sets', 'import', 'updated', 'everywhere'] as const;
 
 /** Public home page for visitors who aren't signed in. */
 export function Landing() {
@@ -44,12 +39,6 @@ export function Landing() {
         <Container style={[styles.heroInner, wide && styles.heroInnerWide]}>
           <View style={[styles.heroText, wide && { flex: 1 }]}>
             {!wide ? <Logo size={28} color={palette.heroText} /> : null}
-            <View style={[styles.pill, { borderColor: 'rgba(255,255,255,0.18)' }]}>
-              <View style={[styles.pillDot, { backgroundColor: palette.accent }]} />
-              <Text variant="caption" weight="medium" tone="heroSecondary">
-                {t('landing.eyebrow')}
-              </Text>
-            </View>
             <Text variant="display" tone="hero" style={[styles.h1, !wide && styles.h1Narrow]} accessibilityRole="header">
               {t('landing.titleLine1')}
               {'\n'}
@@ -82,7 +71,9 @@ export function Landing() {
           { value: 'EN + JP', label: t('landing.stats.languages') },
         ].map((s) => (
           <View key={s.label} style={styles.stat}>
-            <Text variant="title">{s.value}</Text>
+            <Text variant="title" style={tabular}>
+              {s.value}
+            </Text>
             <Text variant="caption" tone="secondary">
               {s.label}
             </Text>
@@ -91,24 +82,19 @@ export function Landing() {
       </Container>
 
       {/* Features */}
-      <Container style={styles.section}>
-        <View style={styles.sectionHead}>
-          <Text variant="eyebrow" tone="primary">
-            {t('landing.featuresEyebrow')}
-          </Text>
-          <Text variant="title" style={styles.center} accessibilityRole="header">
+      <Container style={[styles.section, wide && styles.split, wide && styles.alignStart]}>
+        <View style={[styles.featuresIntro, wide && { flex: 2 }]}>
+          <Text variant="title" accessibilityRole="header">
             {t('landing.featuresTitle')}
           </Text>
+          <Text tone="secondary">{t('landing.featuresLead')}</Text>
         </View>
-        <View style={styles.featureGrid}>
-          {FEATURES.map((f) => (
-            <Panel key={f.key} style={[styles.feature, { flexBasis: wide ? '31%' : '100%' }]}>
-              <View style={[styles.featureIcon, { backgroundColor: palette.primarySoft }]}>
-                <Icon name={f.icon} size={20} color={palette.primary} />
-              </View>
-              <Text variant="subheading">{t(`landing.features.${f.key}.title`)}</Text>
-              <Text tone="secondary">{t(`landing.features.${f.key}.body`)}</Text>
-            </Panel>
+        <View style={[styles.featureGrid, wide && { flex: 3 }]}>
+          {FEATURES.map((key) => (
+            <View key={key} style={[styles.feature, { borderTopColor: palette.border, flexBasis: wide ? '46%' : '100%' }]}>
+              <Text variant="subheading">{t(`landing.features.${key}.title`)}</Text>
+              <Text tone="secondary">{t(`landing.features.${key}.body`)}</Text>
+            </View>
           ))}
         </View>
       </Container>
@@ -116,9 +102,6 @@ export function Landing() {
       {/* Deck check demo */}
       <Container style={[styles.section, wide && styles.split]}>
         <View style={[styles.splitText, wide && { flex: 1 }]}>
-          <Text variant="eyebrow" tone="primary">
-            {t('landing.deckEyebrow')}
-          </Text>
           <Text variant="title" accessibilityRole="header">
             {t('landing.deckTitle')}
           </Text>
@@ -136,21 +119,40 @@ export function Landing() {
       {/* Latest set */}
       {showcase.data ? (
         <Container style={styles.section}>
-          <View style={styles.rowBetween}>
-            <View style={styles.flex}>
+          <View style={[styles.latest, wide && styles.split]}>
+            {showcase.data.set.image_url ? (
+              <View style={[styles.latestArt, wide && { flex: 1 }, { boxShadow: palette.shadow }]}>
+                <Image
+                  source={{ uri: showcase.data.set.image_url }}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                  transition={150}
+                  accessibilityLabel={showcase.data.set.name}
+                />
+              </View>
+            ) : null}
+            <View style={[styles.latestText, wide && { flex: 1 }]}>
               <Text variant="eyebrow" tone="primary">
-                {t('landing.latestEyebrow')}
+                {t('landing.latestTag', { code: showcase.data.set.code })}
               </Text>
-              <Text variant="heading">
-                {showcase.data.set.code} · {showcase.data.set.name}
+              <Text variant="title" accessibilityRole="header">
+                {titleCase(showcase.data.set.name)}
               </Text>
+              <Text tone="secondary">
+                {formatReleaseDate(showcase.data.set.release_date, i18n.language, 'long')
+                  ? t('landing.latestBody', {
+                      date: formatReleaseDate(showcase.data.set.release_date, i18n.language, 'long'),
+                      count: showcase.data.set.printing_count,
+                    })
+                  : t('landing.latestBodyNoDate', { count: showcase.data.set.printing_count })}
+              </Text>
+              <Link href={{ pathname: '/set/[id]', params: { id: showcase.data.set.id } }} asChild>
+                <Button title={t('landing.viewSet')} variant="outline" trailingIcon="arrow-right" boxStyle={styles.start} />
+              </Link>
             </View>
-            <Link href={{ pathname: '/set/[id]', params: { id: showcase.data.set.id } }} asChild>
-              <Button title={t('landing.viewSet')} variant="outline" size="sm" trailingIcon="arrow-right" />
-            </Link>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
-            {showcase.data.printings.map((p) => (
+            {showcase.data.printings.slice(0, 12).map((p) => (
               <Link key={p.id} href={{ pathname: '/card/[id]', params: { id: p.card_id, printing: p.id } }} asChild>
                 <PressableArea boxStyle={styles.stripCard} activeStyle={styles.lift} accessibilityLabel={`${p.name}, ${p.code}`}>
                   <View style={{ boxShadow: palette.shadow, borderRadius: radius.md }}>
@@ -196,9 +198,15 @@ export function Landing() {
   );
 }
 
+/** One printing per card number, so the fan and the example deck never repeat a card. */
+function distinctCards(printings: Showcase['printings']) {
+  const seen = new Set<string>();
+  return printings.filter((p) => !seen.has(p.card_id) && seen.add(p.card_id));
+}
+
 function CardFan({ showcase, wide }: { showcase: Showcase | null; wide: boolean }) {
   const palette = usePalette();
-  const cards = (showcase?.printings ?? []).slice(0, 4);
+  const cards = distinctCards(showcase?.printings ?? []).slice(0, 4);
   const cardWidth = wide ? 190 : 118;
   const angles = [-14, -5, 5, 14];
   return (
@@ -228,7 +236,7 @@ function CardFan({ showcase, wide }: { showcase: Showcase | null; wide: boolean 
 function DeckDemo({ showcase, wide }: { showcase: Showcase | null; wide: boolean }) {
   const { t } = useTranslation();
   const palette = usePalette();
-  const rows = (showcase?.printings ?? []).slice(4, 8);
+  const rows = distinctCards(showcase?.printings ?? []).slice(4, 8);
   const demo = [
     { need: 4, have: 4 },
     { need: 4, have: 2 },
@@ -278,19 +286,7 @@ const styles = StyleSheet.create({
   heroInner: { gap: spacing.xxxl },
   heroInnerWide: { flexDirection: 'row', alignItems: 'center' },
   heroText: { gap: spacing.lg },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  pillDot: { width: 7, height: 7, borderRadius: 4 },
-  h1: { fontSize: 56, lineHeight: 60 },
+  h1: { fontSize: 54, lineHeight: 60, letterSpacing: -1.4 },
   h1Narrow: { fontSize: 38, lineHeight: 42 },
   lead: { fontSize: 17, lineHeight: 27, maxWidth: 540 },
   ctaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
@@ -299,12 +295,16 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', rowGap: spacing.xl, marginTop: -spacing.xl },
   stat: { alignItems: 'center', minWidth: 140, gap: 2 },
   section: { gap: spacing.xl },
-  sectionHead: { alignItems: 'center', gap: spacing.sm },
   center: { textAlign: 'center' },
-  featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
-  feature: { flexGrow: 1, gap: spacing.sm },
-  featureIcon: { width: 42, height: 42, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  featuresIntro: { gap: spacing.md, maxWidth: 420 },
+  featureGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.xxl, rowGap: spacing.xl },
+  feature: { flexGrow: 1, gap: 6, paddingTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth },
   split: { flexDirection: 'row', alignItems: 'center', gap: spacing.xxxl },
+  alignStart: { alignItems: 'flex-start' },
+  latest: { gap: spacing.xl },
+  latestArt: { aspectRatio: 4 / 3, borderRadius: radius.xl, overflow: 'hidden', minHeight: 200 },
+  latestText: { gap: spacing.md },
+  start: { alignSelf: 'flex-start' },
   splitText: { gap: spacing.md },
   point: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },

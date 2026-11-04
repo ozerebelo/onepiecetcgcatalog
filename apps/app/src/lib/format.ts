@@ -1,6 +1,11 @@
-/** "THE WORLD’S STRONGEST WARRIORS" → "The World’s Strongest Warriors". Official set names are all caps. */
+/**
+ * "THE WORLD’S STRONGEST WARRIORS" → "The World’s Strongest Warriors". Official set names are (almost)
+ * all caps ("ONE PIECE HEROINES EDITION vol.2"); names styled on purpose ("RED Shanks") stay as they are.
+ */
 export function titleCase(name: string): string {
-  if (name !== name.toUpperCase() || !/[A-Z]/.test(name)) return name;
+  const upper = (name.match(/[A-Z]/g) ?? []).length;
+  const lower = (name.match(/[a-z]/g) ?? []).length;
+  if (upper === 0 || upper / (upper + lower) < 0.8) return name;
   return name.toLowerCase().replace(/(^|[\s\-–(“"'/])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
 }
 

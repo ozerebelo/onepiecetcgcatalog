@@ -30,7 +30,7 @@ export default function AccountScreen() {
 
   return (
     <Screen scroll narrow>
-      <PageHeader eyebrow={t('account.eyebrow')} title={t('account.title')} />
+      <PageHeader title={t('account.title')} />
 
       {user ? (
         <>

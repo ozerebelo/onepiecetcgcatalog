@@ -6,7 +6,7 @@
  *   pnpm ingest --fetch --dry-run             # normalize and print a summary, no database needed
  *   pnpm ingest --fetch --mirror-images       # also copy new card images into Supabase Storage
  *   pnpm ingest --mirror-only                 # only copy images (no catalog refresh)
- *   pnpm ingest --fetch --products            # also read release dates + pack images from the official site
+ *   pnpm ingest --fetch --products            # also read release dates + set artwork from the official site
  *   pnpm ingest --products-only               # only refresh product details (no catalog refresh)
  *
  * Environment:
@@ -25,7 +25,15 @@ import pg from 'pg';
 import { connectionConfig, writeCatalog } from './db';
 import { mirrorImages, supabaseImageStore, supabaseUrlFromDatabaseUrl } from './mirror';
 import { normalize } from './normalize';
-import { PRODUCT_SITES, applyProducts, fetchProducts, mirrorPackImages, type ProductEntry } from './products';
+import {
+  PRODUCT_SITES,
+  applyProducts,
+  fetchArtwork,
+  fetchProducts,
+  mirrorArtwork,
+  setsNeedingArtwork,
+  type ProductEntry,
+} from './products';
 import { PUNK_RECORDS_REPO, fetchPunkRecords, gitRevision, readPunkRecords } from './source';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -112,23 +120,26 @@ async function main() {
 }
 
 /**
- * Release dates and pack images from the official product pages. A failure here (the site being down
+ * Release dates and pack artwork from the official product pages. A failure here (the site being down
  * or its markup changing) is reported but never fails the import: the card catalog matters more.
+ * Product pages are only read for sets that don't have artwork yet, so daily runs stay light.
  */
 async function runProducts(languages: Language[], { dryRun, mirror }: { dryRun: boolean; mirror: boolean }) {
-  const found = new Map<Language, Map<string, ProductEntry>>();
-  for (const language of languages) {
+  const listings: Partial<Record<Language, Map<string, ProductEntry>>> = {};
+  for (const language of LANGUAGES) {
     try {
-      const products = await fetchProducts(language);
-      found.set(language, products);
-      console.log(`products (${language}): ${products.size} listed on ${PRODUCT_SITES[language]}`);
+      listings[language] = await fetchProducts(language);
+      console.log(`products (${language}): ${listings[language]?.size} listed on ${PRODUCT_SITES[language]}`);
     } catch (error) {
-      console.warn(`products (${language}): skipped, could not read the product list: ${error instanceof Error ? error.message : error}`);
+      console.warn(`products (${language}): could not read the product list: ${error instanceof Error ? error.message : error}`);
     }
   }
   if (dryRun) {
-    for (const [language, products] of found) {
-      for (const p of [...products.values()].slice(0, 5)) console.log(`  ${language} ${p.code} ${p.releaseDate ?? '?'} ${p.imageUrl ?? 'no image'}`);
+    const sample = [...(listings.en?.keys() ?? [])].slice(0, 6);
+    const artwork = await fetchArtwork(sample, listings);
+    for (const code of sample) {
+      const p = listings.en?.get(code);
+      console.log(`  ${code} ${p?.releaseDate ?? '?'} ${artwork.get(code)?.kind ?? 'no artwork'} ${artwork.get(code)?.url ?? ''}`);
     }
     return;
   }
@@ -138,8 +149,14 @@ async function runProducts(languages: Language[], { dryRun, mirror }: { dryRun: 
   const client = new pg.Client(connectionConfig(databaseUrl, process.env.DATABASE_CA_CERT || undefined));
   await client.connect();
   try {
-    for (const [language, products] of found) {
-      const stats = await applyProducts(client, language, products);
+    const needed = new Set<string>();
+    for (const language of languages) for (const code of await setsNeedingArtwork(client, language)) needed.add(code);
+    const artwork = await fetchArtwork([...needed], listings);
+    console.log(`artwork: ${artwork.size} of ${needed.size} products needing it found on the product pages`);
+    for (const language of languages) {
+      const products = listings[language];
+      if (!products) continue;
+      const stats = await applyProducts(client, language, products, artwork);
       console.log(`products (${language}): ${stats.matched} sets matched, ${stats.updated} updated`);
       if (stats.unmatchedSets.length) console.log(`  not on the product list: ${stats.unmatchedSets.join(', ')}`);
     }
@@ -147,12 +164,12 @@ async function runProducts(languages: Language[], { dryRun, mirror }: { dryRun: 
     const supabaseUrl = process.env.SUPABASE_URL || supabaseUrlFromDatabaseUrl(databaseUrl);
     const secretKey = process.env.SUPABASE_SECRET_KEY;
     if (!secretKey || !supabaseUrl) {
-      console.warn('Pack images not copied: SUPABASE_SECRET_KEY / SUPABASE_URL missing (official addresses are kept).');
+      console.warn('Set artwork not copied: SUPABASE_SECRET_KEY / SUPABASE_URL missing.');
       return;
     }
-    const packs = await mirrorPackImages(client, supabaseImageStore(supabaseUrl, secretKey));
-    console.log(`pack images: ${packs.mirrored} copied, ${packs.failed} failed`);
-    for (const e of packs.errors.slice(0, 20)) console.warn(`  ! ${e}`);
+    const copied = await mirrorArtwork(client, supabaseImageStore(supabaseUrl, secretKey));
+    console.log(`set artwork: ${copied.mirrored} copied, ${copied.failed} failed`);
+    for (const e of copied.errors.slice(0, 20)) console.warn(`  ! ${e}`);
   } finally {
     await client.end();
   }
@@ -190,6 +207,7 @@ async function runMirror(limit: number) {
     await client.end();
   }
 }
+
 
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : error);

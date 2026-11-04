@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { elevation, radius, spacing, usePalette } from '@/theme';
+import { elevation, radius, spacing, tabular, usePalette } from '@/theme';
 
 import { Icon, type IconName } from './icon';
 import { Text } from './text';
@@ -33,7 +33,7 @@ export function Panel({
   );
 }
 
-/** Eyebrow + title + optional subtitle and trailing actions. */
+/** Page title, an optional one-line subtitle, and the page's actions on the right. */
 export function PageHeader({
   eyebrow,
   title,
@@ -75,26 +75,37 @@ export function SectionTitle({ title, action }: { title: string; action?: ReactN
   );
 }
 
-export function StatTile({ label, value, icon, hint }: { label: string; value: string; icon?: IconName; hint?: string }) {
+export interface Stat {
+  label: string;
+  value: string;
+  /** A short note under the label, e.g. "of 2,884 in the game". */
+  hint?: string;
+}
+
+/** Related numbers in one panel, split by thin dividers (wraps to two columns on phones). */
+export function StatGroup({ stats }: { stats: Stat[] }) {
   const palette = usePalette();
   return (
-    <Panel style={styles.stat}>
-      <View style={styles.statTop}>
-        <Text variant="label" tone="muted" style={styles.flex}>
-          {label}
-        </Text>
-        {icon ? (
-          <View style={[styles.statIcon, { backgroundColor: palette.primarySoft }]}>
-            <Icon name={icon} size={15} color={palette.primary} />
-          </View>
-        ) : null}
-      </View>
-      <Text variant="title">{value}</Text>
-      {hint ? (
-        <Text variant="caption" tone="secondary">
-          {hint}
-        </Text>
-      ) : null}
+    <Panel padded={false} style={styles.statGroup}>
+      {stats.map((stat, i) => (
+        <View
+          key={stat.label}
+          style={[styles.stat, i > 0 && { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: palette.border }]}
+          accessible
+          accessibilityLabel={`${stat.label}: ${stat.value}${stat.hint ? `, ${stat.hint}` : ''}`}>
+          <Text variant="title" style={[styles.statValue, tabular]}>
+            {stat.value}
+          </Text>
+          <Text variant="caption" tone="secondary">
+            {stat.label}
+          </Text>
+          {stat.hint ? (
+            <Text variant="caption" tone="muted">
+              {stat.hint}
+            </Text>
+          ) : null}
+        </View>
+      ))}
     </Panel>
   );
 }
@@ -135,14 +146,14 @@ export function Badge({ label, tone = 'neutral', icon }: { label: string; tone?:
 const styles = StyleSheet.create({
   panel: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   padded: { padding: spacing.lg, gap: spacing.md },
-  header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: spacing.lg, paddingTop: spacing.xl },
-  headerText: { flex: 1, minWidth: 240, gap: spacing.xs },
+  header: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', gap: spacing.lg, paddingTop: spacing.xl, paddingBottom: spacing.xs },
+  headerText: { flex: 1, minWidth: 240, gap: 6 },
   headerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flex: { flex: 1 },
-  stat: { flex: 1, minWidth: 150, gap: spacing.xs },
-  statTop: { flexDirection: 'row', alignItems: 'center' },
-  statIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  statGroup: { flexDirection: 'row', flexWrap: 'wrap', overflow: 'hidden' },
+  stat: { flexGrow: 1, flexBasis: 140, paddingVertical: spacing.lg, paddingHorizontal: spacing.xl, gap: 2 },
+  statValue: { fontSize: 28, lineHeight: 34 },
   track: { borderRadius: radius.pill, overflow: 'hidden', width: '100%' },
   fill: { height: '100%', borderRadius: radius.pill },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' },

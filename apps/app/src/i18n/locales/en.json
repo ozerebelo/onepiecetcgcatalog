@@ -301,8 +301,8 @@
       "sets": "products",
       "languages": "card languages"
     },
-    "featuresEyebrow": "Built for players",
     "featuresTitle": "Your whole collection, finally organised",
+    "featuresLead": "Built around how players actually collect: every art counted, every set in order, every deck one paste away.",
     "features": {
       "printings": {
         "title": "Every printing, tracked",
@@ -337,7 +337,11 @@
     "deckPoint3": "One tap to copy what you're missing",
     "demoDeck": "Example deck",
     "demoProgress": "38 / 51 owned",
-    "latestEyebrow": "Newest set",
+    "latestTag": "Newest set · {{code}}",
+    "latestBody_one": "Released {{date}} · {{count}} card, alternate arts included.",
+    "latestBody_other": "Released {{date}} · {{count}} cards, alternate arts included.",
+    "latestBodyNoDate_one": "{{count}} card, alternate arts included.",
+    "latestBodyNoDate_other": "{{count}} cards, alternate arts included.",
     "viewSet": "View set",
     "closingTitle": "Set sail with your collection",
     "closingBody": "Free to use. Sign up with your email and start adding cards in seconds."
@@ -351,7 +355,10 @@
       "copies": "Cards owned",
       "printings": "Printings",
       "cards": "Different cards",
-      "decks": "Decks"
+      "decks": "Decks",
+      "ofTotal": "of {{total}} in the game",
+      "built_one": "{{count}} built",
+      "built_other": "{{count}} built"
     },
     "yourDecks": "Your decks",
     "seeAll": "See all",

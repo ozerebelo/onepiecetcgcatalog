@@ -1,5 +1,5 @@
 import type { Color } from '@binder/core';
-import { Platform, useColorScheme, type ViewStyle } from 'react-native';
+import { Platform, useColorScheme, type TextStyle, type ViewStyle } from 'react-native';
 
 /**
  * Design tokens. Two palettes with the same keys:
@@ -17,7 +17,7 @@ const dark = {
   borderStrong: '#36426A',
   text: '#F4F1EA',
   textSecondary: '#A9B1C7',
-  textMuted: '#6F7A96',
+  textMuted: '#8790AC',
   primary: '#EF4452',
   primaryPressed: '#D4323F',
   primarySoft: 'rgba(239, 68, 82, 0.14)',
@@ -48,7 +48,7 @@ const light: Palette = {
   borderStrong: '#D2C7B1',
   text: '#151A28',
   textSecondary: '#525A70',
-  textMuted: '#8A90A2',
+  textMuted: '#6E7487',
   primary: '#D62839',
   primaryPressed: '#B71F2F',
   primarySoft: 'rgba(214, 40, 57, 0.10)',
@@ -103,7 +103,11 @@ export const MAX_CONTENT_WIDTH = 1200;
 /** Wide layouts (two columns, top navigation) start here. */
 export const WIDE_BREAKPOINT = 820;
 
+/** Monospace is only for the text areas where card lists are typed (columns of codes line up). */
 export const monoFont = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, SFMono-Regular, monospace' });
+
+/** Digits of equal width, for counts and card numbers that sit in columns or change. */
+export const tabular: TextStyle = { fontVariant: ['tabular-nums'] };
 
 /** Soft drop shadow (CSS box-shadow syntax works on web, iOS and Android with the new architecture). */
 export function elevation(palette: Palette, strong = false): ViewStyle {

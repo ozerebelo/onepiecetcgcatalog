@@ -1,6 +1,6 @@
 import { StyleSheet, Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
-import { fonts, fontSize, monoFont, usePalette, type Palette } from '@/theme';
+import { fonts, fontSize, usePalette, type Palette } from '@/theme';
 
 type Variant = 'display' | 'title' | 'heading' | 'subheading' | 'body' | 'caption' | 'label' | 'mono' | 'eyebrow';
 type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'accent' | 'danger' | 'success' | 'onPrimary' | 'hero' | 'heroSecondary';
@@ -44,7 +44,10 @@ const styles = StyleSheet.create({
   subheading: { fontFamily: fonts.semibold, fontSize: fontSize.md, lineHeight: 21 },
   body: { fontFamily: fonts.regular, fontSize: fontSize.md, lineHeight: 23 },
   caption: { fontFamily: fonts.regular, fontSize: fontSize.sm, lineHeight: 18 },
-  label: { fontFamily: fonts.bold, fontSize: fontSize.xs - 1, lineHeight: 15, letterSpacing: 0.9, textTransform: 'uppercase' },
-  eyebrow: { fontFamily: fonts.semibold, fontSize: fontSize.xs, lineHeight: 16, letterSpacing: 1.6, textTransform: 'uppercase' },
-  mono: { fontFamily: monoFont, fontSize: fontSize.xs, lineHeight: 16 },
+  // Field and column labels: quiet, sentence case (no tiny tracked capitals).
+  label: { fontFamily: fonts.semibold, fontSize: fontSize.xs, lineHeight: 16 },
+  // A short tag above a title (set code, product kind): coloured, sentence case.
+  eyebrow: { fontFamily: fonts.semibold, fontSize: fontSize.sm, lineHeight: 18, letterSpacing: 0.2 },
+  // Card numbers and counts: the text face with equal-width digits (not a code font).
+  mono: { fontFamily: fonts.medium, fontSize: fontSize.xs, lineHeight: 16, letterSpacing: 0.2, fontVariant: ['tabular-nums'] },
 });

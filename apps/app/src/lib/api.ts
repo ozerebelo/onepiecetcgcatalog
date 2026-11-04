@@ -327,7 +327,7 @@ export async function fetchShowcase(): Promise<Showcase | null> {
     .in('rarity', ['SecretRare', 'Leader', 'SuperRare'])
     .neq('variant', 'base')
     .order('card_id')
-    .limit(12);
+    .limit(40);
   return { set, printings: unwrap(printings) as Showcase['printings'] };
 }
 
