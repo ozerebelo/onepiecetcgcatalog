@@ -134,3 +134,20 @@ export async function mirrorImages(client: pg.ClientBase, store: ImageStore, opt
   await Promise.all(Array.from({ length: Math.max(1, concurrency) }, worker));
   return stats;
 }
+
+/**
+ * Supabase connection strings contain the project ref, either in the pooler user name
+ * (postgres.<ref>@aws-0-….pooler.supabase.com) or in the direct host (db.<ref>.supabase.co).
+ * Returns https://<ref>.supabase.co, or null for non-Supabase databases.
+ */
+export function supabaseUrlFromDatabaseUrl(databaseUrl: string): string | null {
+  try {
+    const url = new URL(databaseUrl);
+    const fromUser = /^postgres\.([a-z0-9]{15,30})$/i.exec(decodeURIComponent(url.username));
+    const fromHost = /^db\.([a-z0-9]{15,30})\.supabase\.co$/i.exec(url.hostname);
+    const ref = fromUser?.[1] ?? fromHost?.[1];
+    return ref ? `https://${ref.toLowerCase()}.supabase.co` : null;
+  } catch {
+    return null;
+  }
+}

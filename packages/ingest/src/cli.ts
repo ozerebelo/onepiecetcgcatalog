@@ -10,8 +10,8 @@
  * Environment:
  *   DATABASE_URL        Postgres connection string (Supabase: Dashboard → Connect → Session pooler)
  *   DATABASE_CA_CERT    Optional PEM of the Supabase root CA, to verify the server certificate
- *   SUPABASE_URL        Project URL (for --mirror-images)
  *   SUPABASE_SECRET_KEY Secret / service_role key (for --mirror-images; never put it in the app)
+ *   SUPABASE_URL        Optional project URL; by default derived from DATABASE_URL
  */
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -21,7 +21,7 @@ import { LANGUAGES, type Language } from '@binder/core';
 import pg from 'pg';
 
 import { connectionConfig, writeCatalog } from './db';
-import { mirrorImages, supabaseImageStore } from './mirror';
+import { mirrorImages, supabaseImageStore, supabaseUrlFromDatabaseUrl } from './mirror';
 import { normalize } from './normalize';
 import { PUNK_RECORDS_REPO, fetchPunkRecords, gitRevision, readPunkRecords } from './source';
 
@@ -101,12 +101,16 @@ async function main() {
 
 async function runMirror(limit: number) {
   const databaseUrl = process.env.DATABASE_URL;
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
   if (!databaseUrl) throw new Error('DATABASE_URL is not set');
-  if (!supabaseUrl || !secretKey) {
+  const supabaseUrl = process.env.SUPABASE_URL || supabaseUrlFromDatabaseUrl(databaseUrl);
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  if (!secretKey || !supabaseUrl) {
     // Don't fail the whole import: the catalog refresh already succeeded.
-    console.warn('Image mirroring skipped: SUPABASE_URL and SUPABASE_SECRET_KEY are not set (see docs/SETUP.md).');
+    console.warn(
+      !secretKey
+        ? 'Image mirroring skipped: the SUPABASE_SECRET_KEY secret is not set (see docs/SETUP.md).'
+        : 'Image mirroring skipped: set SUPABASE_URL (it could not be derived from DATABASE_URL).',
+    );
     return;
   }
   const client = new pg.Client(connectionConfig(databaseUrl, process.env.DATABASE_CA_CERT || undefined));

@@ -1,12 +1,19 @@
-name: Import card data
+name: Update database & card data
 
-# Refreshes the card catalog from the official card list (via punk-records)
-# every day, and on demand from the Actions tab ("Run workflow").
-# Also copies new card images into Supabase Storage when SUPABASE_URL and
-# SUPABASE_SECRET_KEY secrets are set (see docs/SETUP.md).
+# 1. Applies any new database migrations (supabase/migrations) — no SQL Editor needed.
+# 2. Refreshes the card catalog from the official card list (via punk-records).
+# 3. Copies new card images into Supabase Storage (needs the SUPABASE_SECRET_KEY secret).
+#
+# Runs every day, whenever migrations or the importer change on main, and on demand
+# from the Actions tab ("Run workflow"). Secrets: see docs/SETUP.md.
 on:
   schedule:
     - cron: '17 6 * * *' # daily, 06:17 UTC
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'packages/ingest/**'
   workflow_dispatch:
     inputs:
       dry_run:
@@ -25,14 +32,14 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       DATABASE_CA_CERT: ${{ secrets.DATABASE_CA_CERT }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }} # optional: derived from DATABASE_URL
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
     steps:
       - name: Check configuration
         id: config
         run: |
           if [ -z "$DATABASE_URL" ] && [ "${{ inputs.dry_run }}" != "true" ]; then
-            echo "::warning::DATABASE_URL secret is not set; skipping import. See docs/SETUP.md."
+            echo "::warning::DATABASE_URL secret is not set; skipping. See docs/SETUP.md."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@v7
@@ -46,6 +53,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile --filter @binder/ingest...
         if: steps.config.outputs.skip != 'true'
-      - name: Import
+      - name: Apply database migrations
+        if: steps.config.outputs.skip != 'true' && inputs.dry_run != true
+        run: pnpm db:migrate
+      - name: Import cards and copy images
         if: steps.config.outputs.skip != 'true'
         run: pnpm ingest --fetch --mirror-images ${{ inputs.dry_run && '--dry-run' || '' }}

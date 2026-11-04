@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { writeCatalog } from './db';
-import { mirrorImages, toCardWebp, versionFor, type ImageStore } from './mirror';
+import { mirrorImages, supabaseUrlFromDatabaseUrl, toCardWebp, versionFor, type ImageStore } from './mirror';
 import type { Normalized } from './normalize';
 
 describe('toCardWebp', () => {
@@ -114,5 +114,21 @@ describe.skipIf(!databaseUrl)('image mirroring (database)', () => {
     expect(stats.mirrored).toBe(0);
     expect(stats.failed).toBe(3);
     expect(stats.aborted).toBe(false); // fewer than 20 attempts: reported, not aborted
+  });
+});
+
+describe('supabaseUrlFromDatabaseUrl', () => {
+  it('reads the project ref from pooler and direct connection strings', () => {
+    expect(
+      supabaseUrlFromDatabaseUrl('postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-eu-west-1.pooler.supabase.com:5432/postgres'),
+    ).toBe('https://abcdefghijklmnopqrst.supabase.co');
+    expect(supabaseUrlFromDatabaseUrl('postgresql://postgres:pw@db.abcdefghijklmnopqrst.supabase.co:5432/postgres')).toBe(
+      'https://abcdefghijklmnopqrst.supabase.co',
+    );
+  });
+
+  it('returns null for other databases', () => {
+    expect(supabaseUrlFromDatabaseUrl('postgresql://postgres@127.0.0.1:54329/postgres')).toBeNull();
+    expect(supabaseUrlFromDatabaseUrl('not a url')).toBeNull();
   });
 });

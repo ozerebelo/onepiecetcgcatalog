@@ -52,10 +52,10 @@ future migrations too — mixing methods makes the CLI's migration history inacc
 
 ### Updating the database when a new version adds migrations
 
-Each phase adds files to `supabase/migrations/`. Apply the **new** files only, oldest first, using
-the same method you used originally (`npx supabase db push` applies just the missing ones; in the SQL
-Editor, run each new file once). Deploy the database change **before** (or together with) the app
-code that needs it.
+**Automatic:** once the `DATABASE_URL` secret is set (step 4), the **Update database & card data**
+workflow applies any new files in `supabase/migrations/` whenever they reach `main` (and on every
+daily run). It records them in the same history table the Supabase CLI uses; files you pasted into
+the SQL Editor earlier are detected and recorded, not re-run. Manually: `DATABASE_URL=… pnpm db:migrate`.
 
 | File | Added in |
 |---|---|
@@ -107,18 +107,19 @@ The workflow in `.github/workflows/ingest-cards.yml` re-imports every day. In th
   **Database Settings → SSL Configuration → Download certificate**. With it the importer verifies it is
   talking to your real database; without it the connection is still encrypted.
 
-You can run it manually any time from the **Actions** tab → **Import card data** → **Run workflow**.
+You can run it manually any time from the **Actions** tab → **Update database & card data** → **Run workflow**.
 
 ### Card images (copied into your Supabase Storage)
 
 The official card-list site doesn't allow its images to be shown on other websites, so the import job
 copies each image once into a public Storage bucket called `card-images` (resized to WebP, about
-10× smaller than the originals). Add two more repository secrets:
+10× smaller than the originals). It needs one more repository secret:
 
-- `SUPABASE_URL` — your Project URL, `https://<project-ref>.supabase.co`
 - `SUPABASE_SECRET_KEY` — **Project Settings → API Keys → Secret keys** (`sb_secret_…`; older
   projects: the `service_role` key). It can write to your whole project: only ever store it as a
   GitHub secret, never in the app or in Vercel.
+
+(The project URL is worked out from `DATABASE_URL`; set a `SUPABASE_URL` secret only if that fails.)
 
 The first run copies all ~10,000 images (around 10–20 minutes); daily runs only copy new cards.
 Storage use is roughly 0.4–0.6 GB, inside the free plan's 1 GB.
@@ -189,5 +190,5 @@ CI (`.github/workflows/ci.yml`) runs all of these on every pull request.
 | Card list is empty | Run the import (step 4). Check **Table Editor → cards** has rows. |
 | Confirmation email link opens a blank page / error | The link's URL isn't in **Redirect URLs** (step 3). |
 | "Email rate limit exceeded" | Configure custom SMTP (step 3 warning). |
-| Card images don't load | Check the last **Import card data** run: the `images:` line says how many were copied. Without the `SUPABASE_URL` / `SUPABASE_SECRET_KEY` secrets images aren't copied (the log says "Image mirroring skipped"). |
+| Card images don't load | Check the last **Update database & card data** run: the `images:` line says how many were copied. Without the `SUPABASE_SECRET_KEY` secret images aren't copied (the log says "Image mirroring skipped"). |
 | Import fails with a certificate error | Use the Session pooler URI; if you set `DATABASE_CA_CERT`, make sure it's the full PEM text. |

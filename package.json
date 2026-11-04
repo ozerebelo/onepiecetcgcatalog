@@ -14,7 +14,8 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "pnpm -r --if-present lint",
     "ingest": "pnpm --filter @binder/ingest ingest",
-    "db:test": "bash scripts/db/test-local.sh"
+    "db:test": "bash scripts/db/test-local.sh",
+    "db:migrate": "pnpm --filter @binder/ingest migrate"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

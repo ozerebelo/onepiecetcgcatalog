@@ -18,6 +18,7 @@ pnpm typecheck && pnpm lint && pnpm test   # must pass before committing
 pnpm db:test                               # migrations + pgTAP on a throwaway Postgres (no Docker)
 pnpm build:web                             # production web export
 pnpm ingest --fetch --dry-run              # normalize the latest card data without a database
+DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does this automatically on main)
 ```
 
 ## Rules and gotchas
