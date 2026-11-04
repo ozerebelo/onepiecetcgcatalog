@@ -37,7 +37,6 @@ export default function CardsScreen() {
   return (
     <Screen>
       <PageHeader
-        eyebrow={t('cardsPage.eyebrow')}
         title={t('cardsPage.title')}
         actions={
           <Link href="/sets" asChild>

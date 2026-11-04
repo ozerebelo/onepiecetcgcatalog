@@ -32,12 +32,20 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
 - **Web tabs (`components/app-tabs.web.tsx`):** `<TabTrigger>`s must be direct children of `<TabList>`
   (or of its single `asChild` child) and `<TabList>` a direct child of `<Tabs>`. Wrapping them in other
   views renders fine but makes clicks silently do nothing. Test navigation by clicking, not `goto`.
-- **Web navigation lives in two places:** tab screens use `components/app-tabs.web.tsx` (top bar on wide
-  screens, bottom bar on phones); screens pushed on top of the tabs (card, set, deck, import, auth) get
-  `components/web-stack-header.tsx`. Keep their links in sync.
+- **Web navigation:** on wide screens every page sits on the white sheet of `components/web-shell.web.tsx`,
+  whose sidebar is the site navigation; phones use the bottom bar in `components/app-tabs.web.tsx` (its
+  triggers stay mounted, hidden, on wide screens). Pages pushed on top of the tabs get the back/title row in
+  `components/web-stack-header.tsx`. Keep the shell's `NAV` and the tab triggers in sync. The signed-out
+  home page (`components/home/landing.tsx`) is full-bleed with its own header and scrolls the document.
 - **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,
-  `PageHeader`, `Button`, `Text` variants/weights). Custom fonts use one family per weight — set
-  `weight`/`fontFamily`, never `fontWeight`.
+  `PageHeader`, `KpiStrip`, `Badge`, `Button`, `Text` variants/weights). One typeface (Epilogue): set type
+  with `Text` `weight` or by spreading `fonts.*` — never a raw `fontFamily`/`fontWeight` (native loads one
+  family per weight, web one family with real weights; `fonts.*` picks the right one). No shadows or
+  gradients; surfaces are separated by a 1px border or a tone step. Numbers that compare get `tabular`.
+- **Design rules** come from the `design-taste-frontend` skill (`.claude/skills/`): app screens follow its
+  `references/app-screens.md` (noun titles, divided KPI strips, rows with right-aligned figures, colour on
+  data only); the landing page (`components/landing/`, `poster` tokens) follows its page rules. Check with
+  its `scripts/inspect.mjs` (`--app` for app screens) — run Chrome with `--no-sandbox` when running as root.
 - **All user-facing strings go through i18n** (`useTranslation()`, keys in
   `apps/app/src/i18n/locales/en.json`).
 - Add Expo-ecosystem dependencies with `npx expo install <pkg>` (from `apps/app`) so versions match the

@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { elevation, radius, spacing, usePalette } from '@/theme';
+import { radius, spacing, usePalette } from '@/theme';
 
 import { Text } from './text';
 
@@ -29,10 +29,10 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
             onPress={() => onChange(option.value)}
             style={({ hovered }) => [
               styles.segment,
-              selected && [{ backgroundColor: palette.surfaceRaised }, elevation(palette)],
+              selected && { backgroundColor: palette.surface, borderColor: palette.borderStrong, borderWidth: 1 },
               !selected && hovered && { backgroundColor: palette.border },
             ]}>
-            <Text variant="caption" weight="semibold" tone={selected ? 'default' : 'secondary'}>
+            <Text variant="label" tone={selected ? 'default' : 'secondary'}>
               {option.label}
             </Text>
           </Pressable>
@@ -43,6 +43,6 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', borderRadius: radius.md, padding: 3, alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth },
-  segment: { minHeight: 32, paddingHorizontal: spacing.md, borderRadius: radius.sm + 1, alignItems: 'center', justifyContent: 'center' },
+  container: { flexDirection: 'row', borderRadius: radius.pill, padding: 3, alignSelf: 'flex-start', borderWidth: StyleSheet.hairlineWidth },
+  segment: { minHeight: 30, paddingHorizontal: spacing.md, borderRadius: radius.pill, borderWidth: 1, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
 });

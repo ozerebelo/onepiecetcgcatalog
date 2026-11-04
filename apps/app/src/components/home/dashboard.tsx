@@ -4,30 +4,33 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
-import { DeckCard } from '@/components/deck-card';
+import { DeckList } from '@/components/deck-list';
 import { Button } from '@/components/ui/button';
-import { EmptyView } from '@/components/ui/state-views';
-import { PageHeader, Panel, ProgressBar, SectionTitle, StatTile } from '@/components/ui/panel';
+import { KpiStrip, PageHeader, Panel, ProgressBar, SectionTitle } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
+import { EmptyView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { collectionKeys, useCollectionSummary, useSetProgress } from '@/hooks/use-collection';
-import { fetchDeckSummaries, fetchShowcase, searchCollection } from '@/lib/api';
+import { fetchCatalogStats, fetchDeckSummaries, fetchShowcase, searchCollection } from '@/lib/api';
+import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
-import { WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
+import { WIDE_BREAKPOINT, radius, spacing, tabular } from '@/theme';
 
-/** Home for signed-in users: totals, decks, the newest set and recent additions. */
+/**
+ * Home for signed-in users. The screen's question: "what's in my binder, and which decks can I build
+ * from it?" — so the decks list, with what each one still needs, is the biggest block.
+ */
 export function Dashboard() {
   const { t, i18n } = useTranslation();
-  const palette = usePalette();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
   const userId = user?.id ?? 'anon';
-  const name = (user?.user_metadata?.display_name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
   const n = (value: number) => value.toLocaleString(i18n.language);
 
   const summary = useCollectionSummary();
+  const catalog = useQuery({ queryKey: ['catalog-stats'], queryFn: fetchCatalogStats, staleTime: 60 * 60 * 1000 });
   const decks = useQuery({ queryKey: ['decks', userId, 'summaries', null], queryFn: () => fetchDeckSummaries(null), enabled: Boolean(user) });
   const showcase = useQuery({ queryKey: ['showcase'], queryFn: fetchShowcase, staleTime: 60 * 60 * 1000 });
   const progress = useSetProgress('en');
@@ -40,34 +43,43 @@ export function Dashboard() {
 
   const latest = showcase.data?.set;
   const latestOwned = latest ? (progress.data?.[latest.id] ?? 0) : 0;
+  const built = decks.data?.filter((d) => d.is_built).length ?? 0;
 
   return (
     <Screen scroll>
       <PageHeader
-        eyebrow={t('dashboard.eyebrow')}
-        title={t('dashboard.greeting', { name })}
-        subtitle={t('dashboard.subtitle')}
+        title={t('dashboard.title')}
         actions={
           <>
-            <Link href="/deck/new" asChild>
-              <Button title={t('dashboard.checkDeck')} icon="check-square" />
-            </Link>
             <Link href="/collection/import" asChild>
-              <Button title={t('collection.import')} icon="upload" variant="outline" />
+              <Button title={t('dashboard.importCards')} icon="upload" variant="outline" size="sm" />
+            </Link>
+            <Link href="/deck/new" asChild>
+              <Button title={t('dashboard.checkDeck')} size="sm" />
             </Link>
           </>
         }
       />
 
-      <View style={styles.stats}>
-        <StatTile icon="layers" label={t('dashboard.stats.copies')} value={n(summary.data?.total_quantity ?? 0)} />
-        <StatTile icon="image" label={t('dashboard.stats.printings')} value={n(summary.data?.unique_printings ?? 0)} />
-        <StatTile icon="hash" label={t('dashboard.stats.cards')} value={n(summary.data?.unique_cards ?? 0)} />
-        <StatTile icon="copy" label={t('dashboard.stats.decks')} value={n(decks.data?.length ?? 0)} />
-      </View>
+      <KpiStrip
+        items={[
+          { label: t('dashboard.stats.copies'), value: n(summary.data?.total_quantity ?? 0) },
+          { label: t('dashboard.stats.printings'), value: n(summary.data?.unique_printings ?? 0) },
+          {
+            label: t('dashboard.stats.cards'),
+            value: n(summary.data?.unique_cards ?? 0),
+            hint: catalog.data ? t('dashboard.stats.cardsHint', { total: n(catalog.data.cards) }) : undefined,
+          },
+          {
+            label: t('dashboard.stats.decks'),
+            value: n(decks.data?.length ?? 0),
+            hint: decks.data?.length ? t('dashboard.stats.decksHint', { count: built }) : undefined,
+          },
+        ]}
+      />
 
       <View style={[styles.columns, wide && styles.columnsWide]}>
-        <View style={[styles.column, wide && { flex: 3 }]}>
+        <View style={[styles.column, wide && { flex: 2 }]}>
           <SectionTitle
             title={t('dashboard.yourDecks')}
             action={
@@ -77,18 +89,10 @@ export function Dashboard() {
             }
           />
           {decks.data && decks.data.length > 0 ? (
-            <View style={styles.deckGrid}>
-              {decks.data.slice(0, 4).map((deck) => (
-                <DeckCard key={deck.id} deck={deck} />
-              ))}
-            </View>
+            <DeckList decks={decks.data.slice(0, 5)} />
           ) : (
             <Panel>
-              <EmptyView
-                icon="copy"
-                title={t('decks.emptyTitle')}
-                message={t('decks.emptyBody')}
-              />
+              <EmptyView icon="copy" title={t('decks.emptyTitle')} message={t('decks.emptyBody')} />
               <Link href="/deck/new" asChild>
                 <Button title={t('decks.new')} icon="plus" boxStyle={styles.centerButton} />
               </Link>
@@ -96,20 +100,24 @@ export function Dashboard() {
           )}
         </View>
 
-        <View style={[styles.column, wide && { flex: 2 }]}>
+        <View style={[styles.column, wide && { flex: 1 }]}>
           <SectionTitle title={t('dashboard.latestSet')} />
           {latest ? (
             <Panel>
-              <Text variant="eyebrow" tone="primary">
-                {latest.code}
-              </Text>
-              <Text variant="heading">{latest.name}</Text>
-              <ProgressBar value={latest.printing_count ? latestOwned / latest.printing_count : 0} />
-              <Text variant="caption" tone="secondary">
-                {t('collection.setRowProgress', { owned: latestOwned, total: latest.printing_count })}
-              </Text>
+              <View>
+                <Text variant="label" tone="secondary" style={tabular}>
+                  {latest.code}
+                </Text>
+                <Text variant="heading">{titleCase(latest.name)}</Text>
+              </View>
+              <View style={styles.progress}>
+                <Text weight="medium" style={tabular}>
+                  {t('dashboard.latestProgress', { owned: n(latestOwned), total: n(latest.printing_count) })}
+                </Text>
+                <ProgressBar value={latest.printing_count ? latestOwned / latest.printing_count : 0} />
+              </View>
               <Link href={{ pathname: '/set/[id]', params: { id: latest.id } }} asChild>
-                <Button title={t('dashboard.continueCollecting')} variant="outline" trailingIcon="arrow-right" />
+                <Button title={t('dashboard.continueCollecting')} variant="outline" size="sm" trailingIcon="arrow-right" boxStyle={styles.start} />
               </Link>
             </Panel>
           ) : null}
@@ -132,11 +140,9 @@ export function Dashboard() {
                 key={item.printing_id}
                 href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
                 asChild>
-                <PressableArea boxStyle={styles.stripCard} activeStyle={{ transform: [{ translateY: -3 }] }} accessibilityLabel={`${item.name}, ${item.code}`}>
-                  <View style={{ boxShadow: palette.shadow, borderRadius: radius.md }}>
-                    <CardImage uri={item.image_url} label={`${item.code} ${item.name}`} />
-                  </View>
-                  <Text variant="caption" weight="semibold" numberOfLines={1}>
+                <PressableArea boxStyle={styles.stripCard} activeStyle={{ opacity: 0.8 }} accessibilityLabel={`${item.name}, ${item.code}`}>
+                  <CardImage uri={item.image_url} label={`${item.code} ${item.name}`} rounded={radius.sm} />
+                  <Text variant="caption" weight="medium" numberOfLines={1}>
                     {item.name}
                   </Text>
                 </PressableArea>
@@ -150,12 +156,12 @@ export function Dashboard() {
 }
 
 const styles = StyleSheet.create({
-  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   columns: { gap: spacing.xl },
   columnsWide: { flexDirection: 'row', alignItems: 'flex-start' },
   column: { gap: spacing.md },
-  deckGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   centerButton: { alignSelf: 'center' },
-  strip: { gap: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: 2 },
-  stripCard: { width: 120, gap: spacing.xs },
+  progress: { gap: spacing.sm },
+  start: { alignSelf: 'flex-start' },
+  strip: { gap: spacing.md, paddingVertical: spacing.xs },
+  stripCard: { width: 112, gap: spacing.xs },
 });

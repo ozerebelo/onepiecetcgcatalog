@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SectionList, StyleSheet, View } from 'react-native';
+import { SectionList, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { PageHeader } from '@/components/ui/panel';
+import { Icon } from '@/components/ui/icon';
+import { PageHeader, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
@@ -13,7 +14,8 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { useSetProgress } from '@/hooks/use-collection';
 import { fetchSets } from '@/lib/api';
-import { fonts, radius, spacing, usePalette } from '@/theme';
+import { titleCase } from '@/lib/format';
+import { spacing, tabular, usePalette } from '@/theme';
 
 export default function SetsScreen() {
   const { t } = useTranslation();
@@ -32,18 +34,21 @@ export default function SetsScreen() {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <PageHeader eyebrow={t('sets.eyebrow')} title={t('sets.title')} subtitle={t('sets.subtitle')} />
-        <Segmented
-          accessibilityLabel={t('search.language')}
-          value={language}
-          onChange={setLanguage}
-          options={[
-            { value: 'en', label: t('languages.en') },
-            { value: 'ja', label: t('languages.ja') },
-          ]}
-        />
-      </View>
+      <PageHeader
+        title={t('sets.title')}
+        subtitle={t('sets.subtitle')}
+        actions={
+          <Segmented
+            accessibilityLabel={t('search.language')}
+            value={language}
+            onChange={setLanguage}
+            options={[
+              { value: 'en', label: t('languages.en') },
+              { value: 'ja', label: t('languages.ja') },
+            ]}
+          />
+        }
+      />
       {sets.isPending ? (
         <LoadingView />
       ) : sets.isError ? (
@@ -56,9 +61,14 @@ export default function SetsScreen() {
           contentContainerStyle={styles.list}
           ListEmptyComponent={<EmptyView message={t('sets.empty')} />}
           renderSectionHeader={({ section }) => (
-            <Text variant="label" tone="secondary" style={styles.sectionHeader}>
-              {section.title}
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text variant="subheading" weight="semibold" role="heading" aria-level={2}>
+                {section.title}
+              </Text>
+              <Text variant="caption" tone="secondary" style={tabular}>
+                {t('sets.count', { count: section.data.length })}
+              </Text>
+            </View>
           )}
           renderItem={({ item }) => (
             <SetRowItem set={item} owned={progress.data ? (progress.data[item.id] ?? 0) : undefined} />
@@ -69,61 +79,53 @@ export default function SetsScreen() {
   );
 }
 
-/** `owned` is undefined when signed out (no progress shown). */
+/** One product as a list row; `owned` is undefined when signed out (no progress shown). */
 function SetRowItem({ set, owned }: { set: SetRow; owned?: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const palette = usePalette();
-  const progress =
-    owned === undefined
-      ? null
-      : { owned, percent: set.printing_count ? Math.round((owned / set.printing_count) * 100) : 0 };
+  const n = (value: number) => value.toLocaleString(i18n.language);
+  const phone = useWindowDimensions().width < 600;
   return (
     <Link href={{ pathname: '/set/[id]', params: { id: set.id } }} asChild>
       <PressableArea
         accessibilityRole="link"
-        boxStyle={[styles.row, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-        <View style={[styles.code, { backgroundColor: palette.surfaceAlt }]}>
-          <Text variant="mono" style={styles.codeText} numberOfLines={1}>
-            {set.code}
+        accessibilityLabel={`${set.code}, ${set.name}`}
+        boxStyle={[styles.row, { borderBottomColor: palette.border }]}
+        activeStyle={{ backgroundColor: palette.backgroundAlt }}>
+        <Text weight="semibold" style={[styles.code, phone && styles.codePhone, tabular]} numberOfLines={1}>
+          {set.code}
+        </Text>
+        <Text variant="body" numberOfLines={phone ? 2 : 1} style={styles.name}>
+          {titleCase(set.name)}
+        </Text>
+        {owned !== undefined ? (
+          <View style={[styles.progress, phone && styles.figurePhone]}>
+            <Text style={[tabular, styles.right]}>
+              {n(owned)}
+              <Text tone="secondary" style={tabular}>{` / ${n(set.printing_count)}`}</Text>
+            </Text>
+            <ProgressBar value={set.printing_count ? owned / set.printing_count : 0} tone={owned >= set.printing_count && owned > 0 ? 'accent' : 'neutral'} height={4} />
+          </View>
+        ) : (
+          <Text tone="secondary" style={[tabular, styles.right, styles.count, phone && styles.figurePhone]}>
+            {t('sets.printings', { count: set.printing_count })}
           </Text>
-        </View>
-        <View style={styles.rowText}>
-          <Text variant="subheading" numberOfLines={1}>
-            {set.name}
-          </Text>
-          <Text variant="caption" tone="secondary">
-            {progress !== null
-              ? t('collection.setRowProgress', { owned: progress.owned, total: set.printing_count })
-              : t('sets.printings', { count: set.printing_count })}
-          </Text>
-          {progress !== null ? (
-            <View style={[styles.track, { backgroundColor: palette.surfaceAlt }]}>
-              <View style={[styles.fill, { width: `${progress.percent}%`, backgroundColor: palette.primary }]} />
-            </View>
-          ) : null}
-        </View>
-        <Text tone="muted">›</Text>
+        )}
+        <Icon name="chevron-right" size={16} color={palette.textMuted} />
       </PressableArea>
     </Link>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { gap: spacing.md },
   list: { paddingBottom: spacing.xxl },
-  sectionHeader: { marginTop: spacing.xl, marginBottom: spacing.sm },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  code: { minWidth: 84, paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center' },
-  codeText: { fontFamily: fonts.bold },
-  rowText: { flex: 1, gap: 2 },
-  track: { height: 4, borderRadius: radius.pill, overflow: 'hidden', marginTop: 4 },
-  fill: { height: '100%' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginTop: spacing.xl, marginBottom: spacing.xs },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 52, paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, borderBottomWidth: 1 },
+  code: { width: 96 },
+  codePhone: { width: 76 },
+  figurePhone: { width: 84 },
+  name: { flex: 1, minWidth: 0 },
+  progress: { width: 140, gap: 6 },
+  count: { width: 140 },
+  right: { textAlign: 'right' },
 });

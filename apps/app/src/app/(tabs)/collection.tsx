@@ -96,7 +96,6 @@ function CollectionView({ userId }: { userId: string }) {
   return (
     <Screen>
       <PageHeader
-        eyebrow={t('collection.eyebrow')}
         title={t('collection.title')}
         subtitle={
           summary.data
@@ -142,7 +141,7 @@ function CollectionView({ userId }: { userId: string }) {
       </View>
 
       {isEmptyCollection ? (
-        <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow }]}>
+        <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
           <Text variant="heading">{t('collection.emptyTitle')}</Text>
           <Text tone="secondary">{t('collection.emptyBody')}</Text>
           <Link href="/sets" asChild>

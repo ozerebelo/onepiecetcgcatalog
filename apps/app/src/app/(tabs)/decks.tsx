@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { DeckCard } from '@/components/deck-card';
+import { DeckList } from '@/components/deck-list';
 import { Button } from '@/components/ui/button';
 import { PageHeader, Panel } from '@/components/ui/panel';
 import { Screen } from '@/components/ui/screen';
@@ -11,7 +11,6 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { fetchDeckSummaries } from '@/lib/api';
 import { useAuth } from '@/providers/auth';
-import { spacing } from '@/theme';
 
 export default function DecksScreen() {
   const { t } = useTranslation();
@@ -27,7 +26,7 @@ export default function DecksScreen() {
   if (!user) {
     return (
       <Screen scroll narrow>
-        <PageHeader eyebrow={t('decks.eyebrow')} title={t('decks.title')} />
+        <PageHeader title={t('decks.title')} />
         <Panel>
           <Text variant="heading">{t('decks.signedOutTitle')}</Text>
           <Text tone="secondary">{t('decks.signedOutBody')}</Text>
@@ -45,12 +44,11 @@ export default function DecksScreen() {
   return (
     <Screen scroll>
       <PageHeader
-        eyebrow={t('decks.eyebrow')}
         title={t('decks.title')}
         subtitle={t('decks.subtitle')}
         actions={
           <Link href="/deck/new" asChild>
-            <Button title={t('decks.new')} icon="plus" />
+            <Button title={t('decks.new')} icon="plus" size="sm" />
           </Link>
         }
       />
@@ -66,17 +64,12 @@ export default function DecksScreen() {
           </Link>
         </Panel>
       ) : (
-        <View style={styles.grid}>
-          {decks.data.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} />
-          ))}
-        </View>
+        <DeckList decks={decks.data} />
       )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   center: { alignSelf: 'center' },
 });

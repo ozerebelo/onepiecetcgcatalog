@@ -16,13 +16,13 @@ interface ScreenProps {
   contentStyle?: StyleProp<ViewStyle>;
 }
 
-/** Page container: theme background, safe areas, and a centered max-width column on wide screens. */
+/** Page container: the white sheet, safe areas, and a centered max-width column (24px padding). */
 export function Screen({ children, scroll = false, narrow = false, bleed = false, edges = ['top'], contentStyle }: ScreenProps) {
   const palette = usePalette();
   const column = bleed ? [styles.bleed, contentStyle] : [styles.column, narrow && styles.narrow, contentStyle];
 
   return (
-    <SafeAreaView edges={edges} style={[styles.flex, { backgroundColor: palette.background }]}>
+    <SafeAreaView edges={edges} style={[styles.flex, { backgroundColor: palette.surface }]}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         {scroll ? (
           <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -44,7 +44,7 @@ export function Container({ children, style }: { children: ReactNode; style?: St
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: spacing.xxxl },
-  column: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', paddingHorizontal: spacing.lg, gap: spacing.lg },
+  column: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.lg, gap: spacing.xl },
   bleed: { width: '100%' },
   narrow: { maxWidth: 460, paddingTop: spacing.xl },
 });

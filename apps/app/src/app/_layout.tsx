@@ -1,26 +1,26 @@
 import '@/i18n';
 
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
-import { SpaceGrotesk_600SemiBold } from '@expo-google-fonts/space-grotesk/600SemiBold';
-import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
+import { Epilogue_400Regular } from '@expo-google-fonts/epilogue/400Regular';
+import { Epilogue_500Medium } from '@expo-google-fonts/epilogue/500Medium';
+import { Epilogue_600SemiBold } from '@expo-google-fonts/epilogue/600SemiBold';
+import { Epilogue_700Bold } from '@expo-google-fonts/epilogue/700Bold';
+import { Epilogue_900Black } from '@expo-google-fonts/epilogue/900Black';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfigMissing } from '@/components/config-missing';
+import { WebShell } from '@/components/web-shell';
 import { WebStackHeader } from '@/components/web-stack-header';
 import { isSupabaseConfigured } from '@/lib/env';
 import { queryClient } from '@/lib/query-client';
-import { setupWeb } from '@/lib/web-setup';
+import { setupWeb, webFontsReady } from '@/lib/web-setup';
 import { AuthProvider } from '@/providers/auth';
 import { fonts, usePalette } from '@/theme';
 
@@ -30,15 +30,17 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   const scheme = useColorScheme();
   const palette = usePalette();
-  const [fontsLoaded, fontError] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    SpaceGrotesk_600SemiBold,
-    SpaceGrotesk_700Bold,
-  });
-  const ready = fontsLoaded || Boolean(fontError);
+  // Native: one family per weight. Web: one "Epilogue" family registered by setupWeb().
+  const [fontsLoaded, fontError] = useFonts(
+    Platform.OS === 'web'
+      ? {}
+      : { Epilogue_400Regular, Epilogue_500Medium, Epilogue_600SemiBold, Epilogue_700Bold, Epilogue_900Black },
+  );
+  const [webFonts, setWebFonts] = useState(Platform.OS !== 'web');
+  useEffect(() => {
+    if (Platform.OS === 'web') webFontsReady().finally(() => setWebFonts(true));
+  }, []);
+  const ready = (fontsLoaded || Boolean(fontError)) && webFonts;
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => {});
@@ -50,7 +52,7 @@ export default function RootLayout() {
     colors: {
       ...base.colors,
       primary: palette.primary,
-      background: palette.background,
+      background: palette.surface,
       card: palette.background,
       text: palette.text,
       border: palette.border,
@@ -66,7 +68,9 @@ export default function RootLayout() {
         {isSupabaseConfigured ? (
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <RootStack />
+              <WebShell>
+                <RootStack />
+              </WebShell>
             </AuthProvider>
           </QueryClientProvider>
         ) : (
@@ -86,7 +90,7 @@ function RootStack() {
         headerBackTitle: t('common.back'),
         headerShadowVisible: false,
         headerStyle: { backgroundColor: palette.background },
-        headerTitleStyle: { fontFamily: fonts.displayMedium, fontSize: 17 },
+        headerTitleStyle: { ...fonts.semibold, fontSize: 17 },
         headerTintColor: palette.text,
         // Website: keep the site navigation on detail pages (native apps use the native header).
         ...(Platform.OS === 'web' ? { header: (props) => <WebStackHeader {...props} /> } : null),

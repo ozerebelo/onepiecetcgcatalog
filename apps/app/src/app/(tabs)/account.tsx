@@ -30,13 +30,13 @@ export default function AccountScreen() {
 
   return (
     <Screen scroll narrow>
-      <PageHeader eyebrow={t('account.eyebrow')} title={t('account.title')} />
+      <PageHeader title={t('account.title')} />
 
       {user ? (
         <>
           <Panel style={styles.profile}>
             <View style={[styles.avatar, { backgroundColor: palette.primarySoft }]}>
-              <Text style={{ fontFamily: fonts.display, fontSize: 24, color: palette.primary }}>{initial}</Text>
+              <Text style={{ ...fonts.bold, fontSize: 24, color: palette.primary }}>{initial}</Text>
             </View>
             <View style={styles.flex}>
               {displayName ? <Text variant="heading">{displayName}</Text> : null}

@@ -17,6 +17,7 @@ import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { fetchSet, fetchSetPrintings, type SetPrinting } from '@/lib/api';
+import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { spacing, usePalette } from '@/theme';
 
@@ -98,7 +99,7 @@ export default function SetScreen() {
               accessibilityRole="button"
               accessibilityLabel={t('collection.removeOne', { card: item.code })}
               hitSlop={8}
-              style={[styles.minus, { backgroundColor: palette.surfaceRaised, borderColor: palette.border, boxShadow: palette.shadow }]}>
+              style={[styles.minus, { backgroundColor: palette.surfaceRaised, borderColor: palette.border }]}>
               <Icon name="minus" size={16} />
             </Pressable>
           ) : null
@@ -121,10 +122,12 @@ export default function SetScreen() {
   const header = set.data ? (
     <View style={styles.header}>
       <View style={styles.titleBlock}>
-        <Text variant="eyebrow" tone="primary">
+        <Text variant="title" accessibilityRole="header" aria-level={1}>
+          {titleCase(set.data.name)}
+        </Text>
+        <Text variant="body" tone="secondary">
           {set.data.code} · {t(`sets.kinds.${set.data.kind}`)} · {t(`languages.${set.data.language}`)}
         </Text>
-        <Text variant="title">{set.data.name}</Text>
       </View>
 
       {user ? (
@@ -134,7 +137,7 @@ export default function SetScreen() {
               {t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}
             </Text>
           </View>
-          <ProgressBar value={percent / 100} tone={percent === 100 ? 'success' : 'primary'} />
+          <ProgressBar value={percent / 100} tone={percent === 100 ? 'accent' : 'neutral'} />
         </Panel>
       ) : (
         <Link href="/auth/sign-in" asChild>

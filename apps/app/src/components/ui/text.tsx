@@ -1,16 +1,22 @@
 import { StyleSheet, Text as RNText, type TextProps as RNTextProps } from 'react-native';
 
-import { fonts, fontSize, monoFont, usePalette, type Palette } from '@/theme';
+import { fonts, fontSize, tabular, usePalette, type FontWeight, type Palette } from '@/theme';
 
-type Variant = 'display' | 'title' | 'heading' | 'subheading' | 'body' | 'caption' | 'label' | 'mono' | 'eyebrow';
-type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'accent' | 'danger' | 'success' | 'onPrimary' | 'hero' | 'heroSecondary';
-type Weight = 'regular' | 'medium' | 'semibold' | 'bold';
+/**
+ * App type scale (12 / 14 / 16 / 18 / 24), one family.
+ *  - title: the page's h1 (24)        - heading: a section or panel title (18)
+ *  - subheading: a row's name (16)    - body (14) / caption (12)
+ *  - label: a quiet field / column label (12, sentence case)
+ *  - figure: numbers and card codes, tabular figures
+ */
+type Variant = 'title' | 'heading' | 'subheading' | 'body' | 'caption' | 'label' | 'figure';
+type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'accent' | 'danger' | 'success' | 'onPrimary';
 
 export type TextProps = RNTextProps & {
   variant?: Variant;
   tone?: Tone;
-  /** Body-font weight override (custom fonts use one family per weight, not fontWeight). */
-  weight?: Weight;
+  /** Weight override (spreads the right font face for the platform; never set fontWeight directly). */
+  weight?: Exclude<FontWeight, 'black'>;
 };
 
 const toneColor = (palette: Palette, tone: Tone) =>
@@ -23,28 +29,19 @@ const toneColor = (palette: Palette, tone: Tone) =>
     danger: palette.danger,
     success: palette.success,
     onPrimary: palette.onPrimary,
-    hero: palette.heroText,
-    heroSecondary: palette.heroTextSecondary,
   })[tone];
 
 export function Text({ variant = 'body', tone = 'default', weight, style, ...rest }: TextProps) {
   const palette = usePalette();
-  return (
-    <RNText
-      style={[styles[variant], weight ? { fontFamily: fonts[weight] } : null, { color: toneColor(palette, tone) }, style]}
-      {...rest}
-    />
-  );
+  return <RNText style={[styles[variant], weight ? fonts[weight] : null, { color: toneColor(palette, tone) }, style]} {...rest} />;
 }
 
 const styles = StyleSheet.create({
-  display: { fontFamily: fonts.display, fontSize: fontSize.display, lineHeight: 52, letterSpacing: -1.2 },
-  title: { fontFamily: fonts.display, fontSize: fontSize.xxl, lineHeight: 38, letterSpacing: -0.6 },
-  heading: { fontFamily: fonts.displayMedium, fontSize: fontSize.xl, lineHeight: 30, letterSpacing: -0.3 },
-  subheading: { fontFamily: fonts.semibold, fontSize: fontSize.md, lineHeight: 21 },
-  body: { fontFamily: fonts.regular, fontSize: fontSize.md, lineHeight: 23 },
-  caption: { fontFamily: fonts.regular, fontSize: fontSize.sm, lineHeight: 18 },
-  label: { fontFamily: fonts.bold, fontSize: fontSize.xs - 1, lineHeight: 15, letterSpacing: 0.9, textTransform: 'uppercase' },
-  eyebrow: { fontFamily: fonts.semibold, fontSize: fontSize.xs, lineHeight: 16, letterSpacing: 1.6, textTransform: 'uppercase' },
-  mono: { fontFamily: monoFont, fontSize: fontSize.xs, lineHeight: 16 },
+  title: { ...fonts.bold, fontSize: fontSize.xxl, lineHeight: 30, letterSpacing: -0.4 },
+  heading: { ...fonts.semibold, fontSize: fontSize.xl, lineHeight: 24, letterSpacing: -0.2 },
+  subheading: { ...fonts.medium, fontSize: fontSize.lg, lineHeight: 22 },
+  body: { ...fonts.regular, fontSize: fontSize.md, lineHeight: 20 },
+  caption: { ...fonts.regular, fontSize: fontSize.xs, lineHeight: 16 },
+  label: { ...fonts.medium, fontSize: fontSize.xs, lineHeight: 16 },
+  figure: { ...fonts.medium, ...tabular, fontSize: fontSize.xs, lineHeight: 16 },
 });

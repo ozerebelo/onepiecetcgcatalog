@@ -1,4 +1,4 @@
-import { Link, Redirect } from 'expo-router';
+import { Link, Redirect, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,7 +16,8 @@ export default function SignUpScreen() {
   const { t } = useTranslation();
   const { user, signUp } = useAuth();
   const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
+  const params = useLocalSearchParams<{ email?: string }>();
+  const [email, setEmail] = useState(typeof params.email === 'string' ? params.email : '');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
