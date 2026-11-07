@@ -1,5 +1,5 @@
 {
-  "name": "nakama-binder",
+  "name": "playset",
   "private": true,
   "description": "One Piece TCG collection tracker and deck checker (web, iOS, Android).",
   "packageManager": "pnpm@10.28.0",

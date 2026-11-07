@@ -20,7 +20,7 @@ test('signed out, the collection asks you to sign in', async ({ page }) => {
 test('a new collection starts empty', async ({ page }) => {
   await signIn(page, USERS.collector);
   await page.goto('/collection');
-  await expect(page.getByText('Your binder is empty')).toBeVisible();
+  await expect(page.getByText('Nothing ticked off yet')).toBeVisible();
 });
 
 test('collect mode on a set page adds and removes copies', async ({ page }) => {

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { CardTile } from '@/components/card-tile';
+import { ChecklistHeader, ChecklistRow } from '@/components/checklist';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
@@ -19,17 +20,23 @@ import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { fetchSet, fetchSetPrintings, type SetPrinting } from '@/lib/api';
-import { formatReleaseDate, titleCase } from '@/lib/format';
+import { formatReleaseDate, printingLabel, titleCase, variantName } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
-import { spacing, usePalette } from '@/theme';
+import { radius, spacing, usePalette } from '@/theme';
 
 type OwnedFilter = 'all' | 'owned' | 'missing';
-type Row = { type: 'header'; key: string; title: string; hint?: string } | { type: 'cards'; key: string; items: SetPrinting[] };
+type ViewMode = 'checklist' | 'grid';
+type Row =
+  | { type: 'header'; key: string; title: string; hint?: string }
+  | { type: 'columns'; key: string }
+  | { type: 'item'; key: string; item: SetPrinting }
+  | { type: 'cards'; key: string; items: SetPrinting[] };
 
 /**
- * Every printing in one product. A pack's own cards come first; special inserts
- * (SP / reprints of older cards sold in the same packs) follow in their own section.
- * Signed-in users can tick off what they own ("Tap to collect").
+ * Every printing in one product, as a printed checklist (number · card · rarity · playset slots)
+ * or as a grid of card images. A pack's own cards come first; special inserts (SP / reprints of
+ * older cards sold in the same packs) follow in their own section. Signed-in users tick off what
+ * they own ("Tap to collect").
  */
 export default function SetScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,6 +47,7 @@ export default function SetScreen() {
   const [showVariants, setShowVariants] = useState(true);
   const [ownedFilter, setOwnedFilter] = useState<OwnedFilter>('all');
   const [collectMode, setCollectMode] = useState(false);
+  const [view, setView] = useState<ViewMode>('checklist');
   const [type, setType] = useState<Category | 'all'>('all');
 
   const set = useQuery({ queryKey: ['set', id], queryFn: () => fetchSet(id) });
@@ -70,11 +78,15 @@ export default function SetScreen() {
     const own = visible.filter((p) => isOwnSetCard(p.card_id, set.data!.code));
     const inserts = visible.filter((p) => !isOwnSetCard(p.card_id, set.data!.code));
     const chunk = (items: SetPrinting[], prefix: string): Row[] =>
-      Array.from({ length: Math.ceil(items.length / columns) }, (_, i) => ({
-        type: 'cards' as const,
-        key: `${prefix}-${i}`,
-        items: items.slice(i * columns, i * columns + columns),
-      }));
+      view === 'checklist'
+        ? items.length
+          ? [{ type: 'columns' as const, key: `${prefix}-cols` }, ...items.map((item) => ({ type: 'item' as const, key: item.id, item }))]
+          : []
+        : Array.from({ length: Math.ceil(items.length / columns) }, (_, i) => ({
+            type: 'cards' as const,
+            key: `${prefix}-${i}`,
+            items: items.slice(i * columns, i * columns + columns),
+          }));
     return [
       ...chunk(own, 'own'),
       ...(inserts.length
@@ -84,7 +96,7 @@ export default function SetScreen() {
           ]
         : []),
     ];
-  }, [set.data, variantFiltered, owned, ownedFilter, type, columns, t]);
+  }, [set.data, variantFiltered, owned, ownedFilter, type, columns, view, t]);
 
   const renderTile = (item: SetPrinting) => {
     const quantity = owned[item.id] ?? 0;
@@ -100,19 +112,9 @@ export default function SetScreen() {
         width={tileWidth}
         badge={rarityShort(item.rarity)}
         quantity={quantity}
+        showPips
         dimmed={quantity === 0}
-        overlay={
-          quantity > 0 ? (
-            <Pressable
-              onPress={() => adjust.mutate({ printingId: item.id, delta: -1 })}
-              accessibilityRole="button"
-              accessibilityLabel={t('collection.removeOne', { card: item.code })}
-              hitSlop={8}
-              style={[styles.minus, { backgroundColor: palette.surfaceRaised, borderColor: palette.border, boxShadow: palette.shadow }]}>
-              <Icon name="minus" size={16} />
-            </Pressable>
-          ) : null
-        }
+        overlay={quantity > 0 ? removeButton(item) : null}
       />
     ) : (
       <CardTile
@@ -124,7 +126,44 @@ export default function SetScreen() {
         width={tileWidth}
         badge={rarityShort(item.rarity)}
         quantity={quantity}
+        showPips={Boolean(user)}
       />
+    );
+  };
+
+  const removeButton = (item: SetPrinting) => (
+    <Pressable
+      onPress={() => adjust.mutate({ printingId: item.id, delta: -1 })}
+      accessibilityRole="button"
+      accessibilityLabel={t('collection.removeOne', { card: item.code })}
+      hitSlop={8}
+      style={({ hovered }) => [styles.minus, { backgroundColor: hovered ? palette.surfaceAlt : palette.surface, borderColor: palette.text }]}>
+      <Icon name="minus" size={14} />
+    </Pressable>
+  );
+
+  /** One checklist row: tap to open the card, or (collect mode) to add a copy. */
+  const renderRow = (item: SetPrinting) => {
+    const quantity = owned[item.id] ?? 0;
+    const name = item.card?.name ?? item.name;
+    const label = printingLabel(item.code, t);
+    const common = {
+      code: item.card_id,
+      name,
+      variant: item.variant === 'base' ? null : variantName(item.variant, item.variant_index, t),
+      rarity: rarityShort(item.rarity),
+      owned: user ? quantity : undefined,
+      accessibilityLabel: quantity > 0 ? `${name}, ${label}, ×${quantity}` : `${name}, ${label}`,
+    };
+    return collectMode ? (
+      <ChecklistRow
+        {...common}
+        onPress={() => adjust.mutate({ printingId: item.id, delta: 1 })}
+        accessibilityHint={t('collection.addOne', { card: item.code })}
+        trailing={<View style={styles.trailing}>{quantity > 0 ? removeButton(item) : null}</View>}
+      />
+    ) : (
+      <ChecklistRow {...common} href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.id } }} />
     );
   };
 
@@ -137,7 +176,7 @@ export default function SetScreen() {
           </View>
         ) : null}
         <View style={[styles.titleBlock, styles.flexShrink]}>
-          <Text variant="eyebrow" tone="primary">
+          <Text variant="eyebrow" tone="secondary">
             {set.data.code} · {t(`sets.kinds.${set.data.kind}`)} · {t(`languages.${set.data.language}`)}
           </Text>
           <Text variant="title">{titleCase(set.data.name)}</Text>
@@ -180,6 +219,15 @@ export default function SetScreen() {
       ) : null}
 
       <View style={styles.controls}>
+        <Segmented
+          accessibilityLabel={t('sets.viewLabel')}
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'checklist', label: t('sets.views.checklist') },
+            { value: 'grid', label: t('sets.views.grid') },
+          ]}
+        />
         {user ? (
           <Segmented
             accessibilityLabel={t('collection.ownedFilter')}
@@ -226,8 +274,17 @@ export default function SetScreen() {
           ListHeaderComponent={header ?? undefined}
           ListEmptyComponent={<EmptyView message={t('collection.nothingHere')} />}
           renderItem={({ item: row }) =>
-            row.type === 'header' ? (
-              <View style={[styles.sectionHeader, { borderTopColor: palette.border }]}>
+            row.type === 'columns' ? (
+              <ChecklistHeader
+                number={t('sets.columns.number')}
+                card={t('sets.columns.card')}
+                rarity={t('sets.columns.rarity')}
+                playset={t('sets.columns.playset')}
+              />
+            ) : row.type === 'item' ? (
+              renderRow(row.item)
+            ) : row.type === 'header' ? (
+              <View style={[styles.sectionHeader, { borderTopColor: palette.rule }]}>
                 <Text variant="heading">{row.title}</Text>
                 {row.hint ? (
                   <Text variant="caption" tone="secondary">
@@ -260,7 +317,7 @@ const styles = StyleSheet.create({
   header: { paddingTop: spacing.xl, paddingBottom: spacing.lg, gap: spacing.md },
   titleBlock: { gap: spacing.xs },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  pack: { width: 136, aspectRatio: 4 / 3, borderRadius: 12, overflow: 'hidden' },
+  pack: { width: 136, aspectRatio: 4 / 3, borderRadius: radius.md, overflow: 'hidden' },
   flexShrink: { flexShrink: 1 },
   progressPanel: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
@@ -270,12 +327,13 @@ const styles = StyleSheet.create({
   controls: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   cardRow: { flexDirection: 'row', gap: spacing.sm },
-  sectionHeader: { paddingTop: spacing.xl, paddingBottom: spacing.lg, gap: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, marginTop: spacing.sm },
+  sectionHeader: { paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.xs, borderTopWidth: 2, marginTop: spacing.xxl },
+  trailing: { width: 30, alignItems: 'flex-end' },
   minus: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -19,7 +19,7 @@ major_version = 17
 enabled = true
 # Expo web dev server.
 site_url = "http://localhost:8081"
-additional_redirect_urls = ["http://localhost:8081/**", "http://localhost:8099/**", "nakamabinder://**", "exp://**"]
+additional_redirect_urls = ["http://localhost:8081/**", "http://localhost:8099/**", "playset://**", "exp://**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true
@@ -33,13 +33,13 @@ double_confirm_changes = true
 # Branded auth emails. Locally they land in the test inbox (Mailpit, http://127.0.0.1:54324).
 # The hosted project needs the same subjects and HTML pasted into the dashboard: docs/SETUP.md step 3.
 [auth.email.template.confirmation]
-subject = "Confirm your Nakama Binder email"
+subject = "Confirm your Playset email"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Nakama Binder password"
+subject = "Reset your Playset password"
 content_path = "./supabase/templates/recovery.html"
 
 [auth.email.template.email_change]
-subject = "Confirm your new Nakama Binder email"
+subject = "Confirm your new Playset email"
 content_path = "./supabase/templates/email_change.html"

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Nakama Binder",
+    "name": "Playset",
     "tagline": "Your One Piece Card Game collection"
   },
   "tabs": {
@@ -105,6 +105,17 @@
       "Event": "Events",
       "Stage": "Stages",
       "Don": "DON!!"
+    },
+    "viewLabel": "View",
+    "views": {
+      "checklist": "Checklist",
+      "grid": "Grid"
+    },
+    "columns": {
+      "number": "No.",
+      "card": "Card",
+      "rarity": "Rar.",
+      "playset": "Playset"
     }
   },
   "card": {
@@ -131,7 +142,7 @@
   },
   "account": {
     "title": "Account",
-    "signedOutTitle": "Sign in to build your binder",
+    "signedOutTitle": "Sign in to start your checklist",
     "signedOutBody": "Create a free account to track the cards you own and check your decklists — synced across all your devices.",
     "signIn": "Sign in",
     "signUp": "Create account",
@@ -186,7 +197,7 @@
     "copyList": "Copy as list",
     "copied_one": "Copied {{count}} line to the clipboard.",
     "copied_other": "Copied {{count}} lines to the clipboard.",
-    "emptyTitle": "Your binder is empty",
+    "emptyTitle": "Nothing ticked off yet",
     "emptyBody": "Open a set and switch on “Tap to collect” to tick off the cards you own, use + on any card page, or import a list you already have.",
     "browseSets": "Browse sets",
     "sorts": {
@@ -215,7 +226,7 @@
     "collectMode": "Tap to collect",
     "collectModeHint": "Tap a card to add a copy; tap − to remove one. Faded cards are ones you don’t own yet.",
     "nothingHere": "No cards to show with this filter.",
-    "eyebrow": "Your binder"
+    "eyebrow": "Your collection"
   },
   "import": {
     "title": "Import cards",
@@ -305,7 +316,7 @@
     "eyebrow": "One Piece Card Game · English + Japanese",
     "titleLine1": "Every card you own.",
     "titleLine2Before": "Every deck you ",
-    "titleLine2Marked": "can build.",
+    "titleLine2Marked": "can build.",
     "lead": "Playset is a checklist for the One Piece Card Game. Tick off every printing you own — English and Japanese, alt arts and all — then paste any decklist to see what you can build and what’s missing.",
     "ctaPrimary": "Start your checklist",
     "ctaSecondary": "Browse {{count}} cards",
@@ -444,6 +455,8 @@
     "youHave": "You have {{owned}}",
     "noneOwned": "You don't own this card",
     "reserved_one": "{{count}} in built decks",
-    "reserved_other": "{{count}} in built decks"
+    "reserved_other": "{{count}} in built decks",
+    "pullColumn": "Pull list",
+    "pull": "Pull {{count}}"
   }
 }

@@ -81,7 +81,7 @@ function CollectionView({ userId }: { userId: string }) {
       const rows = await exportCollection();
       const date = new Date().toISOString().slice(0, 10);
       if (kind === 'csv') {
-        await saveTextFile(`nakama-binder-collection-${date}.csv`, collectionToCsv(rows), 'text/csv');
+        await saveTextFile(`playset-collection-${date}.csv`, collectionToCsv(rows), 'text/csv');
       } else {
         await Clipboard.setStringAsync(collectionToList(rows));
         setNotice(t('collection.copied', { count: rows.length }));

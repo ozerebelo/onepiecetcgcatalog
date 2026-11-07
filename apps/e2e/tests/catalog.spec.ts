@@ -52,5 +52,5 @@ test('set page filters by card type', async ({ page }) => {
 
 test('signed out, the account page invites you to sign in', async ({ page }) => {
   await page.goto('/account');
-  await expect(page.getByText('Sign in to build your binder')).toBeVisible();
+  await expect(page.getByText('Sign in to start your checklist')).toBeVisible();
 });

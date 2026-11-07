@@ -1,4 +1,4 @@
-import { rarityShort } from '@binder/core';
+import { isOwnSetCard, rarityShort } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
@@ -187,7 +187,9 @@ function distinctCards(printings: Showcase['printings']) {
 function SampleChecklist({ showcase, style }: { showcase: Showcase | null; style?: object }) {
   const { t } = useTranslation();
   const palette = usePalette();
-  const rows = distinctCards(showcase?.printings ?? []).slice(0, SAMPLE_OWNED.length);
+  // The set's own cards (not reprints sold in the same packs), one printing each.
+  const own = distinctCards(showcase?.printings ?? []).filter((p) => showcase && isOwnSetCard(p.card_id, showcase.set.code));
+  const rows = own.slice(0, SAMPLE_OWNED.length);
   return (
     <View style={[styles.sheet, { backgroundColor: palette.surface, borderColor: palette.border }, style]}>
       <Text variant="subheading" style={styles.sheetTitle}>
@@ -262,8 +264,9 @@ const styles = StyleSheet.create({
   split: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xxxl },
   half: { flex: 1, minWidth: 0 },
   mastText: { gap: spacing.lg, paddingTop: spacing.md },
-  h1: { fontSize: 64, lineHeight: 64, letterSpacing: -1.6 },
-  h1Narrow: { fontSize: 44, lineHeight: 46, letterSpacing: -1 },
+  // Line height leaves room for descenders, so the highlighted words never cover the line above.
+  h1: { fontSize: 64, lineHeight: 76, letterSpacing: -1.6 },
+  h1Narrow: { fontSize: 44, lineHeight: 54, letterSpacing: -1 },
   lead: { fontSize: 17, lineHeight: 27, maxWidth: 560 },
   ctaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
   sheet: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md },

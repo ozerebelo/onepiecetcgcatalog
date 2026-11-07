@@ -69,12 +69,12 @@ the SQL Editor earlier are detected and recorded, not re-run. Manually: `DATABAS
 
 In the dashboard, **Authentication → URL Configuration**:
 
-- **Site URL**: your website address once deployed (step 6), e.g. `https://nakama-binder.vercel.app`.
+- **Site URL**: your website address once deployed (step 6), e.g. `https://playset.vercel.app`.
   Use `http://localhost:8081` until then.
 - **Redirect URLs** — add all of these:
   - `http://localhost:8081/**` (local web development)
   - `https://<your-vercel-domain>/**` (production web; add custom domains too)
-  - `nakamabinder://**` (the iOS / Android app)
+  - `playset://**` (the iOS / Android app)
   - `exp://**` (testing in Expo Go)
 
 **Authentication → Providers → Email**: keep **Confirm email** on.
@@ -99,7 +99,7 @@ spam or is refused. A subdomain such as `mail.yourdomain.com` keeps it separate 
    | Field | Value |
    |---|---|
    | Sender email | `no-reply@yourdomain.com` (on the verified domain) |
-   | Sender name | `Nakama Binder` |
+   | Sender name | `Playset` |
    | Host | `smtp.resend.com` |
    | Port | `465` |
    | Username | `resend` |
@@ -119,9 +119,9 @@ set the subject and paste the file's HTML:
 
 | Template | Subject | File |
 |---|---|---|
-| Confirm signup | `Confirm your Nakama Binder email` | `confirmation.html` |
-| Reset password | `Reset your Nakama Binder password` | `recovery.html` |
-| Change email address | `Confirm your new Nakama Binder email` | `email_change.html` |
+| Confirm signup | `Confirm your Playset email` | `confirmation.html` |
+| Reset password | `Reset your Playset password` | `recovery.html` |
+| Change email address | `Confirm your new Playset email` | `email_change.html` |
 
 The others (magic link, invite, reauthentication) aren't used by the app.
 
@@ -212,7 +212,7 @@ npx eas-cli@latest build -p android --profile preview   # installable APK for te
 npx eas-cli@latest build -p ios --profile preview       # needs an Apple Developer account
 ```
 
-The app identifiers are `com.nakamabinder.app` (iOS bundle id and Android package, in
+The app identifiers are `app.playset` (iOS bundle id and Android package, in
 `apps/app/app.json`). **Change them before the first store submission if you want a different name —
 they cannot be changed afterwards.**
 

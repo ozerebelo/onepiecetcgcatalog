@@ -1,4 +1,4 @@
-import { CATEGORIES, toShoppingList, toSimList, validateDeck, type Category } from '@binder/core';
+import { CATEGORIES, toShoppingList, toSimList, validateDeck } from '@binder/core';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import { Link, Redirect, Stack, router, useLocalSearchParams } from 'expo-router';
@@ -15,6 +15,7 @@ import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
+import { Pips } from '@/components/ui/pips';
 import { Text } from '@/components/ui/text';
 import { checkDeck, deleteDeck, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
 import { confirmAction, notifyError } from '@/lib/notify';
@@ -31,6 +32,7 @@ export default function DeckScreen() {
   const { user, initializing } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
+  const palette = usePalette();
 
   const [englishOnly, setEnglishOnly] = useState(false);
   const [reserveBuilt, setReserveBuilt] = useState(false);
@@ -212,14 +214,17 @@ export default function DeckScreen() {
           if (group.length === 0) return null;
           return (
             <View key={category} style={styles.group}>
-              <Text variant="label" tone="muted">
-                {t(`decks.groups.${category}`)} · {group.reduce((n, r) => n + r.needed, 0)}
-              </Text>
-              <View style={[styles.grid, wide && styles.gridWide]}>
-                {group.map((row) => (
-                  <CheckRowView key={row.card_id} row={row} wide={wide} category={category} />
-                ))}
+              <View style={[styles.groupHead, { borderBottomColor: palette.rule }]}>
+                <Text variant="eyebrow" tone="secondary" style={styles.flex}>
+                  {t(`decks.groups.${category}`)} · {group.reduce((n, r) => n + r.needed, 0)}
+                </Text>
+                <Text variant="eyebrow" tone="secondary">
+                  {t('decks.pullColumn')}
+                </Text>
               </View>
+              {group.map((row) => (
+                <CheckRowView key={row.card_id} row={row} />
+              ))}
             </View>
           );
         })
@@ -228,10 +233,10 @@ export default function DeckScreen() {
   );
 }
 
-function CheckRowView({ row, wide, category: _category }: { row: CheckRow; wide: boolean; category: Category }) {
+/** One pull-list row: the card, its slots (owned marked, missing in red pen) and what to do. */
+function CheckRowView({ row }: { row: CheckRow }) {
   const { t } = useTranslation();
   const palette = usePalette();
-  const complete = row.missing === 0;
   const byLanguage = row.owned_printings.reduce<Record<string, number>>((acc, p) => {
     acc[p.language] = (acc[p.language] ?? 0) + p.quantity;
     return acc;
@@ -245,25 +250,16 @@ function CheckRowView({ row, wide, category: _category }: { row: CheckRow; wide:
       <PressableArea
         accessibilityRole="link"
         accessibilityLabel={`${row.name}, ${row.card_id}, ${row.have}/${row.needed}`}
-        boxStyle={[
-          styles.checkRow,
-          { backgroundColor: palette.surface, borderColor: complete ? palette.border : palette.dangerSoft },
-          wide && { flexBasis: '48%' },
-        ]}
-        activeStyle={{ borderColor: palette.borderStrong }}>
+        boxStyle={[styles.checkRow, { borderBottomColor: palette.border }]}
+        activeStyle={{ backgroundColor: palette.primarySoft }}>
         <View style={styles.thumb}>
           <CardImage uri={row.image_url} label={row.card_id} rounded={radius.sm} />
-          <View style={[styles.qty, { backgroundColor: palette.overlay }]}>
-            <Text variant="label" style={styles.qtyText}>
-              ×{row.needed}
-            </Text>
-          </View>
         </View>
         <View style={styles.checkBody}>
           <Text weight="semibold" numberOfLines={1}>
             {row.name}
           </Text>
-          <Text variant="mono" tone="muted">
+          <Text variant="mono" tone="muted" numberOfLines={1}>
             {row.card_id}
             {row.cost != null ? ` · ${t('card.cost')} ${row.cost}` : ''}
           </Text>
@@ -272,16 +268,10 @@ function CheckRowView({ row, wide, category: _category }: { row: CheckRow; wide:
             {row.reserved > 0 ? ` · ${t('decks.reserved', { count: row.reserved })}` : ''}
           </Text>
         </View>
-        {complete ? (
-          <Badge label={`${row.have}/${row.needed}`} tone="success" icon="check" />
-        ) : (
-          <View style={styles.status}>
-            <Badge label={t('decks.needMore', { count: row.missing })} tone="danger" />
-            <Text variant="caption" tone="muted">
-              {row.have}/{row.needed}
-            </Text>
-          </View>
-        )}
+        <Pips owned={row.have} need={row.needed} />
+        <Text variant="mono" style={[styles.status, { color: row.missing ? palette.danger : palette.textSecondary }]}>
+          {row.missing ? t('decks.needMore', { count: row.missing }) : t('decks.pull', { count: row.needed })}
+        </Text>
       </PressableArea>
     </Link>
   );
@@ -330,22 +320,16 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   options: { gap: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  group: { gap: spacing.sm },
-  grid: { gap: spacing.sm },
-  gridWide: { flexDirection: 'row', flexWrap: 'wrap' },
+  group: { gap: 0, marginTop: spacing.md },
+  groupHead: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: 2 },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    padding: spacing.sm,
-    paddingRight: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    flexGrow: 1,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  thumb: { width: 54 },
-  qty: { position: 'absolute', bottom: 3, right: 3, paddingHorizontal: 5, borderRadius: radius.pill },
-  qtyText: { color: '#fff', textTransform: 'none', letterSpacing: 0 },
+  thumb: { width: 40 },
   checkBody: { flex: 1, gap: 1, minWidth: 0 },
-  status: { alignItems: 'flex-end', gap: 2 },
+  status: { width: 64, textAlign: 'right' },
 });

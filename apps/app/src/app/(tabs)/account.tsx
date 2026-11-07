@@ -35,8 +35,8 @@ export default function AccountScreen() {
       {user ? (
         <>
           <Panel style={styles.profile}>
-            <View style={[styles.avatar, { backgroundColor: palette.primarySoft }]}>
-              <Text style={{ fontFamily: fonts.display, fontSize: 24, color: palette.primary }}>{initial}</Text>
+            <View style={[styles.avatar, { borderColor: palette.text }]}>
+              <Text style={{ fontFamily: fonts.monoBold, fontSize: 24, color: palette.text }}>{initial}</Text>
             </View>
             <View style={styles.flex}>
               {displayName ? <Text variant="heading">{displayName}</Text> : null}
@@ -119,7 +119,7 @@ function MenuLink({ href, icon, label, last = false }: { href: '/collection' | '
 
 const styles = StyleSheet.create({
   profile: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  avatar: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 56, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   flex: { flex: 1 },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md + 2, borderRadius: radius.lg },
   footer: { gap: spacing.sm, paddingTop: spacing.md },

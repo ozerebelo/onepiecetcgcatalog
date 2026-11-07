@@ -1,42 +1,42 @@
 {
   "expo": {
-    "name": "Nakama Binder",
-    "slug": "nakama-binder",
+    "name": "Playset",
+    "slug": "playset",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "nakamabinder",
+    "scheme": "playset",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.nakamabinder.app",
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "app.playset",
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F6F4EF",
+        "backgroundColor": "#F6F6F2",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nakamabinder.app"
+      "package": "app.playset"
     },
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png",
-      "name": "Nakama Binder",
-      "shortName": "Binder",
-      "description": "Track your One Piece Card Game collection and check decklists.",
-      "themeColor": "#C8102E",
-      "backgroundColor": "#F6F4EF"
+      "name": "Playset",
+      "shortName": "Playset",
+      "description": "A checklist for the One Piece Card Game: every printing you own, and every deck you can build.",
+      "themeColor": "#141414",
+      "backgroundColor": "#F6F6F2"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#C8102E",
+          "backgroundColor": "#F6F6F2",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }

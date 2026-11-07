@@ -68,15 +68,18 @@ export function CardTile({
             <Text style={styles.badgeText}>{badge}</Text>
           </View>
         ) : null}
+        {showPips || quantity > 0 ? (
+          // Playset slots on a paper label stuck to the card's corner.
+          <View style={[styles.pips, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+            <Pips owned={quantity} size="sm" />
+          </View>
+        ) : null}
       </View>
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
       <View style={styles.meta}>
-        <View style={styles.codeRow}>
-          <Text variant="mono" tone="muted" numberOfLines={1} style={styles.flex}>
-            {codeLabel}
-          </Text>
-          {showPips || quantity > 0 ? <Pips owned={quantity} size="sm" /> : null}
-        </View>
+        <Text variant="mono" tone="muted" numberOfLines={1}>
+          {codeLabel}
+        </Text>
         <Text variant="caption" weight="semibold" numberOfLines={1}>
           {name}
         </Text>
@@ -99,10 +102,9 @@ const styles = StyleSheet.create({
   imageWrap: { borderRadius: radius.md },
   dimmed: { opacity: 0.3 },
   meta: { gap: 1, paddingHorizontal: 1 },
-  codeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  flex: { flex: 1 },
   badge: { position: 'absolute', paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },
   bottomRight: { right: 5, bottom: 5 },
+  pips: { position: 'absolute', left: 5, bottom: 5, paddingHorizontal: 4, paddingVertical: 3, borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth },
   topLeft: { position: 'absolute', left: 6, top: 6 },
   badgeText: { color: '#fff', fontFamily: fonts.monoMedium, fontSize: 11, lineHeight: 15 },
 });

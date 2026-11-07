@@ -1,7 +1,8 @@
-# Nakama Binder
+# Playset
 
-A collection tracker and deck checker for the **One Piece Card Game** — on the web, iOS and Android
-from one codebase.
+A checklist for the **One Piece Card Game**: tick off every printing you own, then check any decklist
+against it — on the web, iOS and Android from one codebase. (A *playset* is the most copies of one
+card a deck may hold: four.)
 
 > **Status: Phase 3 of 5 complete** — accounts, the full EN + JP card database, search, set browsing,
 > collection tracking and **deck checking**, with a landing page and a redesigned interface. See the
@@ -19,7 +20,7 @@ from one codebase.
 - **Card pages**: stats, effect text (English / Japanese) and every printing of the card.
 - **Accounts**: sign up / sign in / password reset (email + password), with a profile per user.
 - **Collection** (phase 2): track exactly which printings you own (alt arts and languages separately)
-  - **+ / −** on every card page, and **"Tap to collect"** on set pages to tick off a whole binder page fast
+  - **+ / −** on every card page, and **"Tap to collect"** on set pages to tick off a whole set fast (as a checklist or a grid of cards)
   - **Set progress** ("87 / 154 owned") on the Sets list and each set, with Owned / Missing filters
   - **Bulk import** of pasted lists (OPTCG Sim `4xOP01-016`, `2 OP01-025_p1 JP`, …) or CSV files, with an
     exact preview before anything is written; modes *Add*, *Set exact* and *Replace all*

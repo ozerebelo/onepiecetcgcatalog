@@ -14,7 +14,7 @@ import sharp from 'sharp';
 
 export const IMAGE_BUCKET = 'card-images';
 export const IMAGE_WIDTH = 560;
-const USER_AGENT = 'NakamaBinder-ingest/1.0 (+https://github.com/ozerebelo/onepiecetcgcatalog)';
+const USER_AGENT = 'Playset-ingest/1.0 (+https://github.com/ozerebelo/onepiecetcgcatalog)';
 
 /** Where mirrored images go. Abstracted so tests can use an in-memory store. */
 export interface ImageStore {

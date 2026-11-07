@@ -14,7 +14,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PG_BIN="${PG_BIN:-$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)}"
 PORT="${PGPORT_TEST:-54329}"
 KEEP="${1:-}"
-DATA_DIR="$(mktemp -d -t binder-pg-XXXXXX)"
+DATA_DIR="$(mktemp -d -t playset-pg-XXXXXX)"
 
 # initdb refuses to run as root; use the postgres system user in that case.
 run_pg() {

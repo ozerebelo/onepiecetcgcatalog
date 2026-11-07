@@ -5,7 +5,7 @@ import { getSupabase } from './supabase';
 
 /**
  * Where Supabase should send users back to after clicking an email link.
- * Web: https://<site>/<path>; native: nakamabinder://<path> (exp://... in Expo Go).
+ * Web: https://<site>/<path>; native: playset://<path> (exp://... in Expo Go).
  * Every value produced here must be listed under Auth → URL Configuration →
  * Redirect URLs in the Supabase dashboard (see docs/SETUP.md).
  */
