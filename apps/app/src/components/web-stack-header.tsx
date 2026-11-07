@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useAuth } from '@/providers/auth';
 import { MAX_CONTENT_WIDTH, WIDE_BREAKPOINT, fonts, radius, spacing, usePalette } from '@/theme';
 
-import { Logo } from './brand/logo';
+import { APP_NAME, Logo } from './brand/logo';
 import { Icon } from './ui/icon';
 import { PressableArea } from './ui/pressable-area';
 import { Text } from './ui/text';
@@ -59,11 +59,11 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
   }
 
   return (
-    <View style={[styles.bar, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
+    <View style={[styles.bar, { backgroundColor: palette.background, borderBottomColor: palette.rule }]}>
       <View style={styles.inner}>
         <Link href="/" asChild>
-          <PressableArea accessibilityRole="link" accessibilityLabel="Nakama Binder">
-            <Logo size={30} />
+          <PressableArea accessibilityRole="link" accessibilityLabel={APP_NAME}>
+            <Logo size={28} />
           </PressableArea>
         </Link>
         <View style={styles.links}>
@@ -71,11 +71,9 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
             const active = link.match.some((m) => pathname.startsWith(m));
             return (
               <Link key={link.key} href={link.href} asChild>
-                <PressableArea
-                  accessibilityRole="link"
-                  boxStyle={[styles.link, active && { backgroundColor: palette.surface }]}
-                  activeStyle={{ backgroundColor: palette.surfaceAlt }}>
-                  <Text style={{ fontFamily: active ? fonts.semibold : fonts.medium, fontSize: 14, color: active ? palette.text : palette.textSecondary }}>
+                <PressableArea accessibilityRole="link" boxStyle={styles.link}>
+                  {active ? <View style={[styles.marker, { backgroundColor: palette.highlight }]} /> : null}
+                  <Text style={{ fontFamily: active ? fonts.semibold : fonts.medium, fontSize: 15, color: active ? palette.text : palette.textSecondary }}>
                     {t(link.key)}
                   </Text>
                 </PressableArea>
@@ -88,8 +86,8 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
           <PressableArea
             accessibilityRole="link"
             accessibilityLabel={user ? t('tabs.account') : t('account.signIn')}
-            boxStyle={user ? [styles.avatar, { backgroundColor: palette.primarySoft }] : [styles.signIn, { backgroundColor: palette.primary }]}>
-            <Text style={{ color: user ? palette.primary : palette.onPrimary, fontFamily: fonts.semibold, fontSize: 14 }}>
+            boxStyle={user ? [styles.avatar, { borderColor: palette.text }] : [styles.signIn, { backgroundColor: palette.primary }]}>
+            <Text style={{ color: user ? palette.text : palette.onPrimary, fontFamily: user ? fonts.monoBold : fonts.semibold, fontSize: user ? 15 : 14 }}>
               {user
                 ? ((user.user_metadata?.display_name as string | undefined) || user.email || '?').slice(0, 1).toUpperCase()
                 : t('account.signIn')}
@@ -103,7 +101,7 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
 }
 
 const styles = StyleSheet.create({
-  bar: { borderBottomWidth: StyleSheet.hairlineWidth },
+  bar: { borderBottomWidth: 2 },
   inner: {
     width: '100%',
     maxWidth: MAX_CONTENT_WIDTH,
@@ -115,11 +113,12 @@ const styles = StyleSheet.create({
     height: 64,
   },
   subRow: { height: 44 },
-  links: { flexDirection: 'row', gap: spacing.xs },
-  link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.md },
+  links: { flexDirection: 'row', gap: spacing.md },
+  link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, justifyContent: 'center' },
+  marker: { position: 'absolute', left: 0, right: 0, bottom: 9, height: 9, borderRadius: 1 },
   flex: { flex: 1 },
   signIn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radius.md },
-  avatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   compact: { borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.sm, height: 56, justifyContent: 'center' },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
   backButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.md },

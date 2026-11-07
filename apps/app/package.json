@@ -4,6 +4,9 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@binder/core": "workspace:*",
+    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-sans-condensed": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo/ui": "~58.0.27",

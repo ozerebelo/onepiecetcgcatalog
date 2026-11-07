@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/providers/auth';
 import { MAX_CONTENT_WIDTH, WIDE_BREAKPOINT, fonts, radius, spacing, usePalette } from '@/theme';
 
-import { Logo } from './brand/logo';
+import { APP_NAME, Logo } from './brand/logo';
 import { Icon, type IconName } from './ui/icon';
 import { Text } from './ui/text';
 
@@ -85,7 +85,7 @@ function NavBar({ children, style: _style, ...rest }: TabListProps) {
   }
 
   return (
-    <View {...rest} style={[styles.topBar, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>
+    <View {...rest} style={[styles.topBar, { backgroundColor: palette.background, borderBottomColor: palette.rule }]}>
       <View style={styles.topInner}>
         {home}
         <View style={styles.links}>{others}</View>
@@ -108,8 +108,8 @@ function HomeButton({ isFocused, label, ref: _ref, children: _children, ...props
   const wide = useWide();
   if (!wide) return <CompactItem icon="home" label={label} isFocused={isFocused} {...props} />;
   return (
-    <Pressable {...props} accessibilityRole="link" accessibilityLabel="Nakama Binder" style={styles.logoButton}>
-      <Logo size={30} />
+    <Pressable {...props} accessibilityRole="link" accessibilityLabel={APP_NAME} style={styles.logoButton}>
+      <Logo size={28} />
     </Pressable>
   );
 }
@@ -132,16 +132,23 @@ function NavButton({
       {...props}
       accessibilityRole="tab"
       accessibilityState={{ selected: Boolean(isFocused) }}
-      style={({ hovered, pressed }) => [
-        styles.link,
-        (hovered || pressed) && { backgroundColor: palette.surfaceAlt },
-        isFocused && { backgroundColor: palette.surface },
-      ]}>
-      <Text
-        style={{ fontFamily: isFocused ? fonts.semibold : fonts.medium, fontSize: 14, color: isFocused ? palette.text : palette.textSecondary }}>
-        {label}
-      </Text>
-      {isFocused ? <View style={[styles.underline, { backgroundColor: palette.primary }]} /> : null}
+      style={styles.link}>
+      {({ hovered }) => (
+        <>
+          {/* The current section is marked with a highlighter stroke behind its name. */}
+          {isFocused || hovered ? (
+            <View style={[styles.marker, { backgroundColor: isFocused ? palette.highlight : palette.primarySoft }]} />
+          ) : null}
+          <Text
+            style={{
+              fontFamily: isFocused ? fonts.semibold : fonts.medium,
+              fontSize: 15,
+              color: isFocused ? palette.text : palette.textSecondary,
+            }}>
+            {label}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -172,9 +179,11 @@ function AccountButton({ isFocused, label, ref: _ref, children: _children, ...pr
       accessibilityState={{ selected: Boolean(isFocused) }}
       style={({ hovered }) => [
         styles.avatar,
-        { backgroundColor: palette.primarySoft, borderColor: isFocused || hovered ? palette.primary : 'transparent' },
+        { borderColor: palette.text, backgroundColor: isFocused ? palette.highlight : hovered ? palette.primarySoft : 'transparent' },
       ]}>
-      <Text style={{ color: palette.primary, fontFamily: fonts.bold, fontSize: 14 }}>{name.slice(0, 1).toUpperCase()}</Text>
+      <Text style={{ color: isFocused ? palette.onHighlight : palette.text, fontFamily: fonts.monoBold, fontSize: 15 }}>
+        {name.slice(0, 1).toUpperCase()}
+      </Text>
     </Pressable>
   );
 }
@@ -187,7 +196,7 @@ function CompactItem({
   ...props
 }: { icon: IconName; label: string; isFocused?: boolean } & Omit<ButtonProps, 'label'>) {
   const palette = usePalette();
-  const color = isFocused ? palette.primary : palette.textMuted;
+  const color = isFocused ? palette.text : palette.textMuted;
   return (
     <Pressable
       {...props}
@@ -195,6 +204,7 @@ function CompactItem({
       accessibilityLabel={label}
       accessibilityState={{ selected: Boolean(isFocused) }}
       style={styles.compactItem}>
+      {isFocused ? <View style={[styles.compactMarker, { backgroundColor: palette.highlight }]} /> : null}
       <Icon name={icon} size={20} color={color} />
       <Text style={{ color, fontFamily: isFocused ? fonts.semibold : fonts.medium, fontSize: 11 }} numberOfLines={1}>
         {label}
@@ -206,7 +216,7 @@ function CompactItem({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   slot: { flex: 1 },
-  topBar: { borderBottomWidth: StyleSheet.hairlineWidth, position: 'sticky' as 'relative', top: 0, zIndex: 10 },
+  topBar: { borderBottomWidth: 2, position: 'sticky' as 'relative', top: 0, zIndex: 10 },
   topInner: {
     width: '100%',
     maxWidth: MAX_CONTENT_WIDTH,
@@ -218,12 +228,12 @@ const styles = StyleSheet.create({
     height: 64,
   },
   logoButton: { paddingVertical: spacing.xs },
-  links: { flexDirection: 'row', gap: spacing.xs },
+  links: { flexDirection: 'row', gap: spacing.md },
   spacer: { flex: 1 },
-  link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.md },
-  underline: { position: 'absolute', left: spacing.md, right: spacing.md, bottom: -12, height: 2, borderRadius: 1 },
+  link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, justifyContent: 'center' },
+  marker: { position: 'absolute', left: 0, right: 0, bottom: 9, height: 9, borderRadius: 1 },
   signIn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radius.md },
-  avatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  avatar: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   bottomBar: {
     position: 'absolute',
     left: 0,
@@ -234,4 +244,5 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   compactItem: { flex: 1, height: 60, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  compactMarker: { position: 'absolute', top: 0, left: '28%', right: '28%', height: 3 },
 });

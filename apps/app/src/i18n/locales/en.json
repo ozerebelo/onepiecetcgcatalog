@@ -302,62 +302,48 @@
     }
   },
   "landing": {
-    "eyebrow": "One Piece Card Game companion · EN + JP",
+    "eyebrow": "One Piece Card Game · English + Japanese",
     "titleLine1": "Every card you own.",
-    "titleLine2": "Every deck you want.",
-    "lead": "Track your collection down to the exact alt art, paste any decklist and instantly see what you have and what you're missing — on the web, iPhone and Android.",
-    "ctaPrimary": "Start your binder — free",
+    "titleLine2Before": "Every deck you ",
+    "titleLine2Marked": "can build.",
+    "lead": "Playset is a checklist for the One Piece Card Game. Tick off every printing you own — English and Japanese, alt arts and all — then paste any decklist to see what you can build and what’s missing.",
+    "ctaPrimary": "Start your checklist",
     "ctaSecondary": "Browse {{count}} cards",
-    "stats": {
-      "cards": "different cards",
-      "printings": "printings & alt arts",
-      "sets": "products",
-      "languages": "card languages"
+    "sampleTitle": "{{code}} · checklist",
+    "sampleColumns": {
+      "number": "No.",
+      "card": "Card",
+      "rarity": "Rar.",
+      "playset": "Playset"
     },
-    "featuresTitle": "Your whole collection, finally organised",
-    "featuresLead": "Built around how players actually collect: every art counted, every set in order, every deck one paste away.",
-    "features": {
-      "printings": {
-        "title": "Every printing, tracked",
-        "body": "Base, parallel, manga and reprint versions — in English and Japanese — each counted separately."
+    "sampleNote": "Sample marks. Yours fill in as you collect.",
+    "stepsTitle": "How it works",
+    "steps": {
+      "own": {
+        "title": "Tick off what you own",
+        "body": "Tap through any set, or paste a list or spreadsheet. Every printing counts on its own: base, alt art, manga, reprints, English and Japanese."
       },
-      "decks": {
-        "title": "Check any decklist",
-        "body": "Paste a list from OPTCG Sim or any deckbuilder and see exactly which cards you're missing."
+      "paste": {
+        "title": "Paste a decklist",
+        "body": "From OPTCG Sim or any deckbuilder. Any printing of a card fills its slot, so your alt arts count."
       },
-      "sets": {
-        "title": "Collect set by set",
-        "body": "Tap through any booster like a binder page and watch your completion grow."
-      },
-      "import": {
-        "title": "Bring your collection",
-        "body": "Import thousands of cards from a list or spreadsheet in one go, and export a backup anytime."
-      },
-      "updated": {
-        "title": "Always up to date",
-        "body": "New cards arrive automatically from the official card list, usually the day they're published."
-      },
-      "everywhere": {
-        "title": "Everywhere you play",
-        "body": "Web, iPhone and Android, synced through your account — your binder is always in your pocket."
+      "pull": {
+        "title": "Get your pull list",
+        "body": "What to pull from your collection, and exactly what’s missing — copy it straight into a shop order."
       }
     },
-    "deckEyebrow": "Deck check",
-    "deckTitle": "Know what to buy before you build",
-    "deckBody": "Any art or language of a card fills its slot, so your alt arts count. Hold back cards that are already sleeved in your built decks, and copy the missing list straight into a shop order.",
-    "deckPoint1": "Paste from OPTCG Sim and most deckbuilders",
-    "deckPoint2": "English-only mode for official events",
-    "deckPoint3": "One tap to copy what you're missing",
-    "demoDeck": "Example deck",
-    "demoProgress": "38 / 51 owned",
+    "pullTitle": "A pull list, not a guess",
+    "pullBody": "Four slots per card, like a playset. Marked: you own it. Red: you still need it. Hold back cards sleeved in decks you’ve already built, or check with English cards only for official events.",
+    "demoDeck": "Example deck · {{owned}} of {{total}} owned",
+    "pull": "Pull {{count}}",
     "latestTag": "Newest set · {{code}}",
     "latestBody_one": "Released {{date}} · {{count}} card, alternate arts included.",
     "latestBody_other": "Released {{date}} · {{count}} cards, alternate arts included.",
     "latestBodyNoDate_one": "{{count}} card, alternate arts included.",
     "latestBodyNoDate_other": "{{count}} cards, alternate arts included.",
-    "viewSet": "View set",
-    "closingTitle": "Set sail with your collection",
-    "closingBody": "Free to use. Sign up with your email and start adding cards in seconds."
+    "viewSet": "Open the checklist",
+    "closingTitle": "Start with one set.",
+    "closingBody": "Pick the set you’ve opened the most packs of and tick it off. It takes a few minutes, and it’s free."
   },
   "dashboard": {
     "eyebrow": "Dashboard",

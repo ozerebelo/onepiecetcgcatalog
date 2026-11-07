@@ -15,7 +15,7 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={palette.surface}
-      indicatorColor={palette.primarySoft}
+      indicatorColor={palette.highlightSoft}
       labelStyle={{ selected: { color: palette.primary } }}
       iconColor={{ selected: palette.primary }}>
       <NativeTabs.Trigger name="index">

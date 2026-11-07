@@ -29,8 +29,7 @@ export function TextField({ label, error, hint, icon, style, onFocus, onBlur, ..
           styles.box,
           {
             backgroundColor: palette.surface,
-            borderColor: error ? palette.danger : focused ? palette.primary : palette.border,
-            boxShadow: focused ? `0 0 0 3px ${palette.primarySoft}` : undefined,
+            borderColor: error ? palette.danger : focused ? palette.text : palette.borderStrong,
           },
         ]}>
         {icon ? <Icon name={icon} size={18} color={palette.textMuted} /> : null}

@@ -24,13 +24,14 @@ export function Chip({ label, selected = false, onPress, dotColor }: ChipProps) 
       style={({ pressed, hovered }) => [
         styles.chip,
         {
-          backgroundColor: selected ? palette.primarySoft : hovered ? palette.surfaceAlt : palette.surface,
-          borderColor: selected ? palette.primary : palette.border,
+          // Selected = highlighted, like marking an entry on a printed list.
+          backgroundColor: selected ? palette.highlight : hovered ? palette.surfaceAlt : 'transparent',
+          borderColor: selected ? palette.highlight : palette.borderStrong,
         },
         pressed && { opacity: 0.8 },
       ]}>
       {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
-      <Text variant="caption" weight="semibold" style={{ color: selected ? palette.primary : palette.text }}>
+      <Text variant="caption" weight="semibold" style={{ color: selected ? palette.onHighlight : palette.text }}>
         {label}
       </Text>
     </Pressable>
@@ -42,10 +43,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    minHeight: 34,
+    minHeight: 32,
     paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
+    borderRadius: radius.sm,
     borderWidth: 1,
   },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  dot: { width: 9, height: 9, borderRadius: 2 },
 });

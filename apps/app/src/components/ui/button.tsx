@@ -5,7 +5,7 @@ import { fonts, radius, spacing, usePalette } from '@/theme';
 import { Icon, type IconName } from './icon';
 import { Text } from './text';
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'hero';
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> {
@@ -37,12 +37,13 @@ export function Button({
   const isDisabled = disabled || loading;
 
   const look: Record<Variant, { bg: string; hover: string; fg: string; border?: string }> = {
+    // Ink: the one solid thing on the page.
     primary: { bg: palette.primary, hover: palette.primaryPressed, fg: palette.onPrimary },
-    secondary: { bg: palette.surfaceAlt, hover: palette.borderStrong, fg: palette.text },
-    outline: { bg: 'transparent', hover: palette.surfaceAlt, fg: palette.text, border: palette.borderStrong },
-    ghost: { bg: 'transparent', hover: palette.surfaceAlt, fg: palette.primary },
+    // Highlighter: a marked choice next to the primary one.
+    secondary: { bg: palette.highlight, hover: palette.highlight, fg: palette.onHighlight },
+    outline: { bg: 'transparent', hover: palette.primarySoft, fg: palette.text, border: palette.text },
+    ghost: { bg: 'transparent', hover: palette.primarySoft, fg: palette.text },
     danger: { bg: 'transparent', hover: palette.dangerSoft, fg: palette.danger, border: palette.danger },
-    hero: { bg: 'rgba(255,255,255,0.10)', hover: 'rgba(255,255,255,0.18)', fg: palette.heroText, border: 'rgba(255,255,255,0.22)' },
   };
   const v = look[variant];
   const iconSize = size === 'sm' ? 15 : 17;
@@ -61,7 +62,8 @@ export function Button({
           backgroundColor: hovered || pressed ? v.hover : v.bg,
         },
         v.border ? { borderWidth: 1, borderColor: v.border } : null,
-        pressed && { transform: [{ scale: 0.98 }] },
+        pressed && { opacity: 0.85 },
+        variant === 'secondary' && hovered && { opacity: 0.9 },
         isDisabled && { opacity: 0.5 },
         boxStyle,
       ]}>

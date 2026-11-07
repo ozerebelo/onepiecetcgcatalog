@@ -1,44 +1,42 @@
 import { StyleSheet, View } from 'react-native';
-import Svg, { Circle, G, Line, Rect } from 'react-native-svg';
+import Svg, { Rect } from 'react-native-svg';
 
 import { Text } from '@/components/ui/text';
-import { fonts } from '@/theme';
+import { fonts, usePalette } from '@/theme';
+
+/** The product name, for labels and titles (the wordmark itself is lowercase). */
+export const APP_NAME = 'Playset';
 
 /**
- * Brand mark: a ship's wheel in treasure gold on a straw-hat-red tile.
- * Original artwork (not derived from any One Piece logo).
+ * Brand mark: four card slots — a playset — with the fourth just marked in highlighter.
+ * Drawn in ink, so it follows the colour scheme.
  */
-export function LogoMark({ size = 32 }: { size?: number }) {
-  const spokes = Array.from({ length: 8 }, (_, i) => i * 45);
+export function LogoMark({ size = 28, ink, mark = '#FFE14A' }: { size?: number; ink?: string; mark?: string }) {
+  const palette = usePalette();
+  const color = ink ?? palette.text;
+  // 4 slots of 9 × 26 in a 48-unit box, 3-unit gaps, centred.
+  const slots = [0, 1, 2, 3].map((i) => 6 + i * 9.5);
   return (
-    <Svg width={size} height={size} viewBox="0 0 64 64" accessibilityElementsHidden importantForAccessibility="no">
-      <Rect x="0" y="0" width="64" height="64" rx="16" fill="#E0303F" />
-      <G stroke="#F4B942" strokeLinecap="round">
-        {spokes.map((angle) => (
-          <Line
-            key={angle}
-            x1="32"
-            y1="32"
-            x2={32 + 23 * Math.cos((angle * Math.PI) / 180)}
-            y2={32 + 23 * Math.sin((angle * Math.PI) / 180)}
-            strokeWidth="4"
-          />
-        ))}
-        <Circle cx="32" cy="32" r="15" fill="none" strokeWidth="4.5" />
-      </G>
-      <Circle cx="32" cy="32" r="6" fill="#F4B942" />
-      <Circle cx="32" cy="32" r="2.5" fill="#E0303F" />
+    <Svg width={size} height={size} viewBox="0 0 48 48" accessibilityElementsHidden importantForAccessibility="no">
+      {slots.map((x, i) =>
+        i < 3 ? (
+          <Rect key={i} x={x} y="9" width="7" height="30" rx="1.5" fill={color} />
+        ) : (
+          <Rect key={i} x={x} y="9" width="7" height="30" rx="1.5" fill={mark} stroke={color} strokeWidth="1.6" />
+        ),
+      )}
     </Svg>
   );
 }
 
-export function Logo({ size = 30, color, showName = true }: { size?: number; color?: string; showName?: boolean }) {
+export function Logo({ size = 28, color, showName = true }: { size?: number; color?: string; showName?: boolean }) {
+  const palette = usePalette();
   return (
-    <View style={styles.row} accessible accessibilityRole="image" accessibilityLabel="Nakama Binder">
-      <LogoMark size={size} />
+    <View style={styles.row} accessible accessibilityRole="image" accessibilityLabel={APP_NAME}>
+      <LogoMark size={size} ink={color} />
       {showName ? (
-        <Text style={[styles.name, { fontSize: size * 0.62, color }]} numberOfLines={1}>
-          Nakama Binder
+        <Text style={[styles.name, { fontSize: size * 0.82, lineHeight: size, color: color ?? palette.text }]} numberOfLines={1}>
+          playset
         </Text>
       ) : null}
     </View>
@@ -46,6 +44,6 @@ export function Logo({ size = 30, color, showName = true }: { size?: number; col
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  name: { fontFamily: fonts.display, letterSpacing: -0.4 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  name: { fontFamily: fonts.display, letterSpacing: -0.3 },
 });

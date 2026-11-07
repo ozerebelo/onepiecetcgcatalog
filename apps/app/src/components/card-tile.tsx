@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { printingLabel } from '@/lib/format';
-import { radius, spacing, usePalette } from '@/theme';
+import { fonts, radius, spacing, usePalette } from '@/theme';
 
 import { CardImage } from './card-image';
+import { Pips } from './ui/pips';
 import { PressableArea } from './ui/pressable-area';
 import { Text } from './ui/text';
 
@@ -21,8 +22,10 @@ interface CardTileProps {
   width: number;
   /** Small pill in the bottom-right image corner, e.g. "4 arts" or "SR". */
   badge?: string | null;
-  /** Owned copies; shows a "×N" badge in the top-right corner when > 0. */
+  /** Owned copies, shown as playset slots under the card (when the viewer's collection is known). */
   quantity?: number;
+  /** Show the playset slots even at 0 (the collection is known, e.g. signed in on a set page). */
+  showPips?: boolean;
   /** Fade the card (e.g. not owned, in collect mode). */
   dimmed?: boolean;
   /** Extra control over the top-left image corner (e.g. a remove button). */
@@ -40,6 +43,7 @@ export function CardTile({
   width,
   badge,
   quantity = 0,
+  showPips = false,
   dimmed = false,
   overlay,
   accessibilityHint,
@@ -57,28 +61,22 @@ export function CardTile({
       onPress={href ? undefined : onPress}
       boxStyle={[styles.tile, { width }]}
       activeStyle={styles.lift}>
-      <View style={[styles.imageWrap, { boxShadow: palette.shadow }, dimmed && styles.dimmed]}>
+      <View style={[styles.imageWrap, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
         {badge ? (
           <View style={[styles.badge, styles.bottomRight, { backgroundColor: palette.overlay }]}>
-            <Text variant="label" style={styles.badgeText}>
-              {badge}
-            </Text>
+            <Text style={styles.badgeText}>{badge}</Text>
           </View>
         ) : null}
       </View>
-      {quantity > 0 ? (
-        <View style={[styles.badge, styles.topRight, { backgroundColor: palette.primary }]}>
-          <Text variant="label" style={styles.badgeText}>
-            ×{quantity}
-          </Text>
-        </View>
-      ) : null}
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
       <View style={styles.meta}>
-        <Text variant="mono" tone="muted" numberOfLines={1}>
-          {codeLabel}
-        </Text>
+        <View style={styles.codeRow}>
+          <Text variant="mono" tone="muted" numberOfLines={1} style={styles.flex}>
+            {codeLabel}
+          </Text>
+          {showPips || quantity > 0 ? <Pips owned={quantity} size="sm" /> : null}
+        </View>
         <Text variant="caption" weight="semibold" numberOfLines={1}>
           {name}
         </Text>
@@ -97,13 +95,14 @@ export function CardTile({
 
 const styles = StyleSheet.create({
   tile: { gap: spacing.xs + 2, marginBottom: spacing.lg },
-  lift: { transform: [{ translateY: -3 }] },
+  lift: { transform: [{ translateY: -2 }] },
   imageWrap: { borderRadius: radius.md },
-  dimmed: { opacity: 0.32 },
-  meta: { gap: 1, paddingHorizontal: 2 },
-  badge: { position: 'absolute', paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill },
-  bottomRight: { right: 6, bottom: 6 },
-  topRight: { right: 6, top: 6 },
+  dimmed: { opacity: 0.3 },
+  meta: { gap: 1, paddingHorizontal: 1 },
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  flex: { flex: 1 },
+  badge: { position: 'absolute', paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },
+  bottomRight: { right: 5, bottom: 5 },
   topLeft: { position: 'absolute', left: 6, top: 6 },
-  badgeText: { color: '#fff', textTransform: 'none', letterSpacing: 0 },
+  badgeText: { color: '#fff', fontFamily: fonts.monoMedium, fontSize: 11, lineHeight: 15 },
 });

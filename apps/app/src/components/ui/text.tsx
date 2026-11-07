@@ -3,7 +3,7 @@ import { StyleSheet, Text as RNText, type TextProps as RNTextProps } from 'react
 import { fonts, fontSize, usePalette, type Palette } from '@/theme';
 
 type Variant = 'display' | 'title' | 'heading' | 'subheading' | 'body' | 'caption' | 'label' | 'mono' | 'eyebrow';
-type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'accent' | 'danger' | 'success' | 'onPrimary' | 'hero' | 'heroSecondary';
+type Tone = 'default' | 'secondary' | 'muted' | 'primary' | 'accent' | 'danger' | 'success' | 'onPrimary';
 type Weight = 'regular' | 'medium' | 'semibold' | 'bold';
 
 export type TextProps = RNTextProps & {
@@ -23,8 +23,6 @@ const toneColor = (palette: Palette, tone: Tone) =>
     danger: palette.danger,
     success: palette.success,
     onPrimary: palette.onPrimary,
-    hero: palette.heroText,
-    heroSecondary: palette.heroTextSecondary,
   })[tone];
 
 export function Text({ variant = 'body', tone = 'default', weight, style, ...rest }: TextProps) {
@@ -38,16 +36,17 @@ export function Text({ variant = 'body', tone = 'default', weight, style, ...res
 }
 
 const styles = StyleSheet.create({
-  display: { fontFamily: fonts.display, fontSize: fontSize.display, lineHeight: 52, letterSpacing: -1.2 },
-  title: { fontFamily: fonts.display, fontSize: fontSize.xxl, lineHeight: 38, letterSpacing: -0.6 },
-  heading: { fontFamily: fonts.displayMedium, fontSize: fontSize.xl, lineHeight: 30, letterSpacing: -0.3 },
+  // Headings: IBM Plex Sans Condensed — dense, like a printed label.
+  display: { fontFamily: fonts.display, fontSize: fontSize.display, lineHeight: 56, letterSpacing: -1 },
+  title: { fontFamily: fonts.display, fontSize: fontSize.xxl, lineHeight: 38, letterSpacing: -0.5 },
+  heading: { fontFamily: fonts.displayMedium, fontSize: fontSize.xl, lineHeight: 28, letterSpacing: -0.2 },
   subheading: { fontFamily: fonts.semibold, fontSize: fontSize.md, lineHeight: 21 },
   body: { fontFamily: fonts.regular, fontSize: fontSize.md, lineHeight: 23 },
   caption: { fontFamily: fonts.regular, fontSize: fontSize.sm, lineHeight: 18 },
-  // Field and column labels: quiet, sentence case (no tiny tracked capitals).
+  // Field labels: quiet, sentence case.
   label: { fontFamily: fonts.semibold, fontSize: fontSize.xs, lineHeight: 16 },
-  // A short tag above a title (set code, product kind): coloured, sentence case.
-  eyebrow: { fontFamily: fonts.semibold, fontSize: fontSize.sm, lineHeight: 18, letterSpacing: 0.2 },
-  // Card numbers and counts: the text face with equal-width digits (not a code font).
-  mono: { fontFamily: fonts.medium, fontSize: fontSize.xs, lineHeight: 16, letterSpacing: 0.2, fontVariant: ['tabular-nums'] },
+  // Column heads and the line above a title: the checklist's printed form (mono, capitals).
+  eyebrow: { fontFamily: fonts.monoMedium, fontSize: 11.5, lineHeight: 16, letterSpacing: 0.6, textTransform: 'uppercase' },
+  // Card numbers and counts: IBM Plex Mono.
+  mono: { fontFamily: fonts.monoMedium, fontSize: fontSize.xs, lineHeight: 16 },
 });
