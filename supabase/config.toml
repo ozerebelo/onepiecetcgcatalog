@@ -2,7 +2,7 @@
 # `supabase test db` for local development and CI.
 # The hosted project's auth settings (site URL, redirect URLs, email
 # confirmations) are configured in the Supabase dashboard — see docs/SETUP.md.
-project_id = "nakama-binder"
+project_id = "playset"
 
 [api]
 enabled = true

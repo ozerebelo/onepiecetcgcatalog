@@ -1,11 +1,16 @@
 import { Link, type Href } from 'expo-router';
 import type { ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Pips } from '@/components/ui/pips';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Text } from '@/components/ui/text';
 import { PLAYSET, spacing, usePalette } from '@/theme';
+
+/** Narrower number column on phones, so names keep their room. */
+function useCompact() {
+  return useWindowDimensions().width < 520;
+}
 
 /**
  * A printed checklist: number · card · rarity · playset slots, one row per printing.
@@ -13,15 +18,16 @@ import { PLAYSET, spacing, usePalette } from '@/theme';
  */
 export function ChecklistHeader({ number, card, rarity, playset }: { number: string; card: string; rarity: string; playset: string }) {
   const palette = usePalette();
+  const compact = useCompact();
   return (
     <View style={[styles.row, styles.header, { borderBottomColor: palette.rule }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Text variant="eyebrow" tone="secondary" style={styles.code}>
+      <Text variant="eyebrow" tone="secondary" style={compact ? styles.codeCompact : styles.code}>
         {number}
       </Text>
       <Text variant="eyebrow" tone="secondary" style={styles.flex}>
         {card}
       </Text>
-      <Text variant="eyebrow" tone="secondary" style={styles.rarity}>
+      <Text variant="eyebrow" tone="secondary" style={compact ? styles.rarityCompact : styles.rarity}>
         {rarity}
       </Text>
       <Text variant="eyebrow" tone="secondary" style={styles.slots}>
@@ -49,6 +55,7 @@ export interface ChecklistRowProps {
 
 export function ChecklistRow({ code, name, variant, rarity, owned, href, onPress, accessibilityLabel, accessibilityHint, trailing }: ChecklistRowProps) {
   const palette = usePalette();
+  const compact = useCompact();
   const known = owned !== undefined;
   const has = (owned ?? 0) > 0;
   const full = (owned ?? 0) >= PLAYSET;
@@ -60,7 +67,7 @@ export function ChecklistRow({ code, name, variant, rarity, owned, href, onPress
       onPress={href ? undefined : onPress}
       boxStyle={[styles.row, styles.item, { borderBottomColor: palette.border }]}
       activeStyle={{ backgroundColor: palette.primarySoft }}>
-      <Text variant="mono" style={[styles.code, { color: known && !has ? palette.textMuted : palette.text }]} numberOfLines={1}>
+      <Text variant="mono" style={[compact ? styles.codeCompact : styles.code, { color: known && !has ? palette.textMuted : palette.text }]} numberOfLines={1}>
         {code}
       </Text>
       <View style={[styles.flex, styles.nameCell]}>
@@ -76,7 +83,7 @@ export function ChecklistRow({ code, name, variant, rarity, owned, href, onPress
           {variant ? <Text style={{ color: palette.textSecondary }}>{`  ${variant}`}</Text> : null}
         </Text>
       </View>
-      <Text variant="mono" tone="secondary" style={styles.rarity} numberOfLines={1}>
+      <Text variant="mono" tone="secondary" style={compact ? styles.rarityCompact : styles.rarity} numberOfLines={1}>
         {rarity ?? ''}
       </Text>
       <View style={styles.slots}>{known ? <Pips owned={owned ?? 0} /> : null}</View>
@@ -97,9 +104,11 @@ const styles = StyleSheet.create({
   header: { paddingVertical: spacing.sm, borderBottomWidth: 2 },
   item: { minHeight: 44, paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth },
   code: { width: 86 },
+  codeCompact: { width: 70 },
   flex: { flex: 1 },
   nameCell: { minWidth: 0 },
   name: { fontSize: 15, lineHeight: 22, alignSelf: 'flex-start', paddingHorizontal: 2, marginHorizontal: -2 },
   rarity: { width: 40 },
+  rarityCompact: { width: 30 },
   slots: { width: 56, alignItems: 'flex-start' },
 });

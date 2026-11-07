@@ -167,11 +167,13 @@ export function Landing() {
       </Container>
 
       {/* Footer */}
-      <Container style={[styles.footer, { borderTopColor: palette.border }]}>
-        <Logo size={22} />
-        <Text variant="caption" tone="muted" style={styles.footerText}>
-          {t('account.about')}
-        </Text>
+      <Container>
+        <View style={[styles.footer, { borderTopColor: palette.border }]}>
+          <Logo size={22} />
+          <Text variant="caption" tone="muted" style={styles.footerText}>
+            {t('account.about')}
+          </Text>
+        </View>
       </Container>
     </ScrollView>
   );

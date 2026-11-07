@@ -41,9 +41,12 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
 - **List screens scroll as a whole page.** Use `<Screen bleed>` with the list's
   `contentContainerStyle={listColumn}` and put the page header in `ListHeaderComponent`. A list nested
   inside the centred column puts its scrollbar in the middle of the window on web.
-- **Design system:** use the tokens in `src/theme` and the components in `components/ui` (`Panel`,
-  `PageHeader`, `Button`, `Text` variants/weights). Custom fonts use one family per weight — set
-  `weight`/`fontFamily`, never `fontWeight`.
+- **Design system** (see "Product and design" in `docs/ARCHITECTURE.md`): use the tokens in `src/theme`
+  and the components in `components/ui` (`Panel`, `PageHeader`, `Button`, `Text` variants/weights,
+  `Pips`, `Badge`). Keep the marks meaningful: `highlight` only for owned / selected, `danger` only for
+  missing / errors; ink (`primary`) for actions. No gradients, glows or heavy shadows — use rules
+  (`rule`, `border`). Custom fonts use one family per weight — set `weight`/`fontFamily`, never
+  `fontWeight`.
 - **All user-facing strings go through i18n** (`useTranslation()`, keys in
   `apps/app/src/i18n/locales/en.json`).
 - Add Expo-ecosystem dependencies with `npx expo install <pkg>` (from `apps/app`) so versions match the

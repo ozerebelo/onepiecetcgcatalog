@@ -178,13 +178,27 @@ i18n/                i18next setup; every user-facing string lives in locales/en
 theme/               Colors (light/dark), spacing, card colors
 ```
 
+## Product and design
+
+**Playset** — a checklist for the One Piece Card Game. A *playset* is the most copies of one card a
+deck may hold (four); it ties the two halves of the app together: collecting (do I own a playset?) and
+playing (do I own what this deck needs?). The name deliberately borrows no One Piece vocabulary.
+
+The look is a printed checklist marked up by hand, in light ("paper") and dark ("carbon") schemes:
+ink-black type and buttons, thin printed rules instead of shadows and gradients, IBM Plex (Condensed
+for headings, Sans for text, Mono for card numbers and column heads). Marks carry meaning everywhere:
+**highlighter yellow = owned / selected**, **red pen = missing / needed**. The signature element is the
+row of four *playset slots* (`components/ui/pips.tsx`) on cards, set checklists and deck pull lists.
+Set pages default to a checklist view (`components/checklist.tsx`) with a grid view beside it; a deck's
+check reads as a pull list.
+
 ## Roadmap
 
 | Phase | Scope | Key additions |
 |---|---|---|
 | **1 ✅** | Foundation | Accounts, EN+JP catalog + daily import, search, sets, card pages |
 | **2 ✅** | Collection | `collection_items` with RLS; +/− on card pages; "tap to collect" set grids with progress and owned/missing filters; bulk paste / CSV / Sim-format import with exact preview (add / set / replace all); CSV + list export; Collection tab with search and filters |
-| **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. New design system (Space Grotesk + Inter, ink/parchment palettes), landing page, signed-in dashboard, web top navigation / phone bottom bar, special inserts separated on set pages. Sets merged into the Cards page: every product with its artwork, newest release first (dates and artwork from the official Products pages), with a type filter; searching switches to card results. *Missing → wishlist moves to phase 4.* |
+| **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. Design system, landing page, signed-in dashboard, web top navigation / phone bottom bar, special inserts separated on set pages. Sets merged into the Cards page: every product with its artwork, newest release first (dates and artwork from the official Products pages), with a type filter; searching switches to card results. *Missing → wishlist moves to phase 4.* |
 | **4** | Extras | Wishlist (incl. "add a deck's missing cards") & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
 | **5** | Scanning & stores | Camera scanning (card-number OCR on device), Google sign-in / Sign in with Apple, App Store / Play Store release, more UI languages |
 
