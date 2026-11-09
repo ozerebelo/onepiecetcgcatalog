@@ -572,3 +572,107 @@ export async function fetchSetCovers(language: Language): Promise<Record<string,
   const rows = unwrap(await getSupabase().rpc('set_covers', { p_language: language })) as SetCover[];
   return Object.fromEntries(rows.map((row) => [row.set_id, row]));
 }
+
+// ---------------------------------------------------------------------------
+// Insights, activity and wishlist (signed-in users; per card language)
+// ---------------------------------------------------------------------------
+
+export interface ActivityEvent {
+  id: number;
+  printing_id: string;
+  card_id: string;
+  code: string;
+  language: Language;
+  variant: PrintingRow['variant'];
+  variant_index: number;
+  rarity: Rarity;
+  name: string;
+  image_url: string;
+  set_code: string;
+  delta: number;
+  quantity_after: number;
+  created_at: string;
+}
+
+export async function fetchActivity(language: Language, limit = 20): Promise<ActivityEvent[]> {
+  const rows = unwrap(await getSupabase().rpc('collection_activity', { p_language: language, p_limit: limit })) as ActivityEvent[];
+  return rows.map((r) => ({ ...r, id: Number(r.id) }));
+}
+
+export interface NearPlayset {
+  card_id: string;
+  name: string;
+  category: Category;
+  colors: Color[];
+  cost: number | null;
+  owned: number;
+  image_url: string;
+}
+
+export async function fetchNearPlaysets(language: Language, limit = 12): Promise<NearPlayset[]> {
+  return unwrap(await getSupabase().rpc('near_playsets', { p_language: language, p_limit: limit })) as NearPlayset[];
+}
+
+export interface CollectionStats {
+  copies: number;
+  printings: number;
+  cards: number;
+  leaders: number;
+  playsets: number;
+  spares: number;
+  since: string | null;
+  by_color: { color: Color; copies: number; cards: number }[];
+  by_category: { category: Category; copies: number; cards: number }[];
+  by_rarity: { rarity: Rarity; owned: number; total: number }[];
+}
+
+export async function fetchCollectionStats(language: Language): Promise<CollectionStats> {
+  return unwrap(await getSupabase().rpc('collection_stats', { p_language: language })) as CollectionStats;
+}
+
+export async function fetchGrowth(language: Language, days = 90): Promise<{ day: string; added: number; removed: number }[]> {
+  return unwrap(await getSupabase().rpc('collection_growth', { p_language: language, p_days: days })) as {
+    day: string;
+    added: number;
+    removed: number;
+  }[];
+}
+
+export interface WishlistEntry {
+  printing_id: string;
+  card_id: string;
+  code: string;
+  language: Language;
+  variant: PrintingRow['variant'];
+  variant_index: number;
+  rarity: Rarity;
+  name: string;
+  image_url: string;
+  set_code: string;
+  wanted: number;
+  owned: number;
+  owned_card: number;
+  created_at: string;
+}
+
+export async function fetchWishlist(language: Language): Promise<WishlistEntry[]> {
+  return unwrap(await getSupabase().rpc('wishlist', { p_language: language })) as WishlistEntry[];
+}
+
+export async function addToWishlist(printingId: string, quantity = 1): Promise<void> {
+  const { error } = await getSupabase()
+    .from('wishlist_items')
+    // Already wanted → nothing to do (DO NOTHING needs no update rights on the key columns).
+    .upsert({ printing_id: printingId, quantity }, { onConflict: 'user_id,printing_id', ignoreDuplicates: true });
+  if (error) throw new ApiError(error.message);
+}
+
+export async function removeFromWishlist(printingId: string): Promise<void> {
+  const { error } = await getSupabase().from('wishlist_items').delete().eq('printing_id', printingId);
+  if (error) throw new ApiError(error.message);
+}
+
+/** Puts a deck's missing cards (in this language) on the wishlist; returns how many cards. */
+export async function wishlistDeckMissing(deckId: string, language: Language): Promise<number> {
+  return Number(unwrap(await getSupabase().rpc('wishlist_add_missing', { p_deck_id: deckId, p_language: language })));
+}

@@ -154,7 +154,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
   },
   headerText: { flex: 1, minWidth: 240, gap: 6 },
-  headerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  // Capped to the header's width so the buttons wrap on phones instead of running off-screen.
+  headerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, maxWidth: '100%' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderTopWidth: 2, paddingTop: spacing.md },
   flex: { flex: 1 },
   statGroup: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },

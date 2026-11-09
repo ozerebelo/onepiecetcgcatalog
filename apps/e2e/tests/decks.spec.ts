@@ -33,4 +33,14 @@ test('a saved deck is checked against the collection and the missing cards can b
   await page.goto('/card/OP01-004');
   await expect(page.getByText('In 1 of your decks')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Red Zoro test, ×4' })).toBeVisible();
+
+  // A deck's missing cards go on the wishlist in one tap.
+  await page.goto('/decks');
+  await page.getByText('Red Zoro test').first().click();
+  await page.getByRole('button', { name: 'More' }).click();
+  await page.getByRole('button', { name: 'Add missing to wishlist' }).click();
+  await expect(page.getByText('1 card added to your wishlist.')).toBeVisible();
+  await page.getByRole('button', { name: 'View' }).click();
+  await expect(page.getByText('Usopp').first()).toBeVisible();
+  await expect(page.getByText('want 4 · own 0')).toBeVisible();
 });

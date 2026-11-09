@@ -40,7 +40,7 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 - Activity log: every add/remove recorded (who, what, when, how many) by the database itself, so
   imports, quick adds and steppers are all covered.
 
-### 3. Your collection at a glance — Home, Stats, wishlist (M)
+### 3. Your collection at a glance — Home, Stats, wishlist (M) ✅
 - Home "Almost there": cards one copy short of a playset, sets close to complete, the deck you're
   closest to building.
 - Home activity: what you added this week, with undo.

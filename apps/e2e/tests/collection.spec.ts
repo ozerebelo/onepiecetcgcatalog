@@ -218,3 +218,24 @@ test('pack-opening mode: type card numbers, pick alt arts, undo a line', async (
   await page.getByRole('checkbox', { name: 'Alt art' }).click();
   await expect(page.getByText('1 printing · 4 copies')).toBeVisible();
 });
+
+test('home shows recent activity; stats count playsets and spares; Want adds to the wishlist', async ({ page }) => {
+  await signIn(page, USERS.collector);
+  await page.goto('/');
+  await expect(page.getByText('Recent activity')).toBeVisible();
+  // The last change was undoing a Nami in pack-opening mode.
+  await expect(page.getByRole('button', { name: 'Undo OP01-016' }).first()).toBeVisible();
+
+  // Nami ×6 and Zoro OP01-025 (2 base + 4 alt art) are full playsets with 2 spares each.
+  await page.goto('/collection/stats');
+  await expect(page.getByText('Full playsets').first()).toBeVisible();
+  await expect(page.getByText('4 spares to trade').first()).toBeVisible();
+  await expect(page.getByText('Completion by set')).toBeVisible();
+
+  await page.goto('/card/OP01-120');
+  await page.getByRole('button', { name: 'Want' }).click();
+  await expect(page.getByRole('button', { name: 'On your wishlist' })).toBeVisible();
+  await page.goto('/collection/wishlist');
+  await expect(page.getByText('Shanks').first()).toBeVisible();
+  await expect(page.getByText('Missing 1')).toBeVisible();
+});

@@ -111,6 +111,8 @@ function RootStack() {
       <Stack.Screen name="set/[id]" options={{ title: '' }} />
       <Stack.Screen name="collection/import" options={{ title: t('import.title') }} />
       <Stack.Screen name="collection/packs" options={{ title: t('packs.title') }} />
+      <Stack.Screen name="collection/stats" options={{ title: t('stats.title') }} />
+      <Stack.Screen name="collection/wishlist" options={{ title: t('wishlist.title') }} />
       <Stack.Screen name="deck/new" options={{ title: t('decks.newTitle') }} />
       <Stack.Screen name="deck/[id]/index" options={{ title: '' }} />
       <Stack.Screen name="deck/[id]/edit" options={{ title: t('decks.editTitle') }} />

@@ -7,12 +7,14 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Pips } from '@/components/ui/pips';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { useOwnedByCard } from '@/hooks/use-collection';
+import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from '@/hooks/use-wishlist';
 import { fetchDecksUsingCard, fetchSameNameCards, type CardDetail } from '@/lib/api';
 import { formatReleaseDate } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
@@ -184,4 +186,26 @@ const styles = StyleSheet.create({
   miniMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   deckRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44, borderBottomWidth: StyleSheet.hairlineWidth },
   deckStatus: { minWidth: 76, textAlign: 'right' },
+  want: { alignSelf: 'flex-start' },
 });
+
+/** Put the selected printing on (or off) your wishlist. */
+export function WantButton({ printingId }: { printingId: string }) {
+  const { t } = useTranslation();
+  const wishlist = useWishlist();
+  const add = useAddToWishlist();
+  const remove = useRemoveFromWishlist();
+  const wanted = (wishlist.data ?? []).some((w) => w.printing_id === printingId);
+  return (
+    <Button
+      title={wanted ? t('wishlist.onList') : t('wishlist.want')}
+      icon="bookmark"
+      variant={wanted ? 'secondary' : 'outline'}
+      size="sm"
+      loading={add.isPending || remove.isPending}
+      accessibilityState={{ selected: wanted }}
+      onPress={() => (wanted ? remove.mutate(printingId) : add.mutate(printingId))}
+      boxStyle={styles.want}
+    />
+  );
+}

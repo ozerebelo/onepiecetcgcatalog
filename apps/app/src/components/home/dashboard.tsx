@@ -2,28 +2,26 @@ import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { CardImage } from '@/components/card-image';
 import { DeckCard } from '@/components/deck-card';
+import { AlmostThere, RecentActivity } from '@/components/home/insights';
 import { LanguageSwitch } from '@/components/language-switch';
 import { Button } from '@/components/ui/button';
 import { EmptyView } from '@/components/ui/state-views';
 import { PageHeader, Panel, ProgressBar, SectionTitle, StatGroup } from '@/components/ui/panel';
-import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { collectionKeys, useCollectionSummary, useSetProgress } from '@/hooks/use-collection';
-import { fetchCatalogStats, fetchDeckSummaries, fetchShowcase, searchCollection } from '@/lib/api';
+import { fetchCatalogStats, fetchCollectionStats, fetchDeckSummaries, fetchShowcase } from '@/lib/api';
 import { useCardLanguage } from '@/lib/card-language';
 import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
-import { WIDE_BREAKPOINT, radius, spacing, tabular, usePalette } from '@/theme';
+import { WIDE_BREAKPOINT, spacing, tabular } from '@/theme';
 
 /** Home for signed-in users: totals, decks, the newest set and recent additions. */
 export function Dashboard() {
   const { t, i18n } = useTranslation();
-  const palette = usePalette();
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
@@ -42,20 +40,10 @@ export function Dashboard() {
   });
   const showcase = useQuery({ queryKey: ['showcase', language], queryFn: () => fetchShowcase(language), staleTime: 60 * 60 * 1000 });
   const progress = useSetProgress(language);
-  const recentParams = {
-    query: '',
-    languages: [language],
-    setCodes: [],
-    colors: [],
-    categories: [],
-    rarities: [],
-    art: null,
-    playset: null,
-    sort: 'recent' as const,
-  };
-  const recent = useQuery({
-    queryKey: collectionKeys.search(userId, { ...recentParams, page: 'recent-strip' }),
-    queryFn: () => searchCollection(recentParams, 0),
+  // Full playsets and spares come from the collection's stats (same language).
+  const stats = useQuery({
+    queryKey: [...collectionKeys.all(userId), 'stats', language],
+    queryFn: () => fetchCollectionStats(language),
     enabled: Boolean(user),
   });
 
@@ -83,7 +71,11 @@ export function Dashboard() {
       <StatGroup
         stats={[
           { label: t('dashboard.stats.copies'), value: n(summary.data?.total_quantity ?? 0) },
-          { label: t('dashboard.stats.printings'), value: n(summary.data?.unique_printings ?? 0) },
+          {
+            label: t('dashboard.stats.playsets'),
+            value: n(stats.data?.playsets ?? 0),
+            hint: stats.data?.spares ? t('dashboard.stats.spares', { count: stats.data.spares }) : undefined,
+          },
           {
             label: t('dashboard.stats.cards'),
             value: n(summary.data?.unique_cards ?? 0),
@@ -96,6 +88,8 @@ export function Dashboard() {
           },
         ]}
       />
+
+      <AlmostThere decks={decks.data} />
 
       <View style={[styles.columns, wide && styles.columnsWide]}>
         <View style={[styles.column, wide && { flex: 3 }]}>
@@ -156,35 +150,7 @@ export function Dashboard() {
         </View>
       </View>
 
-      {recent.data && recent.data.length > 0 ? (
-        <View style={styles.column}>
-          <SectionTitle
-            title={t('dashboard.recent')}
-            action={
-              <Link href="/collection" asChild>
-                <Button title={t('dashboard.seeAll')} variant="ghost" size="sm" trailingIcon="arrow-right" />
-              </Link>
-            }
-          />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
-            {recent.data.slice(0, 12).map((item) => (
-              <Link
-                key={item.printing_id}
-                href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
-                asChild>
-                <PressableArea boxStyle={styles.stripCard} activeStyle={{ transform: [{ translateY: -3 }] }} accessibilityLabel={`${item.name}, ${item.code}`}>
-                  <View style={{ boxShadow: palette.shadow, borderRadius: radius.md }}>
-                    <CardImage uri={item.image_url} label={`${item.code} ${item.name}`} />
-                  </View>
-                  <Text variant="caption" weight="semibold" numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                </PressableArea>
-              </Link>
-            ))}
-          </ScrollView>
-        </View>
-      ) : null}
+      <RecentActivity />
     </Screen>
   );
 }
@@ -200,6 +166,4 @@ const styles = StyleSheet.create({
   column: { gap: spacing.md },
   deckGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   centerButton: { alignSelf: 'center' },
-  strip: { gap: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: 2 },
-  stripCard: { width: 120, gap: spacing.xs },
 });

@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { InYourDecks, LegalityBadge, SameNameCards, ZoomableCardImage } from '@/components/card-extras';
+import { InYourDecks, LegalityBadge, SameNameCards, WantButton, ZoomableCardImage } from '@/components/card-extras';
 import { CardImage } from '@/components/card-image';
 import { EffectText, showType } from '@/components/effect-text';
 import { LanguageSwitch } from '@/components/language-switch';
@@ -157,6 +157,7 @@ function CardDetailView({ card: fullCard, initialPrintingId }: { card: CardDetai
               />
             </View>
           ) : null}
+          {user && selected ? <WantButton printingId={selected.id} /> : null}
         </View>
 
         <InYourDecks cardId={card.id} owned={ownedTotal} />

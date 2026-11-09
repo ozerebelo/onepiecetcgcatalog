@@ -128,6 +128,12 @@ function CollectionView({ userId }: { userId: string }) {
             <Link href="/collection/import" asChild>
               <Button title={t('collection.import')} icon="upload" variant="outline" size="sm" />
             </Link>
+            <Link href="/collection/stats" asChild>
+              <Button title={t('stats.title')} icon="bar-chart-2" variant="outline" size="sm" />
+            </Link>
+            <Link href="/collection/wishlist" asChild>
+              <Button title={t('wishlist.title')} icon="bookmark" variant="outline" size="sm" />
+            </Link>
             <Button
               title={t('collection.exportCsv')}
               icon="download"

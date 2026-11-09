@@ -21,6 +21,7 @@ import { Pips } from '@/components/ui/pips';
 import { ColorMark, CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { checkDeck, deleteDeck, fetchCardCounters, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
+import { useWishlistDeckMissing } from '@/hooks/use-wishlist';
 import { useCardLanguage } from '@/lib/card-language';
 import { confirmAction, notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
@@ -55,6 +56,7 @@ export default function DeckScreen() {
     placeholderData: keepPreviousData,
   });
   const cardIds = (check.data ?? []).filter((r) => r.known).map((r) => r.card_id);
+  const wishlistMissing = useWishlistDeckMissing();
   const counters = useQuery({
     queryKey: ['card-counters', [...cardIds].sort().join(',')],
     queryFn: () => fetchCardCounters(cardIds),
@@ -177,6 +179,22 @@ export default function DeckScreen() {
           </View>
           {moreOpen ? (
             <View style={[styles.more, { borderTopColor: palette.border }]}>
+              <Button
+                title={t('wishlist.addMissing')}
+                icon="bookmark"
+                size="sm"
+                variant="ghost"
+                disabled={missingCount === 0}
+                onPress={() =>
+                  wishlistMissing.mutate(id, {
+                    onSuccess: (count) =>
+                      showToast(t('wishlist.addedMissing', { count }), {
+                        label: t('wishlist.view'),
+                        onPress: () => router.push('/collection/wishlist'),
+                      }),
+                  })
+                }
+              />
               <Button
                 title={t('decks.copyShopping')}
                 icon="shopping-cart"
