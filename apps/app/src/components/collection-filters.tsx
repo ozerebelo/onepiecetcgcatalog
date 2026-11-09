@@ -1,17 +1,19 @@
-import { CATEGORIES, COLORS, RARITIES, rarityShort } from '@binder/core';
+import { CATEGORIES, COLORS, RARITIES, keywordKind, rarityShort } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import type { CardFilters } from '@/components/card-filters';
+import { CardDetailFilters } from '@/components/card-detail-filters';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
-import { ColorMark, RarityTag } from '@/components/ui/tcg';
+import { ColorMark, KEYWORD_STYLES, RarityTag } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { collectionKeys } from '@/hooks/use-collection';
 import { fetchOwnedSets, type ArtFilter, type PlaysetFilter } from '@/lib/api';
 import { useCardLanguage } from '@/lib/card-language';
+import { MAX_POWER } from '@/lib/filter-values';
 import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { fonts, radius, spacing, tabular, usePalette } from '@/theme';
@@ -179,6 +181,8 @@ export function CollectionFilterPanel<S extends string>({
         })}
       </Section>
 
+      <CardDetailFilters filters={f} Section={Section} />
+
       <Section label={t('search.rarity')}>
         {RARITIES.map((rarity) => (
           <Chip
@@ -252,6 +256,43 @@ export function ActiveFilters<S extends string>({ filters: f }: { filters: CardF
       label: <RarityTag code={rarityShort(r)} />,
       onRemove: () => f.toggleRarity(r),
     })),
+    ...f.types.map((type) => ({ key: `type-${type}`, text: type, label: null, onRemove: () => f.toggleType(type) })),
+    ...f.attributes.map((a) => ({ key: `attr-${a}`, text: t(`attributes.${a}`), label: null, onRemove: () => f.toggleAttribute(a) })),
+    ...f.counters.map((c) => ({
+      key: `counter-${c}`,
+      text: c === 0 ? t('search.noCounter') : `${t('search.counter')} +${c}`,
+      label: null,
+      onRemove: () => f.toggleCounter(c),
+    })),
+    ...(f.power != null
+      ? [
+          {
+            key: 'power',
+            text: `${t('search.power')} ${f.power === MAX_POWER ? t('search.powerOrMore', { power: f.power }) : f.power}`,
+            label: null,
+            onRemove: () => f.togglePower(f.power!),
+          },
+        ]
+      : []),
+    ...f.keywords.map((k) => ({
+      key: `kw-${k}`,
+      text: k,
+      label: <View style={[styles.swatch, { backgroundColor: KEYWORD_STYLES[keywordKind(k) ?? 'timing'].background }]} />,
+      onRemove: () => f.toggleKeyword(k),
+    })),
+    ...(f.hasTrigger
+      ? [
+          {
+            key: 'trigger',
+            text: t('search.hasTrigger'),
+            label: <View style={[styles.swatch, { backgroundColor: KEYWORD_STYLES.trigger.background }]} />,
+            onRemove: f.toggleHasTrigger,
+          },
+        ]
+      : []),
+    ...(f.effect.trim()
+      ? [{ key: 'effect', text: `“${f.effect.trim()}”`, label: null, onRemove: () => f.setEffect('') }]
+      : []),
   ];
   if (tokens.length === 0) return null;
   return (
@@ -300,6 +341,7 @@ const styles = StyleSheet.create({
   cost: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   costText: { fontFamily: fonts.monoBold, fontSize: 13, lineHeight: 16 },
   tokens: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  swatch: { width: 9, height: 9, borderRadius: 2 },
   token: {
     flexDirection: 'row',
     alignItems: 'center',

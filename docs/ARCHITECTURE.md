@@ -211,8 +211,9 @@ CSV export covers both languages (it is a full backup).
 
 ## Known limitations
 
-- Search doesn't cover effect text yet (planned with the richer filters).
 - Japanese-only cards show Japanese types until the English release fills them in.
+- Legality uses the stored block number only; Bandai's exceptions (some reprinted card numbers, Block X)
+  and the ban list are not modelled yet (`packages/core/src/formats.ts`).
 - Trigram ranking is weaker for Japanese queries (matching still works).
 - Supabase's default email sender is rate-limited; production needs custom SMTP (see SETUP.md).
 - Collections track quantity per printing only (no condition, foil, language-of-sleeve notes yet).

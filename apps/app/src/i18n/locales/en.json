@@ -81,7 +81,19 @@
     "category": "Type",
     "language": "Card language",
     "arts_one": "{{count}} art",
-    "arts_other": "{{count}} arts"
+    "arts_other": "{{count}} arts",
+    "type": "Type",
+    "findType": "Find a type…",
+    "noTypes": "No type matches.",
+    "attribute": "Attribute",
+    "counter": "Counter",
+    "noCounter": "No counter",
+    "power": "Power",
+    "powerOrMore": "{{power}}+",
+    "keywords": "Keywords",
+    "hasTrigger": "Has a Trigger",
+    "effect": "Effect text",
+    "effectPlaceholder": "Words in the effect, e.g. draw"
   },
   "sets": {
     "kinds": {
@@ -144,7 +156,15 @@
       "reprintN": "Reprint {{n}}"
     },
     "notInLanguage": "Not printed in {{language}} yet.",
-    "showOtherLanguage": "Show {{language}} printings"
+    "showOtherLanguage": "Show {{language}} printings",
+    "zoom": "{{card}}, show full size",
+    "zoomClose": "Tap anywhere to close",
+    "alsoNamed_one": "Also named {{name}} · {{count}} card",
+    "alsoNamed_other": "Also named {{name}} · {{count}} cards",
+    "inYourDecks_one": "In {{count}} of your decks",
+    "inYourDecks_other": "In {{count}} of your decks",
+    "inYourDeckSummary": "The deck plays {{most}}; you own {{owned}}.",
+    "inYourDecksSummary": "Up to {{most}} in one deck, {{total}} across all of them; you own {{owned}}."
   },
   "account": {
     "title": "Account",
@@ -570,5 +590,43 @@
     "label": "Card language",
     "deckHint": "Check against your English or Japanese copies. The whole app follows this setting.",
     "accountHint": "English and Japanese cards are kept apart: search, collection, playsets and deck checks show one language at a time."
+  },
+  "rules": {
+    "hint": "Shows the rule",
+    "OnPlay": "Activates when this card is played.",
+    "WhenAttacking": "Activates when this card attacks.",
+    "ActivateMain": "You may activate this during your Main Phase, outside of battle.",
+    "Main": "Event: you may use this card during your Main Phase.",
+    "OnKO": "Activates when this Character is K.O.’d.",
+    "OnBlock": "Activates when this card blocks an attack.",
+    "OnYourOpponentsAttack": "Activates when your opponent attacks.",
+    "EndofYourTurn": "Activates at the end of your turn.",
+    "EndofYourOpponentsTurn": "Activates at the end of your opponent’s turn.",
+    "YourTurn": "This effect applies only during your turn.",
+    "OpponentsTurn": "This effect applies only during your opponent’s turn.",
+    "Counter": "Event: you may use this during your opponent’s attack (the Counter Step) to protect your Leader or a Character.",
+    "Trigger": "When this card is revealed from your Life because you took damage, you may activate this effect instead of adding the card to your hand.",
+    "Blocker": "When your opponent attacks, you may rest this card to make it the new target of the attack.",
+    "Rush": "This card can attack on the turn it is played.",
+    "RushCharacter": "This card can attack Characters (not the Leader) on the turn it is played.",
+    "DoubleAttack": "When this card deals damage, it deals 2 damage instead of 1.",
+    "Banish": "When this card deals damage, the Life card is trashed instead of going to the hand, and its [Trigger] can’t be activated.",
+    "Unblockable": "Your opponent can’t activate [Blocker] when this card attacks.",
+    "OncePerTurn": "This effect can be activated only once per turn.",
+    "donX": "This effect works only while this card has at least that many DON!! cards given to it."
+  },
+  "attributes": {
+    "Slash": "Slash",
+    "Strike": "Strike",
+    "Ranged": "Ranged",
+    "Special": "Special",
+    "Wisdom": "Wisdom"
+  },
+  "legality": {
+    "block": "Block {{block}}",
+    "standard": "Standard",
+    "extraOnly": "Extra only",
+    "standardNote": "Legal in Standard: its block icon is in the current window (Blocks {{blocks}}, until {{until}}). Ban list aside.",
+    "extraNote": "Rotated out of Standard (current window: Blocks {{blocks}}); still legal in Extra, where every card can be played."
   }
 }

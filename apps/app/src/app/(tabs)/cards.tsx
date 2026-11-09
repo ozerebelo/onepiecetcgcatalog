@@ -1,8 +1,8 @@
 import { type SetKind, type SetRow } from '@binder/core';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { Link, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -71,6 +71,20 @@ export default function CardsScreen() {
   const { t, i18n } = useTranslation();
   const filters = useCardFilters<SearchSort>('relevance');
   const { params } = filters;
+  // Links from card pages: /cards?type=Land of Wano shows that type, /cards?q=Kouzuki Oden searches a name.
+  const link = useLocalSearchParams<{ type?: string; q?: string }>();
+  useEffect(() => {
+    if (!link.type) return;
+    filters.clearFilters();
+    filters.showOnlyType(link.type);
+    filters.setQuery('');
+    // Only when the link changes; the filter setters are stable state setters underneath.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [link.type]);
+  useEffect(() => {
+    if (link.q) filters.setQuery(link.q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [link.q]);
   // One card language for the whole app: the sets listed, search results and quick adds follow it.
   const [language] = useCardLanguage();
   const [kind, setKind] = useState<KindFilter>('all');

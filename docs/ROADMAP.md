@@ -20,7 +20,7 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 
 ## Milestones
 
-### 1. Every card tells its story — card pages & search (M)
+### 1. Every card tells its story — card pages & search (M) ✅
 *Visible on every card, for signed-out visitors too; builds pieces later milestones reuse.*
 - Effect text with the game's keyword labels (`[On Play]`, `[When Attacking]`, `[Counter]`,
   `[Trigger]`, `[Blocker]`, `[Rush]`, `[DON!! x1]`…), styled like the printed card; tap for a short

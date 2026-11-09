@@ -38,7 +38,34 @@ export interface CardSearchParams {
   rarities: Rarity[];
   costMin?: number | null;
   costMax?: number | null;
+  /** Card types (traits), any of them. */
+  types?: string[];
+  attributes?: string[];
+  /** Printed counter values; 0 = no counter. */
+  counters?: number[];
+  powerMin?: number | null;
+  powerMax?: number | null;
+  hasTrigger?: boolean | null;
+  /** Keyword labels that must all appear, e.g. ["Blocker", "On Play"]. */
+  keywords?: string[];
+  /** Words that must all appear in the effect or trigger text. */
+  effect?: string;
   sort: SearchSort;
+}
+
+/** The extra card filters as RPC parameters (shared by card and collection search). */
+function cardFilterArgs(params: Omit<CardSearchParams, 'sort'>) {
+  const empty = <T,>(list: T[] | undefined) => (list && list.length > 0 ? list : null);
+  return {
+    p_types: empty(params.types),
+    p_attributes: empty(params.attributes),
+    p_counters: empty(params.counters),
+    p_power_min: params.powerMin ?? null,
+    p_power_max: params.powerMax ?? null,
+    p_has_trigger: params.hasTrigger ?? null,
+    p_keywords: empty(params.keywords),
+    p_effect: params.effect?.trim() || null,
+  };
 }
 
 export interface CardSearchResult {
@@ -57,6 +84,45 @@ export interface CardSearchResult {
   total_count: number;
 }
 
+/** Every card type (trait) with its card count, most common first, in one language's spelling. */
+export async function fetchCardTypes(language: Language): Promise<{ type: string; cards: number }[]> {
+  const rows = unwrap(await getSupabase().rpc('card_types', { p_language: language })) as { type: string; cards: number }[];
+  return rows.map((r) => ({ type: r.type, cards: Number(r.cards) }));
+}
+
+export interface RelatedCard {
+  id: string;
+  name: string;
+  category: Category;
+  colors: Color[];
+  cost: number | null;
+  printings: Pick<PrintingRow, 'id' | 'image_url' | 'language' | 'variant' | 'variant_index'>[];
+}
+
+/** Other cards with the same name (Yamato has 21), with their printings for images. */
+export async function fetchSameNameCards(card: Pick<CardRow, 'id' | 'name_en' | 'name_ja'>): Promise<RelatedCard[]> {
+  const column = card.name_en ? 'name_en' : 'name_ja';
+  const value = card.name_en ?? card.name_ja;
+  if (!value) return [];
+  const rows = unwrap(
+    await getSupabase()
+      .from('cards')
+      .select('id, name, category, colors, cost, printings(id, image_url, language, variant, variant_index)')
+      .eq(column, value)
+      .neq('id', card.id)
+      .order('id'),
+  ) as RelatedCard[];
+  return rows;
+}
+
+/** The signed-in user's decks that use a card, with how many copies each needs. */
+export async function fetchDecksUsingCard(cardId: string): Promise<{ id: string; name: string; quantity: number }[]> {
+  const rows = unwrap(
+    await getSupabase().from('deck_cards').select('quantity, deck:decks(id, name)').eq('card_id', cardId),
+  ) as unknown as { quantity: number; deck: { id: string; name: string } | null }[];
+  return rows.filter((r) => r.deck).map((r) => ({ id: r.deck!.id, name: r.deck!.name, quantity: r.quantity }));
+}
+
 export const SEARCH_PAGE_SIZE = 60;
 
 export async function searchCards(params: CardSearchParams, page: number): Promise<CardSearchResult[]> {
@@ -70,6 +136,7 @@ export async function searchCards(params: CardSearchParams, page: number): Promi
     p_rarities: empty(params.rarities),
     p_cost_min: params.costMin ?? null,
     p_cost_max: params.costMax ?? null,
+    ...cardFilterArgs(params),
     p_sort: params.sort,
     p_limit: SEARCH_PAGE_SIZE,
     p_offset: page * SEARCH_PAGE_SIZE,
@@ -282,6 +349,7 @@ export async function searchCollection(params: CollectionSearchParams, page: num
     p_rarities: empty(params.rarities),
     p_cost_min: params.costMin ?? null,
     p_cost_max: params.costMax ?? null,
+    ...cardFilterArgs(params),
     p_art: params.art,
     p_playset: params.playset,
     p_sort: params.sort,

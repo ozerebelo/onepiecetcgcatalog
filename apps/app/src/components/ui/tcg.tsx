@@ -1,4 +1,4 @@
-import type { Color } from '@binder/core';
+import type { Color, KeywordKind } from '@binder/core';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, useColorScheme, View, type StyleProp, type ViewStyle } from 'react-native';
 
@@ -111,4 +111,33 @@ const styles = StyleSheet.create({
   tag: { alignSelf: 'flex-start', borderWidth: 1, borderColor: 'transparent', borderRadius: 3, paddingHorizontal: 3, paddingVertical: 0 },
   plain: { paddingHorizontal: 0 },
   tagText: { fontFamily: fonts.monoMedium, fontSize: 11, lineHeight: 16, letterSpacing: 0.2 },
+});
+
+/**
+ * Keyword labels as the printed card colours them: timing in blue, [Counter] in red, [Trigger] in
+ * yellow, abilities (Blocker, Rush…) in orange, [Once Per Turn] in magenta, [DON!! x1] in black.
+ * Each pair keeps its text readable (≥4.5:1).
+ */
+export const KEYWORD_STYLES: Record<KeywordKind, { background: string; color: string }> = {
+  timing: { background: '#2459B8', color: '#FFFFFF' },
+  counter: { background: '#C42A33', color: '#FFFFFF' },
+  trigger: { background: '#F2C230', color: '#141414' },
+  ability: { background: '#B4531A', color: '#FFFFFF' },
+  limit: { background: '#A3306A', color: '#FFFFFF' },
+  don: { background: '#141414', color: '#FFFFFF' },
+};
+
+/** A keyword label as a small block (filters, legends). Inside running text use EffectText. */
+export function KeywordTag({ kind, label }: { kind: KeywordKind; label: string }) {
+  const style = KEYWORD_STYLES[kind];
+  return (
+    <View style={[keywordStyles.tag, { backgroundColor: style.background }]}>
+      <Text style={[keywordStyles.text, { color: style.color }]}>{label}</Text>
+    </View>
+  );
+}
+
+const keywordStyles = StyleSheet.create({
+  tag: { borderRadius: 3, paddingHorizontal: 5, paddingVertical: 1, alignSelf: 'flex-start' },
+  text: { fontFamily: fonts.semibold, fontSize: 12, lineHeight: 17 },
 });

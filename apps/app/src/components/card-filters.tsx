@@ -1,13 +1,16 @@
 import { CATEGORIES, COLORS, RARITIES, type Category, type Color, type Language, type Rarity } from '@binder/core';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCardLanguage } from '@/lib/card-language';
+import { MAX_POWER } from '@/lib/filter-values';
 import type { ArtFilter, CardSearchParams, PlaysetFilter } from '@/lib/api';
 import { CARD_COLORS, fonts, spacing, usePalette } from '@/theme';
 
+import { CardDetailFilters } from './card-detail-filters';
+import { ActiveFilters } from './collection-filters';
 import { Chip } from './ui/chip';
 import { Segmented } from './ui/segmented';
 import { Text } from './ui/text';
@@ -31,6 +34,15 @@ export function useCardFilters<S extends string>(defaultSort: S) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [rarities, setRarities] = useState<Rarity[]>([]);
   const [cost, setCost] = useState<number | null>(null);
+  // Card details players filter by: type (trait), attribute, counter, power, Trigger, keywords, effect.
+  const [types, setTypes] = useState<string[]>([]);
+  const [attributes, setAttributes] = useState<string[]>([]);
+  const [counters, setCounters] = useState<number[]>([]);
+  const [power, setPower] = useState<number | null>(null);
+  const [hasTrigger, setHasTrigger] = useState(false);
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [effect, setEffect] = useState('');
+  const debouncedEffect = useDebouncedValue(effect, 300);
   // Collection-only filters (the Cards search ignores them).
   const [setCodes, setSetCodes] = useState<string[]>([]);
   const [art, setArt] = useState<ArtFilter | null>(null);
@@ -47,9 +59,18 @@ export function useCardFilters<S extends string>(defaultSort: S) {
       rarities,
       costMin: cost,
       costMax: cost,
+      types,
+      attributes,
+      counters,
+      // 10000 stands for "10000 or more".
+      powerMin: power,
+      powerMax: power != null && power < MAX_POWER ? power : null,
+      hasTrigger: hasTrigger ? true : null,
+      keywords,
+      effect: debouncedEffect,
       sort,
     }),
-    [debouncedQuery, language, colors, categories, rarities, cost, sort],
+    [debouncedQuery, language, colors, categories, rarities, cost, types, attributes, counters, power, hasTrigger, keywords, debouncedEffect, sort],
   );
 
   const collectionParams = useMemo(() => ({ ...params, setCodes, art, playset }), [params, setCodes, art, playset]);
@@ -58,6 +79,13 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     colors.length +
     categories.length +
     rarities.length +
+    types.length +
+    attributes.length +
+    counters.length +
+    keywords.length +
+    (power == null ? 0 : 1) +
+    (hasTrigger ? 1 : 0) +
+    (effect.trim() ? 1 : 0) +
     setCodes.length +
     (cost == null ? 0 : 1) +
     (art == null ? 0 : 1) +
@@ -75,6 +103,22 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     toggleRarity: (r: Rarity) => setRarities((list) => toggle(list, r)),
     cost,
     toggleCost: (value: number) => setCost((current) => (current === value ? null : value)),
+    types,
+    toggleType: (value: string) => setTypes((list) => toggle(list, value)),
+    /** Show exactly this type (from a link on a card page). */
+    showOnlyType: (value: string) => setTypes([value]),
+    attributes,
+    toggleAttribute: (value: string) => setAttributes((list) => toggle(list, value)),
+    counters,
+    toggleCounter: (value: number) => setCounters((list) => toggle(list, value)),
+    power,
+    togglePower: (value: number) => setPower((current) => (current === value ? null : value)),
+    hasTrigger,
+    toggleHasTrigger: () => setHasTrigger((v) => !v),
+    keywords,
+    toggleKeyword: (value: string) => setKeywords((list) => toggle(list, value)),
+    effect,
+    setEffect,
     setCodes,
     toggleSet: (code: string) => setSetCodes((list) => toggle(list, code)),
     art,
@@ -92,6 +136,13 @@ export function useCardFilters<S extends string>(defaultSort: S) {
       setCategories([]);
       setRarities([]);
       setCost(null);
+      setTypes([]);
+      setAttributes([]);
+      setCounters([]);
+      setPower(null);
+      setHasTrigger(false);
+      setKeywords([]);
+      setEffect('');
       setSetCodes([]);
       setArt(null);
       setPlayset(null);
@@ -153,8 +204,11 @@ export function SearchHeader<S extends string>({
           </Text>
         </Pressable>
       </View>
+      {/* What the results are narrowed by (e.g. a type opened from a card page), removable one by one. */}
+      <ActiveFilters filters={f} />
       {open ? (
-        <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent} nestedScrollEnabled>
+        // The panel extends the page (no scroll box inside the scrolling page).
+        <View style={styles.panelContent}>
           <FilterRow label={t('search.color')}>
             {COLORS.map((color) => (
               <Chip
@@ -181,6 +235,7 @@ export function SearchHeader<S extends string>({
               <Chip key={value} label={String(value)} selected={f.cost === value} onPress={() => f.toggleCost(value)} />
             ))}
           </FilterRow>
+          <CardDetailFilters filters={f} Section={FilterRow} />
           <FilterRow label={t('search.rarity')}>
             {RARITIES.map((rarity) => (
               <Chip
@@ -206,7 +261,7 @@ export function SearchHeader<S extends string>({
               </Text>
             </Pressable>
           ) : null}
-        </ScrollView>
+        </View>
       ) : null}
     </View>
   );
@@ -228,7 +283,6 @@ const styles = StyleSheet.create({
   toolbar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 28 },
   count: { flex: 1 },
   bold: { fontFamily: fonts.semibold },
-  panel: { maxHeight: 360 },
   panelContent: { gap: spacing.md, paddingBottom: spacing.md },
   filterRow: { gap: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },

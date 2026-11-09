@@ -57,3 +57,30 @@ test('signed out, the account page invites you to sign in', async ({ page }) => 
   await page.goto('/account');
   await expect(page.getByText('Sign in to start your checklist')).toBeVisible();
 });
+
+test('card page: keyword labels with rules notes, type links, legality and same-name cards', async ({ page }) => {
+  await page.goto('/card/OP01-016');
+  await expect(page.getByText('Nami', { exact: true }).first()).toBeVisible();
+  // OP-01 is Block 1, rotated out of Standard.
+  await expect(page.getByText('Block 1 · Extra only')).toBeVisible();
+  // Keyword labels explain themselves.
+  await page.getByRole('button', { name: 'On Play' }).first().click();
+  await expect(page.getByText('Activates when this card is played.')).toBeVisible();
+  // Other cards named Nami.
+  await expect(page.getByText(/^Also named Nami · \d+ cards?$/)).toBeVisible();
+  // A type opens every card of that type, with the filter shown and removable.
+  await page.getByRole('link', { name: 'Straw Hat Crew' }).first().click();
+  await expect(page).toHaveURL(/\/cards/);
+  await expect(page.getByRole('button', { name: 'Remove filter: Straw Hat Crew' })).toBeVisible();
+  await expect(page.getByText(/^\d[\d,]* cards$/).first()).toBeVisible();
+});
+
+test('search filters: keywords and effect text', async ({ page }) => {
+  await page.goto('/cards');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByRole('checkbox', { name: 'Blocker' }).click();
+  await page.getByLabel('Effect text').fill('draw');
+  await expect(page.getByRole('button', { name: 'Remove filter: Blocker' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Remove filter: “draw”' })).toBeVisible();
+  await expect(page.getByText(/^\d[\d,]* cards$/).first()).toBeVisible();
+});

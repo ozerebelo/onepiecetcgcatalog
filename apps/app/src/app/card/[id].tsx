@@ -5,7 +5,9 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { InYourDecks, LegalityBadge, SameNameCards, ZoomableCardImage } from '@/components/card-extras';
 import { CardImage } from '@/components/card-image';
+import { EffectText, showType } from '@/components/effect-text';
 import { LanguageSwitch } from '@/components/language-switch';
 import { QuantityStepper } from '@/components/quantity-stepper';
 import { Button } from '@/components/ui/button';
@@ -74,9 +76,7 @@ function CardDetailView({ card: fullCard, initialPrintingId }: { card: CardDetai
   return (
     <View style={[styles.layout, wide && styles.layoutWide]}>
       <View style={[styles.imageColumn, wide ? styles.imageColumnWide : styles.imageColumnPhone]}>
-        {selected ? (
-          <CardImage uri={selected.image_url} label={`${selected.code} ${selected.name}`} priority="high" />
-        ) : null}
+        {selected ? <ZoomableCardImage uri={selected.image_url} label={`${selected.code} ${selected.name}`} /> : null}
         {selected ? (
           <Text variant="caption" tone="secondary" style={styles.center}>
             {printingLabel(selected.code, t)} · {selected.set.code} · {t(`rarities.${selected.rarity}`)} ·{' '}
@@ -158,6 +158,9 @@ function CardDetailView({ card: fullCard, initialPrintingId }: { card: CardDetai
             </View>
           ) : null}
         </View>
+
+        <InYourDecks cardId={card.id} owned={ownedTotal} />
+        <SameNameCards card={fullCard} language={language} />
       </View>
     </View>
   );
@@ -201,6 +204,7 @@ function CardInfo({ card }: { card: CardDetail }) {
           <Tag key={color} label={t(`colors.${color}`)} dotColor={CARD_COLORS[color]} />
         ))}
       </View>
+      <LegalityBadge block={card.block_number} />
 
       {stats.length > 0 ? (
         <View style={[styles.stats, { borderColor: palette.border }]}>
@@ -220,7 +224,20 @@ function CardInfo({ card }: { card: CardDetail }) {
           <Text variant="label" tone="secondary">
             {t('card.types')}
           </Text>
-          <Text>{card.types.join(' / ')}</Text>
+          {/* Each type opens every card of that type. */}
+          <View style={styles.typeLinks}>
+            {card.types.map((type) => (
+              <Pressable
+                key={type}
+                onPress={() => showType(type)}
+                accessibilityRole="link"
+                style={({ hovered }) => [styles.typeLink, { borderColor: palette.border }, hovered && { backgroundColor: palette.surfaceAlt }]}>
+                <Text variant="caption" weight="semibold">
+                  {type}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
       ) : null}
 
@@ -228,7 +245,7 @@ function CardInfo({ card }: { card: CardDetail }) {
         <Text variant="label" tone="secondary">
           {t('card.effect')}
         </Text>
-        <Text selectable>{effect ?? t('card.noEffect')}</Text>
+        {effect ? <EffectText text={effect} /> : <Text tone="secondary">{t('card.noEffect')}</Text>}
       </View>
 
       {trigger ? (
@@ -236,7 +253,7 @@ function CardInfo({ card }: { card: CardDetail }) {
           <Text variant="label" tone="secondary">
             {t('card.trigger')}
           </Text>
-          <Text selectable>{trigger}</Text>
+          <EffectText text={trigger} />
         </View>
       ) : null}
 
@@ -319,9 +336,11 @@ const styles = StyleSheet.create({
   layout: { paddingTop: spacing.lg, gap: spacing.xl },
   layoutWide: { flexDirection: 'row', alignItems: 'flex-start' },
   imageColumn: { width: '100%', maxWidth: 380, alignSelf: 'center', gap: spacing.sm },
-  imageColumnWide: { width: 340, alignSelf: 'flex-start' },
+  imageColumnWide: { width: 380, alignSelf: 'flex-start' },
   // Phones: the card shouldn't fill the first screen; its name and playset come right after.
-  imageColumnPhone: { maxWidth: 240 },
+  imageColumnPhone: { maxWidth: 280 },
+  typeLinks: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  typeLink: { borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 4 },
   flex: { flex: 1 },
   playset: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },
   stepperRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },

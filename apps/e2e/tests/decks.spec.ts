@@ -28,4 +28,9 @@ test('a saved deck is checked against the collection and the missing cards can b
   await page.getByRole('button', { name: 'Copy missing' }).click();
   await expect(page.getByText('Copied 4 missing cards (Sim format).')).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('4xOP01-004');
+
+  // The card page lists the decks that use a card, and what's missing for each.
+  await page.goto('/card/OP01-004');
+  await expect(page.getByText('In 1 of your decks')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Red Zoro test, ×4' })).toBeVisible();
 });
