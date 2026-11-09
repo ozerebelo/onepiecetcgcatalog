@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   imageWrap: { borderRadius: radius.md },
   dimmed: { opacity: 0.3 },
   meta: { gap: 1, paddingHorizontal: 1 },
-  metaWithAction: { paddingRight: 40 },
+  metaWithAction: { paddingRight: 34 },
   action: { position: 'absolute', right: 0, bottom: 0 },
   bottomRow: { position: 'absolute', left: 5, right: 5, bottom: 5, flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
   badge: { marginLeft: 'auto', flexShrink: 1, minWidth: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },

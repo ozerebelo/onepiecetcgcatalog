@@ -1,27 +1,26 @@
-import { type Language, type SetKind, type SetRow } from '@binder/core';
+import { type SetKind, type SetRow } from '@binder/core';
 import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { SearchHeader, useCardFilters } from '@/components/card-filters';
 import { CardTile } from '@/components/card-tile';
+import { QuickAdd } from '@/components/quick-add';
 import { LanguageSwitch } from '@/components/language-switch';
 import { Chip } from '@/components/ui/chip';
-import { Icon } from '@/components/ui/icon';
 import { PageHeader, ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
-import { useAdjustQuantity, useOwnedByCard, useSetProgress } from '@/hooks/use-collection';
+import { useOwnedByCard, useSetProgress } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import {
   SEARCH_PAGE_SIZE,
-  fetchQuickAddPrinting,
   fetchSetCovers,
   fetchSets,
   searchCards,
@@ -31,7 +30,6 @@ import {
 } from '@/lib/api';
 import { useCardLanguage } from '@/lib/card-language';
 import { formatReleaseDate, setDisplayName } from '@/lib/format';
-import { notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 import { CARD_ASPECT_RATIO, radius, spacing, tabular, usePalette } from '@/theme';
 
@@ -263,7 +261,7 @@ export default function CardsScreen() {
                   badge={card.printing_count > 1 ? t('search.arts', { count: card.printing_count }) : null}
                   quantity={ownedByCard[card.id] ?? 0}
                   showPips={Boolean(user)}
-                  action={user ? <QuickAdd card={card} languages={params.languages} /> : undefined}
+                  action={user ? <QuickAdd cardId={card.id} name={card.name} /> : undefined}
                 />
               ))}
             </View>
@@ -271,51 +269,6 @@ export default function CardsScreen() {
         }}
       />
     </Screen>
-  );
-}
-
-/**
- * "+1" on a search result: adds the card's base art in the search language (English first), with an
- * Undo in the toast. For an alt art or another language, open the card and pick the printing.
- */
-function QuickAdd({ card, languages }: { card: CardSearchResult; languages: Language[] }) {
-  const { t } = useTranslation();
-  const palette = usePalette();
-  const adjust = useAdjustQuantity();
-  const [busy, setBusy] = useState(false);
-
-  const add = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const printing = await fetchQuickAddPrinting(card.id, languages.length ? languages : ['en', 'ja']);
-      if (!printing) return;
-      adjust.mutate({ printingId: printing.id, delta: 1 });
-      showToast(t('cardsPage.quickAdded', { name: card.name, code: printing.code, language: t(`languages.short.${printing.language}`) }), {
-        label: t('collection.undo'),
-        onPress: () => adjust.mutate({ printingId: printing.id, delta: -1 }),
-      });
-    } catch (error) {
-      notifyError(error);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Pressable
-      onPress={add}
-      disabled={busy}
-      accessibilityRole="button"
-      accessibilityLabel={t('cardsPage.quickAdd', { name: card.name, code: card.id })}
-      hitSlop={6}
-      style={({ hovered, pressed }) => [
-        styles.quickAdd,
-        { borderColor: palette.text, backgroundColor: pressed ? palette.highlight : hovered ? palette.surfaceAlt : palette.surface },
-        busy && { opacity: 0.5 },
-      ]}>
-      <Icon name="plus" size={18} />
-    </Pressable>
   );
 }
 
@@ -405,7 +358,6 @@ function SetTile({ set, cover, width, owned }: { set: SetRow; cover?: SetCover; 
 }
 
 const styles = StyleSheet.create({
-  quickAdd: { width: 36, height: 36, borderRadius: radius.sm, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   header: { gap: spacing.lg, paddingBottom: spacing.sm },
   footer: { marginVertical: spacing.lg },
   kindsBar: { flexGrow: 0, flexShrink: 0 },

@@ -170,11 +170,15 @@ test('quick add from card search, with undo', async ({ page }) => {
   await page.getByPlaceholder('Search name, number or type').fill('OP01-016');
   const add = page.getByRole('button', { name: 'Add a copy of Nami (OP01-016)' });
   const saved = () => page.waitForResponse((r) => r.url().includes('adjust_collection_quantity') && r.ok());
-  // +1 adds the English base art; Undo takes it back.
-  await Promise.all([saved(), add.click()]);
+  // "+" opens a picker of the card's English arts; pick the base art. Undo takes it back.
+  const base = page.getByRole('button', { name: /^Add Base \(OP-01\), you own 5$/ });
+  await add.click();
+  await expect(page.getByText('Which art?')).toBeVisible();
+  await Promise.all([saved(), base.click()]);
   await expect(page.getByText('Added 1 · Nami OP01-016 (EN)')).toBeVisible();
   await Promise.all([saved(), page.getByRole('button', { name: 'Undo' }).click()]);
-  await Promise.all([saved(), add.click()]);
+  await add.click();
+  await Promise.all([saved(), base.click()]);
   await page.goto('/collection');
   await page.getByPlaceholder('Search name, number or type').fill('nami');
   // 5 copies before, +1 −1 +1.

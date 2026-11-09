@@ -379,7 +379,12 @@
       "other": "Promotional cards"
     },
     "quickAdd": "Add a copy of {{name}} ({{code}})",
-    "quickAdded": "Added 1 · {{name}} {{code}} ({{language}})"
+    "quickAdded": "Added 1 · {{name}} {{code}} ({{language}})",
+    "pickArt": "Which art?",
+    "addArt": "Add {{art}} ({{set}}), you own {{owned}}",
+    "youHave_one": "You have {{count}}",
+    "youHave_other": "You have {{count}}",
+    "notOwned": "Not owned"
   },
   "landing": {
     "titleLine1": "Every card you own.",
