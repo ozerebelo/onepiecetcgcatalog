@@ -116,7 +116,7 @@ scraping.
 
 | Before | Decision |
 |---|---|
-| Milestone 5 | OK to contact Limitless and the aggregators for permission? (I can draft the emails.) |
-| Milestone 5 | Who curates the first meta lists — you, me from public results, or both? |
+| Milestone 5 | ✅ Yes: contact Limitless and the aggregators (emails drafted 2026-11-09; the owner sends them). |
+| Milestone 5 | ✅ Claude curates the first meta lists from public tournament results, each credited and linked to its source. |
 | Milestone 6 | Price provider and monthly budget; which currencies (USD/EUR) and whether JP prices matter. |
 | Milestone 8 | Public profiles: on by choice only (recommended), and moderation for public names. |
