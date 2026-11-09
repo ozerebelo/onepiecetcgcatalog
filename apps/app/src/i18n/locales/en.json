@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Playset",
+    "name": "Yonko",
     "tagline": "Your One Piece Card Game collection"
   },
   "tabs": {
@@ -381,7 +381,7 @@
     "titleLine1": "Every card you own.",
     "titleLine2Before": "Every deck you ",
     "titleLine2Marked": "can build.",
-    "lead": "Playset is a checklist for the One Piece Card Game. Tick off every printing you own — English and Japanese, alt arts and all — then paste any decklist to see what you can build and what’s missing.",
+    "lead": "Yonko is a checklist for the One Piece Card Game. Tick off every printing you own — English and Japanese, alt arts and all — then paste any decklist to see what you can build and what’s missing.",
     "ctaPrimary": "Start your checklist",
     "ctaSecondary": "Browse {{count}} cards",
     "sampleTitle": "{{code}} · checklist",

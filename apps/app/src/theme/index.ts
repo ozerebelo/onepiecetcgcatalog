@@ -2,7 +2,7 @@ import type { Color } from '@binder/core';
 import { useColorScheme, type TextStyle, type ViewStyle } from 'react-native';
 
 /**
- * Design tokens for Playset: a printed checklist, marked up by hand.
+ * Design tokens for Yonko: a printed checklist, marked up by hand.
  *  - light "Paper": paper white, black ink, hairline rules
  *  - dark  "Carbon": warm near-black with paper-coloured ink
  * Marks have meaning in both: highlighter yellow = owned / selected, red pen = missing / needed.

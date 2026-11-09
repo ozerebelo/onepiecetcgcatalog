@@ -13,9 +13,9 @@ export function setupWeb() {
     meta.content = 'no-referrer';
     document.head.appendChild(meta);
   }
-  if (!document.getElementById('playset-browser-surfaces')) {
+  if (!document.getElementById('yonko-browser-surfaces')) {
     const style = document.createElement('style');
-    style.id = 'playset-browser-surfaces';
+    style.id = 'yonko-browser-surfaces';
     style.textContent = BROWSER_SURFACES;
     document.head.appendChild(style);
   }

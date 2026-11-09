@@ -7,7 +7,7 @@ import { CARD_COLORS, fonts, usePalette } from '@/theme';
 import { Text } from './text';
 
 /**
- * The game's own furniture, drawn in Playset's ink: the cost circle in the card's colour (a split
+ * The game's own furniture, drawn in Yonko's ink: the cost circle in the card's colour (a split
  * ring for multicolour cards), a leader's life, the colour of a deck, and rarity codes.
  * Card colours identify cards; they never stand in for the marks (highlighter = owned, red pen = missing).
  */

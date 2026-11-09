@@ -69,12 +69,12 @@ the SQL Editor earlier are detected and recorded, not re-run. Manually: `DATABAS
 
 In the dashboard, **Authentication → URL Configuration**:
 
-- **Site URL**: your website address once deployed (step 6), e.g. `https://playset.vercel.app`.
+- **Site URL**: your website address once deployed (step 6), e.g. `https://yonkoapp.com` (or `https://yonko.vercel.app` before the domain is connected).
   Use `http://localhost:8081` until then.
 - **Redirect URLs** — add all of these:
   - `http://localhost:8081/**` (local web development)
   - `https://<your-vercel-domain>/**` (production web; add custom domains too)
-  - `playset://**` (the iOS / Android app)
+  - `yonko://**` (the iOS / Android app)
   - `exp://**` (testing in Expo Go)
 
 **Authentication → Providers → Email**: keep **Confirm email** on.
@@ -98,8 +98,8 @@ spam or is refused. A subdomain such as `mail.yourdomain.com` keeps it separate 
 4. Supabase dashboard → **Authentication → Emails → SMTP Settings** → enable custom SMTP:
    | Field | Value |
    |---|---|
-   | Sender email | `no-reply@yourdomain.com` (on the verified domain) |
-   | Sender name | `Playset` |
+   | Sender email | `no-reply@yonkoapp.com` (on the verified domain) |
+   | Sender name | `Yonko` |
    | Host | `smtp.resend.com` |
    | Port | `465` |
    | Username | `resend` |
@@ -119,9 +119,9 @@ set the subject and paste the file's HTML:
 
 | Template | Subject | File |
 |---|---|---|
-| Confirm signup | `Confirm your Playset email` | `confirmation.html` |
-| Reset password | `Reset your Playset password` | `recovery.html` |
-| Change email address | `Confirm your new Playset email` | `email_change.html` |
+| Confirm signup | `Confirm your Yonko email` | `confirmation.html` |
+| Reset password | `Reset your Yonko password` | `recovery.html` |
+| Change email address | `Confirm your new Yonko email` | `email_change.html` |
 
 The others (magic link, invite, reauthentication) aren't used by the app.
 
@@ -212,7 +212,7 @@ npx eas-cli@latest build -p android --profile preview   # installable APK for te
 npx eas-cli@latest build -p ios --profile preview       # needs an Apple Developer account
 ```
 
-The app identifiers are `app.playset` (iOS bundle id and Android package, in
+The app identifiers are `com.yonkoapp` (iOS bundle id and Android package, in
 `apps/app/app.json`). **Change them before the first store submission if you want a different name —
 they cannot be changed afterwards.**
 

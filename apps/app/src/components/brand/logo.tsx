@@ -5,10 +5,11 @@ import { Text } from '@/components/ui/text';
 import { fonts, usePalette } from '@/theme';
 
 /** The product name, for labels and titles (the wordmark itself is lowercase). */
-export const APP_NAME = 'Playset';
+export const APP_NAME = 'Yonko';
 
 /**
- * Brand mark: four card slots — a playset — with the fourth just marked in highlighter.
+ * Brand mark: four card slots — a playset, and the Four Emperors (yonko) the app is named after —
+ * with the fourth just marked in highlighter.
  * Drawn in ink, so it follows the colour scheme.
  */
 export function LogoMark({ size = 28, ink, mark = '#FFE14A' }: { size?: number; ink?: string; mark?: string }) {
@@ -36,7 +37,7 @@ export function Logo({ size = 28, color, showName = true }: { size?: number; col
       <LogoMark size={size} ink={color} />
       {showName ? (
         <Text style={[styles.name, { fontSize: size * 0.82, lineHeight: size, color: color ?? palette.text }]} numberOfLines={1}>
-          playset
+          yonko
         </Text>
       ) : null}
     </View>

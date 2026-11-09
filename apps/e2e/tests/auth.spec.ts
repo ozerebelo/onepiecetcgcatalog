@@ -48,7 +48,7 @@ test('sign-up sends the branded confirmation email and its link signs you in', a
   await expect(page.getByText('Check your email')).toBeVisible();
 
   const { subject, html } = await latestEmail(email);
-  expect(subject).toBe('Confirm your Playset email');
+  expect(subject).toBe('Confirm your Yonko email');
   expect(html).toContain('Confirm email');
   const link = /href="([^"]+)"/.exec(html)?.[1]?.replace(/&amp;/g, '&');
   expect(link, 'confirmation link in the email').toBeTruthy();

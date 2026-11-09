@@ -180,9 +180,10 @@ theme/               Colors (light/dark), spacing, card colors
 
 ## Product and design
 
-**Playset** — a checklist for the One Piece Card Game. A *playset* is the most copies of one card a
+**Yonko** — a checklist for the One Piece Card Game. A *playset* is the most copies of one card a
 deck may hold (four); it ties the two halves of the app together: collecting (do I own a playset?) and
-playing (do I own what this deck needs?). The name deliberately borrows no One Piece vocabulary.
+playing (do I own what this deck needs?). The name is One Piece's Four Emperors (*yonkō*): four, like a
+playset. The domain is yonkoapp.com.
 
 The look is a printed checklist marked up by hand, in light ("paper") and dark ("carbon") schemes:
 ink-black type and buttons, thin printed rules instead of shadows and gradients, IBM Plex (Condensed

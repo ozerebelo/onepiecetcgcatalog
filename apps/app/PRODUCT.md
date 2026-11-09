@@ -15,7 +15,7 @@ decklist against it.
 
 ## Product Purpose
 
-Playset is a checklist for the One Piece Card Game. It records every printing a user owns (base, alt
+Yonko is a checklist for the One Piece Card Game. It records every printing a user owns (base, alt
 art, manga, reprints; English and Japanese, each counted separately), shows set completion, and checks
 any decklist against the collection to show what is already owned and
 exactly what is missing. Success: a player pastes a decklist and knows in seconds what they can build
@@ -52,8 +52,10 @@ collector and a player care about.
 
 ## Brand Commitments
 
-- Name: **Playset** (renamed from "Nakama Binder" because another product uses that name; future work
-  must stay clearly distinct from it).
+- Name: **Yonko** (after One Piece's Four Emperors: four, like a playset), at yonkoapp.com. Earlier names:
+  "Nakama Binder" (another product uses that name; future work must stay clearly distinct from it), then
+  "Playset" (domains taken, and the word is mostly known for backyard swing sets). "Playset" remains the
+  game term for four copies of a card and the app's core concept.
 - The app currently states it is an unofficial fan project, not affiliated with Bandai; card data and
   images are © Eiichiro Oda/Shueisha, Toei Animation, Bandai.
 

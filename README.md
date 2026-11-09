@@ -1,4 +1,4 @@
-# Playset
+# Yonko
 
 A checklist for the **One Piece Card Game**: tick off every printing you own, then check any decklist
 against it — on the web, iOS and Android from one codebase. (A *playset* is the most copies of one

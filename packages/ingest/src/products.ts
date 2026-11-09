@@ -26,7 +26,7 @@ export const PRODUCT_SITES: Record<Language, string> = {
 /** Categories that hold the sets we track (premium and extra boosters are listed under boosters). */
 export const PRODUCT_CATEGORIES = ['boosters', 'decks'] as const;
 const MAX_PAGES = 20;
-const USER_AGENT = 'Playset-ingest/1.0 (+https://github.com/ozerebelo/onepiecetcgcatalog)';
+const USER_AGENT = 'Yonko-ingest/1.0 (+https://github.com/ozerebelo/onepiecetcgcatalog)';
 
 /** Stored artwork size: landscape 4:3. Bump ARTWORK_VERSION when the crop changes to re-copy all. */
 export const ARTWORK_WIDTH = 800;

@@ -2,7 +2,7 @@
 # `supabase test db` for local development and CI.
 # The hosted project's auth settings (site URL, redirect URLs, email
 # confirmations) are configured in the Supabase dashboard — see docs/SETUP.md.
-project_id = "playset"
+project_id = "yonko"
 
 [api]
 enabled = true
@@ -19,7 +19,7 @@ major_version = 17
 enabled = true
 # Expo web dev server.
 site_url = "http://localhost:8081"
-additional_redirect_urls = ["http://localhost:8081/**", "http://localhost:8099/**", "playset://**", "exp://**"]
+additional_redirect_urls = ["http://localhost:8081/**", "http://localhost:8099/**", "yonko://**", "exp://**"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true
@@ -33,13 +33,13 @@ double_confirm_changes = true
 # Branded auth emails. Locally they land in the test inbox (Mailpit, http://127.0.0.1:54324).
 # The hosted project needs the same subjects and HTML pasted into the dashboard: docs/SETUP.md step 3.
 [auth.email.template.confirmation]
-subject = "Confirm your Playset email"
+subject = "Confirm your Yonko email"
 content_path = "./supabase/templates/confirmation.html"
 
 [auth.email.template.recovery]
-subject = "Reset your Playset password"
+subject = "Reset your Yonko password"
 content_path = "./supabase/templates/recovery.html"
 
 [auth.email.template.email_change]
-subject = "Confirm your new Playset email"
+subject = "Confirm your new Yonko email"
 content_path = "./supabase/templates/email_change.html"
