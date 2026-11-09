@@ -303,6 +303,12 @@ export default function SetScreen() {
           ]}
         />
         {user ? <ToggleRow label={t('collection.collectMode')} value={collectMode} onChange={(v) => { setCollectMode(v); setLastChange(null); }} /> : null}
+        {user && set.data ? (
+          // Logging a box by card number is faster than tapping through the checklist.
+          <Link href={{ pathname: '/collection/packs', params: { set: set.data.id } }} asChild>
+            <Button title={t('packs.fromSet')} icon="package" variant="outline" size="sm" />
+          </Link>
+        ) : null}
         {compact ? (
           <Button
             title={activeFilters ? t('sets.filtersCount', { count: activeFilters }) : t('sets.filters')}

@@ -187,3 +187,34 @@ test('quick add from card search: pick the art and the number of copies, with un
   // 5 copies before, +3 −3 +1.
   await expect(page.getByText('1 printing · 6 copies')).toBeVisible();
 });
+
+test('pack-opening mode: type card numbers, pick alt arts, undo a line', async ({ page }) => {
+  await signIn(page, USERS.collector);
+  await page.goto('/collection/packs?set=en-569101');
+  await expect(page.getByText('OP-01 · Romance Dawn')).toBeVisible();
+  const number = page.getByLabel('Card number after OP01-');
+  const saved = () => page.waitForResponse((r) => r.url().includes('adjust_collection_quantity') && r.ok());
+
+  // "16" + Enter adds the base Nami.
+  await number.fill('16');
+  await expect(page.getByText(/^Nami\s*OP01-016$/)).toBeVisible();
+  await Promise.all([saved(), number.press('Enter')]);
+  await expect(page.getByText('This session · 1 card')).toBeVisible();
+
+  // "25", pick the alt art, two copies.
+  await number.fill('25');
+  await page.getByRole('radio', { name: /^Alt art, you own 2$/ }).click();
+  await page.getByRole('button', { name: 'One more' }).click();
+  await Promise.all([saved(), page.getByRole('button', { name: 'Add 2 copies' }).click()]);
+  await expect(page.getByText('This session · 3 cards')).toBeVisible();
+
+  // Undo the Nami line.
+  await Promise.all([saved(), page.getByRole('button', { name: 'Undo OP01-016' }).click()]);
+  await expect(page.getByText('This session · 2 cards')).toBeVisible();
+
+  await page.goto('/collection');
+  await page.getByPlaceholder('Search name, number or type').fill('zoro');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByRole('checkbox', { name: 'Alt art' }).click();
+  await expect(page.getByText('1 printing · 4 copies')).toBeVisible();
+});

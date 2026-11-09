@@ -33,7 +33,7 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 - Search filters players expect: type, attribute, counter, power range, has Trigger, keywords; and
   search inside effect text (a known limitation today).
 
-### 2. Log a box in minutes — fast entry + activity log (M)
+### 2. Log a box in minutes — fast entry + activity log (M) ✅
 *Feeds every later milestone; starts recording history.*
 - Pack-opening mode: pick a set, type card numbers (`121`, `042`, `016`…), Enter to add; running
   tally with undo; works with a numeric keypad on phones.

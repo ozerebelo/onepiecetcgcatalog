@@ -628,5 +628,19 @@
     "extraOnly": "Extra only",
     "standardNote": "Legal in Standard: its block icon is in the current window (Blocks {{blocks}}, until {{until}}). Ban list aside.",
     "extraNote": "Rotated out of Standard (current window: Blocks {{blocks}}); still legal in Extra, where every card can be played."
+  },
+  "packs": {
+    "title": "Open packs",
+    "subtitle": "Type card numbers as you open your packs. Enter adds a copy; tap an art first for alt arts.",
+    "set": "Set",
+    "number": "Card number",
+    "numberLabel": "Card number after {{prefix}}-",
+    "noMatch": "No {{code}} in this set. For a card from another set, type its full number.",
+    "youHave": "you own {{count}}",
+    "session_one": "This session · {{count}} card",
+    "session_other": "This session · {{count}} cards",
+    "empty": "Cards you log appear here, newest first.",
+    "undoLine": "Undo {{code}}",
+    "fromSet": "Open packs"
   }
 }

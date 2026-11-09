@@ -122,8 +122,11 @@ function CollectionView({ userId }: { userId: string }) {
         actions={
           <>
             <LanguageSwitch />
+            <Link href="/collection/packs" asChild>
+              <Button title={t('packs.title')} icon="package" size="sm" />
+            </Link>
             <Link href="/collection/import" asChild>
-              <Button title={t('collection.import')} icon="upload" size="sm" />
+              <Button title={t('collection.import')} icon="upload" variant="outline" size="sm" />
             </Link>
             <Button
               title={t('collection.exportCsv')}
