@@ -125,3 +125,21 @@ test('progress shows on the Cards page and the collection is searchable', async 
   await page.getByPlaceholder('Search name, number or type').fill('nami');
   await expect(page.getByText('1 printing · 5 copies')).toBeVisible();
 });
+
+test('alt arts count toward the playset: 2 base + 2 alt art is a full playset', async ({ page }) => {
+  await signIn(page, USERS.collector);
+  // The restored collection holds 2 alt-art OP01-025; add 2 base copies.
+  await page.goto('/card/OP01-025');
+  await page.getByRole('button', { name: 'Add one OP01-025' }).click();
+  await page.getByRole('button', { name: 'Add one OP01-025' }).click();
+  await expect(page.getByText('You own 4 copies of this card')).toBeVisible();
+
+  await page.goto('/set/en-569101');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByRole('radio', { name: 'Owned' }).click();
+  // Both printings' rows show the card's full playset, each with its own copies.
+  await expect(page.getByRole('link', { name: 'Roronoa Zoro, OP01-025, ×2, 4 of 4 for a playset' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Roronoa Zoro, OP01-025 · Alt art, ×2, 4 of 4 for a playset' })).toBeVisible();
+  // OP01-025 (2 + 2 alt art), OP01-001 (4 EN + 1 JP) and Nami (5): Japanese copies count too.
+  await expect(page.getByText(/Full playsets: 3 of \d+ cards/)).toBeVisible();
+});

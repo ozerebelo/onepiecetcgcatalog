@@ -17,7 +17,7 @@ decklist against it.
 
 Playset is a checklist for the One Piece Card Game. It records every printing a user owns (base, alt
 art, manga, reprints; English and Japanese, each counted separately), shows set completion, and checks
-any decklist against the collection to produce a pull list: what to take from the collection and
+any decklist against the collection to show what is already owned and
 exactly what is missing. Success: a player pastes a decklist and knows in seconds what they can build
 and what to buy.
 

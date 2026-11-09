@@ -315,7 +315,9 @@ export async function fetchCatalogStats(): Promise<CatalogStats> {
 
 export interface Showcase {
   set: SetRow;
-  printings: Pick<PrintingRow, 'id' | 'card_id' | 'code' | 'name' | 'image_url' | 'rarity'>[];
+  printings: (Pick<PrintingRow, 'id' | 'card_id' | 'code' | 'name' | 'image_url' | 'rarity'> & {
+    card: Pick<CardRow, 'category' | 'colors' | 'cost'> | null;
+  })[];
 }
 
 /** The newest English booster and some of its most striking printings (alt arts / secret rares). */
@@ -332,13 +334,14 @@ export async function fetchShowcase(): Promise<Showcase | null> {
   if (!set) return null;
   const printings = await supabase
     .from('printings')
-    .select('id, card_id, code, name, image_url, rarity')
+    .select('id, card_id, code, name, image_url, rarity, card:cards(category, colors, cost)')
     .eq('set_id', set.id)
     .in('rarity', ['SecretRare', 'Leader', 'SuperRare'])
     .neq('variant', 'base')
     .order('card_id')
     .limit(40);
-  return { set, printings: unwrap(printings) as Showcase['printings'] };
+  // Each printing has one card: PostgREST returns the join as an object, not the array the types infer.
+  return { set, printings: unwrap(printings) as unknown as Showcase['printings'] };
 }
 
 // ---------------------------------------------------------------------------
@@ -397,6 +400,14 @@ export interface CheckRow {
 export interface CheckOptions {
   languages: Language[] | null;
   reserveBuilt: boolean;
+}
+
+/** Counter values for a list of cards (for a deck's counter count). Missing cards are left out. */
+export async function fetchCardCounters(ids: string[]): Promise<Record<string, number | null>> {
+  if (ids.length === 0) return {};
+  const result = await getSupabase().from('cards').select('id, counter').in('id', ids);
+  const rows = unwrap(result) as Pick<CardRow, 'id' | 'counter'>[];
+  return Object.fromEntries(rows.map((r) => [r.id, r.counter]));
 }
 
 export async function checkDeck(id: string, options: CheckOptions): Promise<CheckRow[]> {

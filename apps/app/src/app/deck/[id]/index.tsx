@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
+import { CostCurve } from '@/components/deck-curve';
 import { DeckProblems } from '@/components/deck-problems';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
@@ -16,11 +17,12 @@ import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Pips } from '@/components/ui/pips';
+import { ColorMark, CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
-import { checkDeck, deleteDeck, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
+import { checkDeck, deleteDeck, fetchCardCounters, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
 import { confirmAction, notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
-import { CARD_COLORS, WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
+import { WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
 
 type Filter = 'all' | 'missing' | 'owned';
 
@@ -48,6 +50,13 @@ export default function DeckScreen() {
     queryFn: () => checkDeck(id, options),
     enabled: Boolean(user),
     placeholderData: keepPreviousData,
+  });
+  const cardIds = (check.data ?? []).filter((r) => r.known).map((r) => r.card_id);
+  const counters = useQuery({
+    queryKey: ['card-counters', [...cardIds].sort().join(',')],
+    queryFn: () => fetchCardCounters(cardIds),
+    enabled: cardIds.length > 0,
+    staleTime: Infinity,
   });
   const built = useMutation({
     mutationFn: (value: boolean) => setDeckBuilt(id, value),
@@ -100,18 +109,18 @@ export default function DeckScreen() {
     <Screen scroll edges={[]}>
       <Stack.Screen options={{ title: deck.data.name }} />
 
-      {/* The answer first: can I build this, and what do I pull / buy? */}
+      {/* The answer first: can I build this, what do I own and what is missing? */}
       <View style={[styles.hero, wide && styles.heroWide]}>
         <View style={wide ? styles.leaderArtWide : styles.leaderArtSmall}>
           <CardImage uri={leader?.image_url} label={leader?.name ?? deck.data.name} rounded={radius.md} priority="high" />
         </View>
         <View style={styles.heroBody}>
           <View style={styles.row}>
-            {(leader?.colors ?? []).map((c) => (
-              <View key={c} style={[styles.dot, { backgroundColor: CARD_COLORS[c] }]} />
-            ))}
+            <ColorMark colors={leader?.colors} size={12} />
             <Text variant="caption" tone="secondary" style={styles.flex} numberOfLines={1}>
-              {leader ? `${leader.name} · ${leader.card_id}` : t('decks.noLeader')}
+              {leader
+                ? [leader.name, leader.card_id, (leader.colors ?? []).map((c) => t(`colors.${c}`)).join(' / ')].filter(Boolean).join(' · ')
+                : t('decks.noLeader')}
               {deck.data.is_built ? ` · ${t('decks.built')}` : ''}
             </Text>
           </View>
@@ -123,12 +132,12 @@ export default function DeckScreen() {
               t('decks.verdictReady', { count: total })
             ) : (
               <>
-                {t('decks.verdictPull', { count: have })}
+                {t('decks.verdictOwn', { count: have })}
                 <Text variant="heading" tone="secondary">
                   {'  ·  '}
                 </Text>
                 <Text variant="heading" tone="danger">
-                  {t('decks.verdictBuy', { count: missingCount })}
+                  {t('decks.verdictMissing', { count: missingCount })}
                 </Text>
               </>
             )}
@@ -240,10 +249,15 @@ export default function DeckScreen() {
         ) : null}
       </View>
 
-      {/* The pull list */}
+      {/* The deck as a player reads it: the cost curve, with what you own and what's missing at each cost */}
+      <View style={[styles.curve, { borderTopColor: palette.rule }]}>
+        <CostCurve rows={known} counters={counters.data} />
+      </View>
+
+      {/* The decklist, card by card */}
       <View style={[styles.listHead, { borderTopColor: palette.rule }]}>
         <Text variant="heading" accessibilityRole="header" style={styles.flex}>
-          {t('decks.pullColumn')}
+          {t('decks.listTitle')}
         </Text>
         <Segmented
           accessibilityLabel={t('collection.ownedFilter')}
@@ -280,7 +294,7 @@ export default function DeckScreen() {
   );
 }
 
-/** One pull-list row: the card, its slots (owned marked, missing in red pen) and what to do. */
+/** One decklist row: the card, its slots (owned marked, missing in red pen) and what to do. */
 function CheckRowView({ row }: { row: CheckRow }) {
   const { t } = useTranslation();
   const palette = usePalette();
@@ -304,13 +318,13 @@ function CheckRowView({ row }: { row: CheckRow }) {
         <View style={styles.thumb}>
           <CardImage uri={row.image_url} label={row.card_id} rounded={radius.sm} />
         </View>
+        <CostBadge colors={row.colors} value={row.cost} life={row.category === 'Leader'} size="sm" />
         <View style={styles.checkBody}>
           <Text weight="semibold" numberOfLines={1}>
             {row.name}
           </Text>
           <Text variant="mono" tone="muted" numberOfLines={1}>
             {row.card_id}
-            {row.cost != null ? ` · ${t(row.category === 'Leader' ? 'card.life' : 'card.cost')} ${row.cost}` : ''}
           </Text>
           <Text variant="caption" tone="secondary" numberOfLines={1}>
             {row.owned > 0 ? t('decks.youHave', { owned: ownedText }) : t('decks.noneOwned')}
@@ -326,10 +340,10 @@ function CheckRowView({ row }: { row: CheckRow }) {
             { color: row.missing ? palette.danger : palette.textSecondary },
           ]}>
           {row.missing === 0
-            ? t('decks.pull', { count: row.needed })
+            ? t('decks.own', { count: row.needed })
             : row.have > 0
-              ? t('decks.pullAndNeed', { pull: row.have, need: row.missing })
-              : t('decks.needMore', { count: row.missing })}
+              ? t('decks.ownAndMissing', { own: row.have, missing: row.missing })
+              : t('decks.missing', { count: row.missing })}
         </Text>
       </PressableArea>
     </Link>
@@ -360,7 +374,7 @@ function Toggle({
   );
 }
 
-/** The pull list stays narrow enough that a card's name and its status read as one line. */
+/** The decklist stays narrow enough that a card's name and its status read as one line. */
 const LIST_WIDTH = 880;
 
 const styles = StyleSheet.create({
@@ -370,7 +384,6 @@ const styles = StyleSheet.create({
   leaderArtSmall: { width: 64 },
   heroBody: { flex: 1, gap: spacing.sm, minWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  dot: { width: 10, height: 10, borderRadius: 5 },
   flex: { flex: 1 },
   verdict: { marginTop: spacing.xs },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.xs },
@@ -386,6 +399,7 @@ const styles = StyleSheet.create({
   optionsHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44, paddingVertical: spacing.sm },
   optionsBody: { gap: spacing.lg, paddingBottom: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  curve: { marginTop: spacing.xl, paddingTop: spacing.md, borderTopWidth: 2, maxWidth: LIST_WIDTH },
   listHead: {
     flexDirection: 'row',
     flexWrap: 'wrap',

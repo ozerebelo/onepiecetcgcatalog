@@ -13,7 +13,7 @@ import { PageHeader } from '@/components/ui/panel';
 import { Screen, listColumn } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
-import { collectionKeys, useCollectionSummary } from '@/hooks/use-collection';
+import { collectionKeys, useCollectionSummary, useOwnedByCard } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { exportCollection, SEARCH_PAGE_SIZE, searchCollection, type CollectionSort } from '@/lib/api';
 import { saveTextFile } from '@/lib/files';
@@ -58,6 +58,8 @@ function CollectionView({ userId }: { userId: string }) {
   const filters = useCardFilters<CollectionSort>('number');
   const { params } = filters;
   const summary = useCollectionSummary();
+  // Slots show the card's playset across all printings; this printing's copies are the solid ones.
+  const byCard = useOwnedByCard();
   const [exporting, setExporting] = useState<'csv' | 'list' | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -209,6 +211,7 @@ function CollectionView({ userId }: { userId: string }) {
             name={item.name}
             width={tileWidth}
             quantity={item.quantity}
+            ownedCard={Math.max(byCard[item.card_id] ?? 0, item.quantity)}
             badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
           />
         )}

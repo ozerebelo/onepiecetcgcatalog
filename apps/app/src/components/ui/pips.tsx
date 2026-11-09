@@ -7,8 +7,11 @@ import { Text } from './text';
 /**
  * Playset slots: four marks, one per copy a deck may hold. Owned copies are highlighted; copies
  * beyond a playset show as "+n". The signature mark of the app (cards, checklists, decks).
+ *
+ * `owned` counts every printing of the card (base, alt arts, Japanese): they all fill the same playset.
+ * Pass `here` on a row about one printing: its copies are drawn solid, the other printings' copies soft.
  */
-export function Pips({ owned, need, size = 'md' }: { owned: number; need?: number; size?: 'sm' | 'md' }) {
+export function Pips({ owned, here, need, size = 'md' }: { owned: number; here?: number; need?: number; size?: 'sm' | 'md' }) {
   const palette = usePalette();
   const slots = Math.max(PLAYSET, need ?? 0);
   const extra = owned - slots;
@@ -18,6 +21,8 @@ export function Pips({ owned, need, size = 'md' }: { owned: number; need?: numbe
     <View style={styles.row} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {Array.from({ length: slots }, (_, i) => {
         const filled = i < owned;
+        // Copies of other printings come after this printing's own, in a lighter mark.
+        const elsewhere = filled && here !== undefined && i >= here;
         // When a target is given (a deck slot), slots it needs but you don't own are drawn in red pen.
         const missing = need !== undefined && !filled && i < need;
         return (
@@ -30,6 +35,7 @@ export function Pips({ owned, need, size = 'md' }: { owned: number; need?: numbe
                 ? { backgroundColor: palette.highlight, borderColor: palette.text }
                 : { borderColor: missing ? palette.danger : palette.slot },
               need !== undefined && i >= need && !filled && styles.unused,
+              elsewhere && styles.elsewhere,
             ]}
           />
         );
@@ -43,5 +49,30 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   pip: { borderWidth: 1, borderRadius: 1 },
   unused: { opacity: 0.35 },
+  elsewhere: { opacity: 0.4 },
   extra: { fontFamily: fonts.monoMedium, fontSize: 11, lineHeight: 14, marginLeft: 3 },
+});
+
+/** Explains the two kinds of filled slot, where rows show one printing of a card (set checklists). */
+export function PipsLegend({ here, elsewhere }: { here: string; elsewhere: string }) {
+  const palette = usePalette();
+  const pip = [styles.pip, { width: 6, height: 12, backgroundColor: palette.highlight, borderColor: palette.text }];
+  return (
+    <View style={legend.row}>
+      <View style={legend.item}>
+        <View style={pip} />
+        <Text style={[legend.text, { color: palette.textSecondary }]}>{here}</Text>
+      </View>
+      <View style={legend.item}>
+        <View style={[pip, styles.elsewhere]} />
+        <Text style={[legend.text, { color: palette.textSecondary }]}>{elsewhere}</Text>
+      </View>
+    </View>
+  );
+}
+
+const legend = StyleSheet.create({
+  row: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 4 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  text: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18 },
 });

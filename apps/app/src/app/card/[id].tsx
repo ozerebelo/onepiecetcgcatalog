@@ -11,6 +11,7 @@ import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Pips } from '@/components/ui/pips';
+import { CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { fetchCard, type CardDetail, type PrintingWithSet } from '@/lib/api';
@@ -101,6 +102,7 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
                 key={p.id}
                 printing={p}
                 quantity={owned[p.id] ?? 0}
+                ownedTotal={ownedTotal}
                 selected={p.id === selected?.id}
                 onPress={() => setSelectedId(p.id)}
                 showPips={Boolean(user)}
@@ -141,7 +143,6 @@ function CardInfo({ card }: { card: CardDetail }) {
   const canToggle = hasEnglish && (card.effect_ja != null || card.name_ja != null);
 
   const stats: { label: string; value: string | null }[] = [
-    { label: card.category === 'Leader' ? t('card.life') : t('card.cost'), value: card.cost?.toString() ?? null },
     { label: t('card.power'), value: card.power?.toString() ?? null },
     { label: t('card.counter'), value: card.counter ? `+${card.counter}` : null },
     { label: t('card.attribute'), value: card.attributes.join(' / ') || null },
@@ -149,15 +150,19 @@ function CardInfo({ card }: { card: CardDetail }) {
 
   return (
     <View style={styles.info}>
-      <View style={styles.titleBlock}>
-        <Text variant="title">{card.name}</Text>
-        {hasEnglish && card.name_ja ? (
-          <Text tone="secondary">{card.name_ja}</Text>
-        ) : !hasEnglish ? (
-          <Text variant="caption" tone="primary">
-            {t('card.japaneseOnly')}
-          </Text>
-        ) : null}
+      {/* The cost circle (a leader's life) in the card's colours, where the card prints it: before the name. */}
+      <View style={styles.titleRow}>
+        <CostBadge colors={card.colors} value={card.cost} life={card.category === 'Leader'} size="lg" />
+        <View style={[styles.titleBlock, styles.flex]}>
+          <Text variant="title">{card.name}</Text>
+          {hasEnglish && card.name_ja ? (
+            <Text tone="secondary">{card.name_ja}</Text>
+          ) : !hasEnglish ? (
+            <Text variant="caption" tone="primary">
+              {t('card.japaneseOnly')}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.tags}>
@@ -236,12 +241,15 @@ function useVariantLabel() {
 function PrintingThumb({
   printing,
   quantity,
+  ownedTotal,
   selected,
   onPress,
   showPips,
 }: {
   printing: PrintingWithSet;
   quantity: number;
+  /** Copies across every printing: they all fill the same playset; this printing's are drawn solid. */
+  ownedTotal: number;
   selected: boolean;
   onPress: () => void;
   showPips: boolean;
@@ -263,7 +271,7 @@ function PrintingThumb({
           : { borderColor: 'transparent', backgroundColor: hovered ? palette.primarySoft : 'transparent' },
       ]}>
       <CardImage uri={printing.image_url} label={printing.code} />
-      {showPips ? <Pips owned={quantity} size="sm" /> : null}
+      {showPips ? <Pips owned={ownedTotal} here={quantity} size="sm" /> : null}
       <Text variant="mono" numberOfLines={1}>
         {t(`languages.short.${printing.language}`)} · {rarityShort(printing.rarity)}
       </Text>
@@ -297,6 +305,7 @@ const styles = StyleSheet.create({
   dot: { width: 10, height: 10, borderRadius: 5 },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xl, paddingVertical: spacing.md, borderTopWidth: 1, borderBottomWidth: 1 },
   stat: { gap: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   section: { gap: spacing.xs },
   link: { fontFamily: fonts.semibold },
   printings: { gap: spacing.sm, paddingVertical: spacing.xs },

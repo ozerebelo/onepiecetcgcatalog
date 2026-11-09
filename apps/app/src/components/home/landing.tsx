@@ -8,6 +8,7 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 import { Logo } from '@/components/brand/logo';
 import { CardImage } from '@/components/card-image';
 import { ChecklistHeader, ChecklistRow } from '@/components/checklist';
+import { CostBadge } from '@/components/ui/tcg';
 import { Button } from '@/components/ui/button';
 import { Pips } from '@/components/ui/pips';
 import { PressableArea } from '@/components/ui/pressable-area';
@@ -17,7 +18,7 @@ import { fetchCatalogStats, fetchShowcase, type Showcase } from '@/lib/api';
 import { formatReleaseDate, titleCase } from '@/lib/format';
 import { WIDE_BREAKPOINT, fonts, radius, spacing, usePalette } from '@/theme';
 
-const STEPS = ['own', 'paste', 'pull'] as const;
+const STEPS = ['own', 'paste', 'missing'] as const;
 /** Sample marks for the checklist on the landing page (copies owned, per row). */
 const SAMPLE_OWNED = [4, 4, 2, 0, 1, 4, 3, 0];
 /** Sample deck rows: copies the deck needs and copies owned. */
@@ -92,17 +93,17 @@ export function Landing() {
         </View>
       </Container>
 
-      {/* The pull list */}
+      {/* Owned or missing, card by card */}
       <Container style={[styles.section, wide && styles.split]}>
-        <View style={[styles.pullText, wide && styles.half]}>
+        <View style={[styles.checkText, wide && styles.half]}>
           <Text variant="title" accessibilityRole="header">
-            {t('landing.pullTitle')}
+            {t('landing.checkTitle')}
           </Text>
           <Text tone="secondary" style={styles.lead}>
-            {t('landing.pullBody')}
+            {t('landing.checkBody')}
           </Text>
         </View>
-        <SamplePullList showcase={showcase.data ?? null} style={wide ? styles.half : undefined} />
+        <SampleDeckCheck showcase={showcase.data ?? null} style={wide ? styles.half : undefined} />
       </Container>
 
       {/* Newest set */}
@@ -207,6 +208,9 @@ function SampleChecklist({ showcase, style }: { showcase: Showcase | null; style
           name={p.name}
           rarity={rarityShort(p.rarity)}
           owned={SAMPLE_OWNED[i]}
+          colors={p.card?.colors}
+          cost={p.card?.cost}
+          life={p.card?.category === 'Leader'}
           href={{ pathname: '/card/[id]', params: { id: p.card_id, printing: p.id } }}
           accessibilityLabel={`${p.name}, ${p.card_id}`}
         />
@@ -219,7 +223,7 @@ function SampleChecklist({ showcase, style }: { showcase: Showcase | null; style
 }
 
 /** An example deck checked against a collection: slots marked owned, red where still needed. */
-function SamplePullList({ showcase, style }: { showcase: Showcase | null; style?: object }) {
+function SampleDeckCheck({ showcase, style }: { showcase: Showcase | null; style?: object }) {
   const { t } = useTranslation();
   const palette = usePalette();
   const cards = distinctCards(showcase?.printings ?? []).slice(SAMPLE_OWNED.length, SAMPLE_OWNED.length + SAMPLE_DECK.length);
@@ -234,10 +238,11 @@ function SamplePullList({ showcase, style }: { showcase: Showcase | null; style?
         const card = cards[i];
         const missing = d.need - Math.min(d.have, d.need);
         return (
-          <View key={i} style={[styles.pullRow, { borderTopColor: i === 0 ? palette.rule : palette.border, borderTopWidth: i === 0 ? 2 : StyleSheet.hairlineWidth }]}>
-            <View style={styles.pullThumb}>
+          <View key={i} style={[styles.checkRow, { borderTopColor: i === 0 ? palette.rule : palette.border, borderTopWidth: i === 0 ? 2 : StyleSheet.hairlineWidth }]}>
+            <View style={styles.checkThumb}>
               <CardImage uri={card?.image_url} label={card?.code ?? ''} rounded={radius.sm} />
             </View>
+            <CostBadge colors={card?.card?.colors} value={card?.card?.cost} life={card?.card?.category === 'Leader'} size="sm" />
             <View style={styles.flex}>
               <Text weight="semibold" numberOfLines={1}>
                 {card?.name ?? '—'}
@@ -247,8 +252,8 @@ function SamplePullList({ showcase, style }: { showcase: Showcase | null; style?
               </Text>
             </View>
             <Pips owned={Math.min(d.have, d.need)} need={d.need} />
-            <Text variant="mono" style={[styles.pullCount, { color: missing ? palette.danger : palette.textSecondary }]}>
-              {missing ? t('decks.needMore', { count: missing }) : t('landing.pull', { count: d.need })}
+            <Text variant="mono" style={[styles.checkCount, { color: missing ? palette.danger : palette.textSecondary }]}>
+              {missing ? t('decks.missing', { count: missing }) : t('landing.own', { count: d.need })}
             </Text>
           </View>
         );
@@ -276,10 +281,10 @@ const styles = StyleSheet.create({
   steps: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: 2 },
   step: { flexGrow: 1, gap: spacing.sm, paddingVertical: spacing.xl, paddingHorizontal: spacing.lg },
   stepNumber: { fontFamily: fonts.monoMedium, fontSize: 15 },
-  pullText: { gap: spacing.md, paddingTop: spacing.md },
-  pullRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
-  pullThumb: { width: 36 },
-  pullCount: { width: 64, textAlign: 'right' },
+  checkText: { gap: spacing.md, paddingTop: spacing.md },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  checkThumb: { width: 36 },
+  checkCount: { width: 64, textAlign: 'right' },
   flex: { flex: 1 },
   latest: { gap: spacing.xl, borderTopWidth: 2, paddingTop: spacing.xl },
   latestArt: { aspectRatio: 4 / 3, borderRadius: radius.md, overflow: 'hidden', minHeight: 200 },

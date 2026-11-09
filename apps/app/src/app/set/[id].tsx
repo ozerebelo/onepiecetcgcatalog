@@ -1,4 +1,4 @@
-import { CATEGORIES, isOwnSetCard, rarityShort, type Category } from '@binder/core';
+import { CATEGORIES, RARITIES, isOwnSetCard, rarityShort, type Category } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
@@ -12,17 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
 import { ProgressBar } from '@/components/ui/panel';
+import { PipsLegend } from '@/components/ui/pips';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
+import { RarityTag } from '@/components/ui/tcg';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
-import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
+import { useAdjustQuantity, useCollectionQuantities, useOwnedByCard } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { fetchSet, fetchSetPrintings, type SetPrinting } from '@/lib/api';
 import { formatReleaseDate, printingLabel, titleCase, variantName } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
-import { fonts, radius, spacing, usePalette } from '@/theme';
+import { PLAYSET, fonts, radius, spacing, tabular, usePalette } from '@/theme';
 
 type OwnedFilter = 'all' | 'owned' | 'missing';
 type ViewMode = 'checklist' | 'grid';
@@ -60,6 +62,8 @@ export default function SetScreen() {
   const quantities = useCollectionQuantities({ setId: id });
   const adjust = useAdjustQuantity();
   const owned = useMemo(() => quantities.data ?? {}, [quantities.data]);
+  // The playset counts every printing of a card, in any set or language: 2 base + 2 alt art is a playset.
+  const byCard = useOwnedByCard();
 
   const variantFiltered = useMemo(
     () => (printings.data ?? []).filter((p) => showVariants || p.variant === 'base'),
@@ -72,6 +76,17 @@ export default function SetScreen() {
     return CATEGORIES.filter((c) => present.has(c));
   }, [printings.data]);
   const percent = variantFiltered.length ? Math.round((ownedCount / variantFiltered.length) * 100) : 0;
+  const cardIds = useMemo(() => [...new Set((printings.data ?? []).map((p) => p.card_id))], [printings.data]);
+  const fullPlaysets = cardIds.filter((cardId) => (byCard[cardId] ?? 0) >= PLAYSET).length;
+  // Printings owned per rarity, chase rarities last, as a collector reads a set.
+  const byRarity = useMemo(
+    () =>
+      RARITIES.map((rarity) => {
+        const all = variantFiltered.filter((p) => p.rarity === rarity);
+        return { rarity, total: all.length, owned: all.filter((p) => (owned[p.id] ?? 0) > 0).length };
+      }).filter((r) => r.total > 0),
+    [variantFiltered, owned],
+  );
 
   const rows = useMemo<Row[]>(() => {
     if (!set.data) return [];
@@ -127,6 +142,7 @@ export default function SetScreen() {
         width={tileWidth}
         badge={rarityShort(item.rarity)}
         quantity={quantity}
+        ownedCard={byCard[item.card_id] ?? 0}
         showPips
         dimmed={quantity === 0}
         overlay={quantity > 0 ? removeButton(item) : null}
@@ -141,6 +157,7 @@ export default function SetScreen() {
         width={tileWidth}
         badge={rarityShort(item.rarity)}
         quantity={quantity}
+        ownedCard={user ? (byCard[item.card_id] ?? 0) : undefined}
         showPips={Boolean(user)}
       />
     );
@@ -159,6 +176,7 @@ export default function SetScreen() {
   /** One checklist row: tap to open the card, or (collect mode) to add a copy. */
   const renderRow = (item: SetPrinting) => {
     const quantity = owned[item.id] ?? 0;
+    const cardTotal = byCard[item.card_id] ?? 0;
     const name = item.card?.name ?? item.name;
     const label = printingLabel(item.code, t);
     const common = {
@@ -167,7 +185,18 @@ export default function SetScreen() {
       variant: item.variant === 'base' ? null : variantName(item.variant, item.variant_index, t),
       rarity: rarityShort(item.rarity),
       owned: user ? quantity : undefined,
-      accessibilityLabel: quantity > 0 ? `${name}, ${label}, ×${quantity}` : `${name}, ${label}`,
+      ownedCard: user ? cardTotal : undefined,
+      colors: item.card?.colors,
+      cost: item.card?.cost,
+      life: item.card?.category === 'Leader',
+      accessibilityLabel: [
+        name,
+        label,
+        quantity > 0 ? `×${quantity}` : null,
+        user ? t('collection.playsetOf', { count: cardTotal, playset: PLAYSET }) : null,
+      ]
+        .filter(Boolean)
+        .join(', '),
     };
     return collectMode ? (
       <ChecklistRow
@@ -239,6 +268,19 @@ export default function SetScreen() {
         <View style={styles.progress}>
           <Text variant="subheading">{t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}</Text>
           <ProgressBar value={percent / 100} />
+          <Text tone="secondary">{t('collection.fullPlaysets', { count: fullPlaysets, total: cardIds.length })}</Text>
+          {view === 'checklist' ? <PipsLegend here={t('collection.legendHere')} elsewhere={t('collection.legendElsewhere')} /> : null}
+          {/* Completion by rarity: the chase cards are what a collector counts. */}
+          <View style={styles.rarities}>
+            {byRarity.map((r) => (
+              <View key={r.rarity} style={styles.rarity} accessibilityLabel={`${t(`rarities.${r.rarity}`)}: ${r.owned} / ${r.total}`}>
+                <RarityTag code={rarityShort(r.rarity)} />
+                <Text variant="mono" style={[tabular, { color: r.owned === r.total ? palette.text : palette.textSecondary }]}>
+                  {r.owned}/{r.total}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       ) : (
         <Link href="/auth/sign-in" asChild>
@@ -393,6 +435,8 @@ const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   packCompact: { width: 88 },
   progress: { gap: spacing.sm, paddingTop: spacing.xs },
+  rarities: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.lg, rowGap: spacing.xs },
+  rarity: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   typesBar: { flexGrow: 0, flexShrink: 0 },

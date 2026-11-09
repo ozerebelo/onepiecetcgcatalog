@@ -20,11 +20,11 @@ test('a saved deck is checked against the collection and the missing cards can b
   await page.getByRole('button', { name: 'Save deck' }).click();
 
   await expect(page.getByText('Red Zoro test').first()).toBeVisible();
-  // The answer comes first: pull what you own, buy the rest.
-  await expect(page.getByText('Pull 5')).toBeVisible();
-  await expect(page.getByText('Buy 4')).toBeVisible();
+  // The answer comes first: what you own, and what's missing.
+  await expect(page.getByText('Own 5 · Missing 4')).toBeVisible();
   await page.getByRole('radio', { name: /^Missing/ }).click();
-  await expect(page.getByText('Need 4').first()).toBeVisible();
+  // The verdict's "Missing 4" and the one missing row's.
+  await expect(page.getByText('Missing 4', { exact: true })).toHaveCount(2);
   await page.getByRole('button', { name: 'Copy missing' }).click();
   await expect(page.getByText('Copied 4 missing cards (Sim format).')).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('4xOP01-004');

@@ -24,6 +24,8 @@ interface CardTileProps {
   badge?: string | null;
   /** Owned copies, shown as playset slots under the card (when the viewer's collection is known). */
   quantity?: number;
+  /** Copies of the card across all printings (the playset). When given, the slots count these and mark this printing's own. */
+  ownedCard?: number;
   /** Show the playset slots even at 0 (the collection is known, e.g. signed in on a set page). */
   showPips?: boolean;
   /** Fade the card (e.g. not owned, in collect mode). */
@@ -43,6 +45,7 @@ export function CardTile({
   width,
   badge,
   quantity = 0,
+  ownedCard,
   showPips = false,
   dimmed = false,
   overlay,
@@ -64,12 +67,12 @@ export function CardTile({
       <View style={[styles.imageWrap, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
         {/* One bottom row, so on narrow tiles the label gives way instead of running over the slots. */}
-        {badge || showPips || quantity > 0 ? (
+        {badge || showPips || quantity > 0 || (ownedCard ?? 0) > 0 ? (
           <View style={styles.bottomRow} pointerEvents="none">
-            {showPips || quantity > 0 ? (
+            {showPips || quantity > 0 || (ownedCard ?? 0) > 0 ? (
               // Playset slots on a paper label stuck to the card's corner.
               <View style={[styles.pips, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-                <Pips owned={quantity} size="sm" />
+                <Pips owned={ownedCard ?? quantity} here={ownedCard !== undefined ? quantity : undefined} size="sm" />
               </View>
             ) : null}
             {badge ? (

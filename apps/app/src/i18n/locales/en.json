@@ -219,7 +219,7 @@
     "removeOne": "Remove one {{card}}",
     "ownedCount_one": "{{count}} owned",
     "ownedCount_other": "{{count}} owned",
-    "setProgress": "You own {{owned}} of {{total}} ({{percent}}%)",
+    "setProgress": "You own {{owned}} of {{total}} printings ({{percent}}%)",
     "setRowProgress": "{{owned}} / {{total}} owned",
     "ownedFilter": "Show",
     "filters": {
@@ -236,7 +236,11 @@
     "tallyRemoved": "Removed 1 · {{card}}",
     "undo": "Undo",
     "doneCollecting": "Done",
-    "noneOfThisCard": "You don’t own this card yet. Any printing counts toward a deck."
+    "noneOfThisCard": "You don’t own this card yet. Any printing counts toward a deck.",
+    "fullPlaysets": "Full playsets: {{count}} of {{total}} cards",
+    "playsetOf": "{{count}} of {{playset}} for a playset",
+    "legendHere": "Copies of this printing",
+    "legendElsewhere": "Copies of its other arts and languages"
   },
   "import": {
     "title": "Import cards",
@@ -365,21 +369,21 @@
     "steps": {
       "own": {
         "title": "Tick off what you own",
-        "body": "Tap through any set, or paste a list or spreadsheet. Every printing counts on its own: base, alt art, manga, reprints, English and Japanese."
+        "body": "Tap through any set, or paste a list or spreadsheet. Base, alt art, manga, reprints, English and Japanese: every printing is tracked, and all of them count toward your playset."
       },
       "paste": {
         "title": "Paste a decklist",
         "body": "From OPTCG Sim or any deckbuilder. Any printing of a card fills its slot, so your alt arts count."
       },
-      "pull": {
-        "title": "Get your pull list",
-        "body": "What to pull from your collection, and exactly what’s missing — copy it straight into a shop order."
+      "missing": {
+        "title": "See what’s missing",
+        "body": "What you already own for the deck, and exactly what’s missing — copy it straight into a shop order."
       }
     },
-    "pullTitle": "A pull list, not a guess",
-    "pullBody": "Four slots per card, like a playset. Marked: you own it. Red: you still need it. Hold back cards sleeved in decks you’ve already built, or check with English cards only for official events.",
+    "checkTitle": "Owned or missing, card by card",
+    "checkBody": "Four slots per card, like a playset. Marked: you own it. Red: you still need it. Alt arts and Japanese copies fill the same slots. Hold back cards sleeved in decks you’ve already built, or check with English cards only for official events.",
     "demoDeck": "Example deck · {{owned}} of {{total}} owned",
-    "pull": "Pull {{count}}",
+    "own": "Own {{count}}",
     "latestTag": "Newest set · {{code}}",
     "latestBody_one": "Released {{date}} · {{count}} card, alternate arts included.",
     "latestBody_other": "Released {{date}} · {{count}} cards, alternate arts included.",
@@ -483,20 +487,20 @@
       "Stage": "Stages",
       "Don": "DON!!"
     },
-    "needMore_one": "Need {{count}}",
-    "needMore_other": "Need {{count}}",
+    "missing_one": "Missing {{count}}",
+    "missing_other": "Missing {{count}}",
     "youHave": "You have {{owned}}",
     "noneOwned": "You don't own this card",
     "reserved_one": "{{count}} in built decks",
     "reserved_other": "{{count}} in built decks",
-    "pullColumn": "Pull list",
-    "pull": "Pull {{count}}",
+    "listTitle": "Decklist",
+    "own": "Own {{count}}",
     "more": "More",
     "verdictReady": "Ready to build: you own all {{count}} cards.",
-    "verdictPull_one": "Pull {{count}}",
-    "verdictPull_other": "Pull {{count}}",
-    "verdictBuy_one": "Buy {{count}}",
-    "verdictBuy_other": "Buy {{count}}",
+    "verdictOwn_one": "Own {{count}}",
+    "verdictOwn_other": "Own {{count}}",
+    "verdictMissing_one": "Missing {{count}}",
+    "verdictMissing_other": "Missing {{count}}",
     "verdictSub": "You own {{percent}}% of the {{total}} cards this deck needs.",
     "checking": "Checking",
     "change": "Change",
@@ -507,6 +511,15 @@
       "notHoldingBack": "cards in built decks count",
       "holdingBack": "holding back cards in built decks"
     },
-    "pullAndNeed": "Pull {{pull}} · Need {{need}}"
+    "ownAndMissing": "Own {{own}} · Missing {{missing}}",
+    "curve": {
+      "title": "Cost curve",
+      "owned": "Owned",
+      "missing": "Missing",
+      "bar": "Cost {{cost}}: {{total}} cards, {{missing}} missing",
+      "detail": "Cost {{cost}}: {{total}} cards · own {{owned}} · missing {{missing}}",
+      "counter": "{{count}} × +{{value}} counter",
+      "noCounter": "{{count}} without counter"
+    }
   }
 }

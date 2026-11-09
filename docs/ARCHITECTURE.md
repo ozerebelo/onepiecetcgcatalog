@@ -188,9 +188,10 @@ The look is a printed checklist marked up by hand, in light ("paper") and dark (
 ink-black type and buttons, thin printed rules instead of shadows and gradients, IBM Plex (Condensed
 for headings, Sans for text, Mono for card numbers and column heads). Marks carry meaning everywhere:
 **highlighter yellow = owned / selected**, **red pen = missing / needed**. The signature element is the
-row of four *playset slots* (`components/ui/pips.tsx`) on cards, set checklists and deck pull lists.
+row of four *playset slots* (`components/ui/pips.tsx`) on cards, set checklists and deck checks.
 Set pages default to a checklist view (`components/checklist.tsx`) with a grid view beside it; a deck's
-check reads as a pull list.
+check reads as a decklist marked own / missing. A playset counts every printing of a card: two base
+art and two alt art copies (or Japanese ones) are a full playset.
 
 ## Roadmap
 
