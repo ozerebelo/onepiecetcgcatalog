@@ -64,7 +64,7 @@ test('importing a pasted list previews exactly, then commits', async ({ page }) 
   const preview = await page.locator('body').innerText();
   expect(preview).toContain('3 printings recognised.');
   // Every change is listed, in copies: 5 Nami, 2 alt-art Zoro, 1 Japanese Zoro.
-  expect(preview).toContain('+8 copies, −0 copies, across 3 printings.');
+  expect(preview).toContain('Adds 8 copies across 3 printings.');
   expect(preview).toContain('0 → 5');
   expect(preview).toMatch(/1 card number not found/);
   expect(preview).toContain('OP99-999');

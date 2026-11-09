@@ -11,6 +11,7 @@ import {
 } from '@binder/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
+import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -158,7 +159,7 @@ export default function ImportScreen() {
         <Text variant="heading">
           {diff.changes.length === 0
             ? t('import.noChanges')
-            : t('import.changeSummary', { added: diff.copiesAdded, removed: diff.copiesRemoved, count: diff.changes.length })}
+            : changeSentence(t, diff.copiesAdded, diff.copiesRemoved, diff.changes.length)}
         </Text>
         <Text tone="secondary">{t('import.afterwards', { before: diff.copiesBefore, after: diff.copiesAfter, printings: s.unique_printings })}</Text>
 
@@ -414,3 +415,12 @@ const styles = StyleSheet.create({
   skip: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44 },
   box16: { width: 16, height: 16, borderWidth: 1.5, borderRadius: 2 },
 });
+
+/** "Adds 10 copies across 4 printings." — names only the directions that actually happen. */
+function changeSentence(t: TFunction, added: number, removed: number, changed: number) {
+  const printings = t('import.printings', { count: changed });
+  const copies = (count: number) => t('import.copies', { count });
+  if (added > 0 && removed > 0) return t('import.changeBoth', { added: copies(added), removed: copies(removed), printings });
+  if (removed > 0) return t('import.changeRemoves', { copies: copies(removed), printings });
+  return t('import.changeAdds', { copies: copies(added), printings });
+}

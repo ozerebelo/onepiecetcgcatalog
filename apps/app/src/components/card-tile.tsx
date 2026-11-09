@@ -63,15 +63,22 @@ export function CardTile({
       activeStyle={styles.lift}>
       <View style={[styles.imageWrap, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
-        {badge ? (
-          <View style={[styles.badge, styles.bottomRight, { backgroundColor: palette.overlay }]}>
-            <Text style={styles.badgeText}>{badge}</Text>
-          </View>
-        ) : null}
-        {showPips || quantity > 0 ? (
-          // Playset slots on a paper label stuck to the card's corner.
-          <View style={[styles.pips, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <Pips owned={quantity} size="sm" />
+        {/* One bottom row, so on narrow tiles the label gives way instead of running over the slots. */}
+        {badge || showPips || quantity > 0 ? (
+          <View style={styles.bottomRow} pointerEvents="none">
+            {showPips || quantity > 0 ? (
+              // Playset slots on a paper label stuck to the card's corner.
+              <View style={[styles.pips, { backgroundColor: palette.surface, borderColor: palette.border }]}>
+                <Pips owned={quantity} size="sm" />
+              </View>
+            ) : null}
+            {badge ? (
+              <View style={[styles.badge, { backgroundColor: palette.overlay }]}>
+                <Text style={styles.badgeText} numberOfLines={1}>
+                  {badge}
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -102,9 +109,9 @@ const styles = StyleSheet.create({
   imageWrap: { borderRadius: radius.md },
   dimmed: { opacity: 0.3 },
   meta: { gap: 1, paddingHorizontal: 1 },
-  badge: { position: 'absolute', paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },
-  bottomRight: { right: 5, bottom: 5 },
-  pips: { position: 'absolute', left: 5, bottom: 5, paddingHorizontal: 4, paddingVertical: 3, borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth },
+  bottomRow: { position: 'absolute', left: 5, right: 5, bottom: 5, flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
+  badge: { marginLeft: 'auto', flexShrink: 1, minWidth: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },
+  pips: { flexShrink: 0, paddingHorizontal: 4, paddingVertical: 3, borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth },
   topLeft: { position: 'absolute', left: 6, top: 6 },
   badgeText: { color: '#fff', fontFamily: fonts.monoMedium, fontSize: 11, lineHeight: 15 },
 });

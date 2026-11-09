@@ -30,6 +30,8 @@ const BROWSER_SURFACES = `
 html { scrollbar-color: #BDBDB4 transparent; }
 * { caret-color: #141414; }
 :focus-visible { outline: 2px solid #141414; outline-offset: 2px; border-radius: 3px; }
+/* Text fields draw their own focused frame (components/ui/text-field.tsx); one ring is enough. */
+input:focus-visible, textarea:focus-visible { outline: none; }
 @media (prefers-color-scheme: dark) {
   html { scrollbar-color: #4A4A45 transparent; }
   * { caret-color: #F1F1EA; }
