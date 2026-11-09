@@ -16,3 +16,6 @@ supabase/.temp
 
 # design skill working files (screenshots, direction sheets)
 .taste-skill/
+
+# Impeccable design skill: the launcher downloads and checksum-verifies its engine binary on demand.
+**/skills/impeccable/scripts/bin/
