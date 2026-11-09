@@ -207,8 +207,7 @@ CSV export covers both languages (it is a full backup).
 | **1 ✅** | Foundation | Accounts, EN+JP catalog + daily import, search, sets, card pages |
 | **2 ✅** | Collection | `collection_items` with RLS; +/− on card pages; "tap to collect" set grids with progress and owned/missing filters; bulk paste / CSV / Sim-format import with exact preview (add / set / replace all); CSV + list export; Collection tab with search and filters |
 | **3 ✅** | Decks + redesign | Saved decks with live check against the collection (any printing fills a slot), English-only mode, built decks held back on request, rule warnings, copy missing as Sim / shopping list. Design system, landing page, signed-in dashboard, web top navigation / phone bottom bar, special inserts separated on set pages. Sets merged into the Cards page: every product with its artwork, newest release first (dates and artwork from the official Products pages), with a type filter; searching switches to card results. *Missing → wishlist moves to phase 4.* |
-| **4** | Extras | Wishlist (incl. "add a deck's missing cards") & trade list, card condition / foil tracking, richer filters, prices (needs a licensed price source — TCGplayer / Cardmarket APIs are restricted; evaluate paid aggregators), collection value |
-| **5** | Scanning & stores | Camera scanning (card-number OCR on device), Google sign-in / Sign in with Apple, App Store / Play Store release, more UI languages |
+| **4+** | Richness & depth | Card pages, fast entry, stats, deck depth, meta decks, prices, binder view, community, native: see [ROADMAP.md](ROADMAP.md) |
 
 ## Known limitations
 
