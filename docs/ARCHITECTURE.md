@@ -114,8 +114,13 @@ published. Ownership is per user, per card, in one card language, and works sign
 | `meta_deck_check(meta_deck_id, language)` | One meta deck card by card with what you own. |
 | `owned_card_totals(language)` | Helper: the caller's copies per card (SECURITY DEFINER only so visitors get an empty set). |
 
-Your own deck page compares your list with the newest meta list for the same leader
-(`diffDecklists` in core).
+| `meta_card_info(language)` | Every card in a meta list with art and your copies — feeds the leader pages. |
+
+The Meta page ranks **leaders** by their share of top lists; each leader page shows its core (≥80% of
+lists), flex (30–80%) and tech (<30%) cards, a consensus list (most played cards at their usual copies,
+leader + 50), its builds (lists sharing ≥40 cards grouped together) and the results behind it. All of
+this is computed in `packages/core/src/meta-stats.ts` from the public rows. Your own deck page compares
+your list with that leader's consensus (`diffDecklists`).
 
 ### Collection API (SQL functions, `security invoker` — RLS applies)
 

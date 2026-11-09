@@ -1,27 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { MetaDeckCard } from '@/components/meta-deck-card';
+import { MetaLeaderRow } from '@/components/meta-leader-row';
 import { Button } from '@/components/ui/button';
 import { SectionTitle } from '@/components/ui/panel';
-import { fetchMetaProgress } from '@/lib/api';
-import { useCardLanguage } from '@/lib/card-language';
-import { useAuth } from '@/providers/auth';
+import { useMeta } from '@/hooks/use-meta';
 import { spacing } from '@/theme';
 
-/** Home: the meta decks your collection is closest to (hidden until there are meta lists). */
+/** Home: the meta leaders whose consensus list your collection is closest to (hidden until there's a meta). */
 export function MetaSuggestions() {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const [language] = useCardLanguage();
-  const decks = useQuery({
-    queryKey: ['meta', user?.id ?? 'anon', 'progress', language],
-    queryFn: () => fetchMetaProgress(language),
-    enabled: Boolean(user),
-  });
-  const closest = [...(decks.data ?? [])].sort((a, b) => a.missing - b.missing || b.event_date.localeCompare(a.event_date)).slice(0, 3);
+  const meta = useMeta();
+  const maxShare = meta.leaders[0]?.share ?? 0;
+  const ranked = meta.leaders.map((leader, i) => ({ leader, rank: i + 1 }));
+  const closest = ranked.sort((a, b) => a.leader.missing - b.leader.missing || a.rank - b.rank).slice(0, 3);
   if (closest.length === 0) return null;
 
   return (
@@ -34,9 +27,9 @@ export function MetaSuggestions() {
           </Link>
         }
       />
-      <View style={styles.grid}>
-        {closest.map((deck) => (
-          <MetaDeckCard key={deck.id} deck={deck} signedIn />
+      <View style={styles.list}>
+        {closest.map(({ leader, rank }) => (
+          <MetaLeaderRow key={leader.leader} rank={rank} leader={leader} info={meta.cards.data?.[leader.leader]} maxShare={maxShare} signedIn />
         ))}
       </View>
     </View>
@@ -45,5 +38,5 @@ export function MetaSuggestions() {
 
 const styles = StyleSheet.create({
   section: { gap: spacing.md },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  list: { maxWidth: 880 },
 });

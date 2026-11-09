@@ -56,9 +56,11 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
   repo we update when Bandai announces changes).
 
 ### 5. Meta decks & suggestions (L) — see "Sourcing meta decks" below ✅
-*Shipped with 20 lists (OP17 + EB05, after the 12 Oct 2026 ban list): the top 4 of the Pomona, Sydney
-and X3 Invitational events and the top 2 of ChinoizeCups #127–#131, read from OPTCG.GG's public deck
-pages with the owner's go-ahead and credited on every list. Refresh by editing
+*The Meta page ranks leaders by share of top lists; each leader has a page with its core, flex and tech
+cards, a consensus list, builds and results. 52 lists (OP17 + EB05, after the 12 Oct 2026 ban list): the
+top 8 of Pomona, Sydney and X3 Invitational and the top 4 of ChinoizeCups #122–#131, read from OPTCG.GG's
+public deck pages with the owner's go-ahead and credited on every list. Cardkaizoku's leader rankings
+(simulator win/play rates) need written permission to republish (their terms) — added to the outreach. Refresh by editing
 `packages/ingest/meta/meta-decks.json`.*
 - A Meta page: current top archetypes by leader, each with a reference list, its source and date.
 - "What can you build": every meta deck ranked by how much of it you already own (in your card
@@ -105,7 +107,7 @@ data waits for its permission.
    likely covers events run on their platform (online / grassroots); major events on the One Piece
    site may need separate permission. Would run nightly, like the card import, and aggregate lists by
    leader.
-3. **Partnerships.** Ask aggregators for a feed or permission: Limitless (majors),
+3. **Partnerships.** Ask aggregators for a feed or permission: Cardkaizoku (leader rankings), Limitless (majors),
    [optcg.gg](https://www.optcg.gg/deck-lists/top-decks), [optcg.one](https://www.optcg.one/decklists),
    [opmetagame.com](https://opmetagame.com/), [OnePieceDB](https://onepiecedb.io/tournaments). Credit
    and link back on every list.

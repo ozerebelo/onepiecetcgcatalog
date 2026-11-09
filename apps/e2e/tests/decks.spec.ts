@@ -56,22 +56,21 @@ test('a saved deck is checked against the collection and the missing cards can b
   await expect(page.getByText('Usopp').filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText('want 4 · own 0')).toBeVisible();
 
-  // Meta decks: how much of each you own, the best pickups, and your deck compared with the meta list.
+  // The meta: leaders ranked, your copies of each leader's consensus, best pickups, and your deck compared.
   await page.goto('/decks');
   await page.getByRole('link', { name: 'Meta decks' }).click();
-  await expect(page.getByText('What can you build')).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Red Zoro, E2E Regionals, Winner of 256, own 5 of 13$/ })).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Usopp, OP01-004\. In 1 meta deck\. 4 copies to get$/ })).toBeVisible();
-  await page.getByRole('link', { name: /^Red Zoro, E2E Regionals/ }).click();
+  await expect(page.getByRole('heading', { name: 'Leaders' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Usopp, OP01-004\. In 1 top list\. 4 copies to get$/ })).toBeVisible();
+  await page.getByRole('link', { name: /^1\. Roronoa Zoro, 1 list, 100% of the meta, 1 win, own 5 of 13$/ }).click();
   await expect(page.getByText('Missing 8')).toBeVisible();
   await page.getByRole('button', { name: 'Save as my deck' }).click();
   await expect(page.getByText('Saved to your decks.')).toBeVisible();
-  // The saved copy matches the meta list exactly.
-  await expect(page.getByText('Your list matches this meta list card for card.')).toBeVisible();
-  // Robin's own list is the meta list without its 4 Zoro.
+  // The saved copy is the consensus itself.
+  await expect(page.getByText('Your list matches the consensus card for card.')).toBeVisible();
+  // Robin's own list is the consensus without its 4 Zoro.
   await page.goto('/decks');
   await page.getByText('Red Zoro test').first().click();
   await expect(page.getByText('Compared with the meta')).toBeVisible();
-  await expect(page.getByText('9 of 13 cards in common.')).toBeVisible();
-  await expect(page.getByText('Roronoa Zoro', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('9 of 13 cards in common with the consensus.')).toBeVisible();
+  await expect(page.getByText('Roronoa Zoro', { exact: true }).filter({ visible: true }).first()).toBeVisible();
 });

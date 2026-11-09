@@ -7,7 +7,7 @@ import { Linking, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
 import { LanguageSwitch } from '@/components/language-switch';
-import { usePlacementLabel } from '@/components/meta-deck-card';
+import { usePlacementLabel } from '@/components/meta-placement';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/panel';
 import { Pips } from '@/components/ui/pips';

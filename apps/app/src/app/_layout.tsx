@@ -118,6 +118,7 @@ function RootStack() {
       <Stack.Screen name="deck/[id]/edit" options={{ title: t('decks.editTitle') }} />
       <Stack.Screen name="meta/index" options={{ title: t('meta.title') }} />
       <Stack.Screen name="meta/[id]" options={{ title: '' }} />
+      <Stack.Screen name="meta/leader/[id]" options={{ title: '' }} />
       <Stack.Screen name="auth/sign-in" options={{ title: t('account.signIn') }} />
       <Stack.Screen name="auth/sign-up" options={{ title: t('account.signUp') }} />
       <Stack.Screen name="auth/forgot-password" options={{ title: t('auth.resetTitle') }} />

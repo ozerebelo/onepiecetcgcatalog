@@ -9,3 +9,4 @@ export * from './import-diff';
 export * from './effect-text';
 export * from './formats';
 export * from './meta';
+export * from './meta-stats';

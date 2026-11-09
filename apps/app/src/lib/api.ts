@@ -6,6 +6,7 @@ import type {
   DeckItem,
   DeckRow,
   ImportItem,
+  MetaList,
   Language,
   PrintingRow,
   Rarity,
@@ -766,29 +767,40 @@ export async function fetchMetaDeckCheck(id: string, language: Language): Promis
   return unwrap(await getSupabase().rpc('meta_deck_check', { p_meta_deck_id: id, p_language: language })) as MetaCheckRow[];
 }
 
-export interface MetaDeckList {
-  id: string;
-  archetype: string;
-  event: string;
-  event_date: string;
-  placement: number | null;
-  players: number | null;
-  items: (DeckItem & { name: string })[];
-}
-
-/** The meta lists for a leader (newest first), to compare your own deck with. */
-export async function fetchMetaListsForLeader(leaderId: string): Promise<MetaDeckList[]> {
+/** Every meta list with its cards (public), for the leader rankings and leader pages. */
+export async function fetchMetaLists(): Promise<(MetaList & { format: string; source_name: string; source_url: string; region: string | null })[]> {
   const result = await getSupabase()
     .from('meta_decks')
-    .select('id, archetype, event, event_date, placement, players, meta_deck_cards(card_id, quantity, card:cards(name))')
-    .eq('leader_card_id', leaderId)
-    .order('event_date', { ascending: false })
-    .limit(5);
-  const rows = unwrap(result) as unknown as (Omit<MetaDeckList, 'items'> & {
-    meta_deck_cards: (DeckItem & { card: { name: string } | null })[];
-  })[];
-  return rows.map(({ meta_deck_cards, ...rest }) => ({
-    ...rest,
-    items: meta_deck_cards.map(({ card, ...item }) => ({ ...item, name: card?.name ?? item.card_id })),
-  }));
+    .select('id, leader_card_id, format, event, event_date, placement, players, region, source_name, source_url, meta_deck_cards(card_id, quantity)')
+    .order('event_date', { ascending: false });
+  const rows = unwrap(result) as unknown as {
+    id: string;
+    leader_card_id: string;
+    format: string;
+    event: string;
+    event_date: string;
+    placement: number | null;
+    players: number | null;
+    region: string | null;
+    source_name: string;
+    source_url: string;
+    meta_deck_cards: DeckItem[];
+  }[];
+  return rows.map(({ leader_card_id, meta_deck_cards, ...rest }) => ({ ...rest, leader: leader_card_id, items: meta_deck_cards }));
+}
+
+export interface MetaCardInfo {
+  card_id: string;
+  name: string;
+  category: Category;
+  colors: Color[];
+  cost: number | null;
+  image_url: string | null;
+  owned: number;
+}
+
+/** Details and your copies (in one language) of every card in a meta list. */
+export async function fetchMetaCardInfo(language: Language): Promise<Record<string, MetaCardInfo>> {
+  const rows = unwrap(await getSupabase().rpc('meta_card_info', { p_language: language })) as MetaCardInfo[];
+  return Object.fromEntries(rows.map((r) => [r.card_id, r]));
 }
