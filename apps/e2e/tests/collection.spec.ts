@@ -164,23 +164,26 @@ test('collection filters: art, playset status, set; languages kept apart', async
   await expect(page.getByText('1 printing · 1 copy')).toBeVisible();
 });
 
-test('quick add from card search, with undo', async ({ page }) => {
+test('quick add from card search: pick the art and the number of copies, with undo', async ({ page }) => {
   await signIn(page, USERS.collector);
   await page.goto('/cards');
   await page.getByPlaceholder('Search name, number or type').fill('OP01-016');
-  const add = page.getByRole('button', { name: 'Add a copy of Nami (OP01-016)' });
+  const open = page.getByRole('button', { name: 'Add a copy of Nami (OP01-016)' });
   const saved = () => page.waitForResponse((r) => r.url().includes('adjust_collection_quantity') && r.ok());
-  // "+" opens a picker of the card's English arts; pick the base art. Undo takes it back.
-  const base = page.getByRole('button', { name: /^Add Base \(OP-01\), you own 5$/ });
-  await add.click();
-  await expect(page.getByText('Which art?')).toBeVisible();
-  await Promise.all([saved(), base.click()]);
-  await expect(page.getByText('Added 1 · Nami OP01-016 (EN)')).toBeVisible();
+  // "+" opens the sheet with the base art selected; choose 3 copies and add.
+  await open.click();
+  await expect(page.getByText('Add Nami')).toBeVisible();
+  await expect(page.getByRole('radio', { name: /^Base \(OP-01\), you own 5$/ })).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('button', { name: 'One more' }).click();
+  await page.getByRole('button', { name: 'One more' }).click();
+  await Promise.all([saved(), page.getByRole('button', { name: 'Add 3 copies' }).click()]);
+  await expect(page.getByText('Added 3 · Nami OP01-016 (EN)')).toBeVisible();
+  // Undo takes all three back; then add one.
   await Promise.all([saved(), page.getByRole('button', { name: 'Undo' }).click()]);
-  await add.click();
-  await Promise.all([saved(), base.click()]);
+  await open.click();
+  await Promise.all([saved(), page.getByRole('button', { name: 'Add 1 copy' }).click()]);
   await page.goto('/collection');
   await page.getByPlaceholder('Search name, number or type').fill('nami');
-  // 5 copies before, +1 −1 +1.
+  // 5 copies before, +3 −3 +1.
   await expect(page.getByText('1 printing · 6 copies')).toBeVisible();
 });

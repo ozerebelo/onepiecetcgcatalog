@@ -379,12 +379,23 @@
       "other": "Promotional cards"
     },
     "quickAdd": "Add a copy of {{name}} ({{code}})",
-    "quickAdded": "Added 1 · {{name}} {{code}} ({{language}})",
-    "pickArt": "Which art?",
-    "addArt": "Add {{art}} ({{set}}), you own {{owned}}",
+    "quickAdded": "Added {{count}} · {{name}} {{code}} ({{language}})",
+    "pickArt": "Art",
     "youHave_one": "You have {{count}}",
     "youHave_other": "You have {{count}}",
-    "notOwned": "Not owned"
+    "notOwned": "Not owned",
+    "addTitle": "Add {{name}}",
+    "ownedInLanguage_one": "{{count}} owned in {{language}}",
+    "ownedInLanguage_other": "{{count}} owned in {{language}}",
+    "artOption": "{{art}} ({{set}}), you own {{owned}}",
+    "copies": "Copies",
+    "fewer": "One fewer",
+    "more": "One more",
+    "copiesCount_one": "{{count}} copy",
+    "copiesCount_other": "{{count}} copies",
+    "toPlayset": "To a playset: +{{count}}",
+    "addCopies_one": "Add {{count}} copy",
+    "addCopies_other": "Add {{count}} copies"
   },
   "landing": {
     "titleLine1": "Every card you own.",

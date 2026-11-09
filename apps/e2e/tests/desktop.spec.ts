@@ -6,11 +6,17 @@ test('card search pages in more results as you scroll', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Character' }).first().click();
   await expect(page.getByText(/^\d[\d,]* cards$/).first()).toBeVisible();
   await page.mouse.move(640, 600);
-  for (let i = 0; i < 8; i++) {
-    await page.mouse.wheel(0, 4000);
-    await page.waitForTimeout(400);
-  }
-  expect(await page.getByRole('link', { name: /OP\d\d-\d{3}|ST\d\d-\d{3}|EB\d\d-\d{3}|P-\d{3}/ }).count()).toBeGreaterThan(60);
+  const cards = page.getByRole('link', { name: /OP\d\d-\d{3}|ST\d\d-\d{3}|EB\d\d-\d{3}|P-\d{3}/ });
+  // Keep scrolling until the next page of 60 has loaded (waits for the result, not a fixed time).
+  await expect
+    .poll(
+      async () => {
+        await page.mouse.wheel(0, 4000);
+        return cards.count();
+      },
+      { timeout: 15_000, intervals: [300] },
+    )
+    .toBeGreaterThan(60);
 });
 
 test('card page on a wide screen', async ({ page }) => {
