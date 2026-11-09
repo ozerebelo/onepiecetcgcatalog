@@ -375,7 +375,9 @@
       "extra": "Extra booster",
       "starter": "Starter deck",
       "other": "Promotional cards"
-    }
+    },
+    "quickAdd": "Add a copy of {{name}} ({{code}})",
+    "quickAdded": "Added 1 · {{name}} {{code}} ({{language}})"
   },
   "landing": {
     "titleLine1": "Every card you own.",

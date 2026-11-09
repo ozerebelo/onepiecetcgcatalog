@@ -162,3 +162,20 @@ test('collection filters: art, playset status, set and language', async ({ page 
   await page.getByRole('radio', { name: 'JP', exact: true }).click();
   await expect(page.getByText('1 printing · 1 copy')).toBeVisible();
 });
+
+test('quick add from card search, with undo', async ({ page }) => {
+  await signIn(page, USERS.collector);
+  await page.goto('/cards');
+  await page.getByPlaceholder('Search name, number or type').fill('OP01-016');
+  const add = page.getByRole('button', { name: 'Add a copy of Nami (OP01-016)' });
+  const saved = () => page.waitForResponse((r) => r.url().includes('adjust_collection_quantity') && r.ok());
+  // +1 adds the English base art; Undo takes it back.
+  await Promise.all([saved(), add.click()]);
+  await expect(page.getByText('Added 1 · Nami OP01-016 (EN)')).toBeVisible();
+  await Promise.all([saved(), page.getByRole('button', { name: 'Undo' }).click()]);
+  await Promise.all([saved(), add.click()]);
+  await page.goto('/collection');
+  await page.getByPlaceholder('Search name, number or type').fill('nami');
+  // 5 copies before, +1 −1 +1.
+  await expect(page.getByText('1 printing · 6 copies')).toBeVisible();
+});

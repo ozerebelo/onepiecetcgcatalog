@@ -33,6 +33,11 @@ interface CardTileProps {
   /** Extra control over the top-left image corner (e.g. a remove button). */
   overlay?: ReactNode;
   accessibilityHint?: string;
+  /**
+   * A control beside the number and name (e.g. quick add). It sits outside the tile's link, so
+   * pressing it never opens the card, and it never covers the card's printed cost or power.
+   */
+  action?: ReactNode;
 }
 
 /** Grid tile: card image (lifts on hover), number and name. */
@@ -50,6 +55,7 @@ export function CardTile({
   dimmed = false,
   overlay,
   accessibilityHint,
+  action,
 }: CardTileProps) {
   const { t } = useTranslation();
   const palette = usePalette();
@@ -62,7 +68,7 @@ export function CardTile({
       accessibilityLabel={label}
       accessibilityHint={accessibilityHint}
       onPress={href ? undefined : onPress}
-      boxStyle={[styles.tile, { width }]}
+      boxStyle={[styles.tile, action ? null : styles.spaced, { width }]}
       activeStyle={styles.lift}>
       <View style={[styles.imageWrap, dimmed && styles.dimmed]}>
         <CardImage uri={imageUrl} label={`${code} ${name}`} />
@@ -86,7 +92,7 @@ export function CardTile({
         ) : null}
       </View>
       {overlay ? <View style={styles.topLeft}>{overlay}</View> : null}
-      <View style={styles.meta}>
+      <View style={[styles.meta, action ? styles.metaWithAction : null]}>
         <Text variant="mono" tone="muted" numberOfLines={1}>
           {codeLabel}
         </Text>
@@ -97,21 +103,31 @@ export function CardTile({
     </PressableArea>
   );
 
-  return href ? (
+  const tile = href ? (
     <Link href={href} asChild>
       {body}
     </Link>
   ) : (
     body
   );
+  if (!action) return tile;
+  return (
+    <View style={[styles.spaced, { width }]}>
+      {tile}
+      <View style={styles.action}>{action}</View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  tile: { gap: spacing.xs + 2, marginBottom: spacing.lg },
+  tile: { gap: spacing.xs + 2 },
+  spaced: { marginBottom: spacing.lg },
   lift: { transform: [{ translateY: -2 }] },
   imageWrap: { borderRadius: radius.md },
   dimmed: { opacity: 0.3 },
   meta: { gap: 1, paddingHorizontal: 1 },
+  metaWithAction: { paddingRight: 40 },
+  action: { position: 'absolute', right: 0, bottom: 0 },
   bottomRow: { position: 'absolute', left: 5, right: 5, bottom: 5, flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
   badge: { marginLeft: 'auto', flexShrink: 1, minWidth: 0, paddingHorizontal: 5, paddingVertical: 1, borderRadius: radius.sm },
   pips: { flexShrink: 0, paddingHorizontal: 4, paddingVertical: 3, borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth },

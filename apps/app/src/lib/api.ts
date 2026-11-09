@@ -57,6 +57,28 @@ export interface CardSearchResult {
   total_count: number;
 }
 
+/**
+ * The printing a quick "+1" adds for a card: its base art in the first preferred language that has
+ * one (then reprints, then alternate arts), so "+" on a search result means "the normal card".
+ */
+export async function fetchQuickAddPrinting(
+  cardId: string,
+  languages: Language[],
+): Promise<Pick<PrintingRow, 'id' | 'code' | 'language' | 'variant'> | null> {
+  const rows = unwrap(
+    await getSupabase().from('printings').select('id, code, language, variant, variant_index').eq('card_id', cardId),
+  ) as Pick<PrintingRow, 'id' | 'code' | 'language' | 'variant' | 'variant_index'>[];
+  const langRank = (l: Language) => (languages.includes(l) ? languages.indexOf(l) : languages.length);
+  const variantRank = { base: 0, reprint: 1, parallel: 2 } as const;
+  const [best] = [...rows].sort(
+    (a, b) =>
+      langRank(a.language) - langRank(b.language) ||
+      variantRank[a.variant] - variantRank[b.variant] ||
+      a.variant_index - b.variant_index,
+  );
+  return best ?? null;
+}
+
 export const SEARCH_PAGE_SIZE = 60;
 
 export async function searchCards(params: CardSearchParams, page: number): Promise<CardSearchResult[]> {
