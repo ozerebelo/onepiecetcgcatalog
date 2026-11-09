@@ -23,7 +23,8 @@ export function legality(blockNumber: number | null | undefined): Legality {
 
 /**
  * Banned cards and banned pairs, from Bandai's "Banned/Restricted Card Addition Notice"
- * (en.onepiece-cardgame.com/news/restriction.html) as of 12 October 2026 (Dracule Mihawk OP14-020 added).
+ * (en.onepiece-cardgame.com/news/restriction.html), list effective 12 October 2026 (announced 24 September;
+ * Dracule Mihawk OP14-020 added). Checked against that page on 9 November 2026.
  * There are no restricted cards. Bans cover every printing of a card number, parallels included.
  * Update this list when Bandai announces changes.
  */
