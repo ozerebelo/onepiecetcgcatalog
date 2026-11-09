@@ -52,7 +52,8 @@ test('a saved deck is checked against the collection and the missing cards can b
   await page.getByRole('button', { name: 'Add missing to wishlist' }).click();
   await expect(page.getByText('1 card added to your wishlist.')).toBeVisible();
   await page.getByRole('button', { name: 'View' }).click();
-  await expect(page.getByText('Usopp').first()).toBeVisible();
+  // Screens underneath in the stack also list Usopp (hidden), so only look at what's on screen.
+  await expect(page.getByText('Usopp').filter({ visible: true }).first()).toBeVisible();
   await expect(page.getByText('want 4 · own 0')).toBeVisible();
 
   // Meta decks: how much of each you own, the best pickups, and your deck compared with the meta list.
