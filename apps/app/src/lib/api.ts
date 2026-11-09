@@ -514,11 +514,31 @@ export interface CheckOptions {
 }
 
 /** Counter values for a list of cards (for a deck's counter count). Missing cards are left out. */
-export async function fetchCardCounters(ids: string[]): Promise<Record<string, number | null>> {
+/** What the deck page needs to know about each card beyond the check: counter, power, keywords, block. */
+export interface DeckCardDetail {
+  counter: number | null;
+  power: number | null;
+  blocker: boolean;
+  trigger: boolean;
+  block: number | null;
+}
+
+export async function fetchDeckCardDetails(ids: string[]): Promise<Record<string, DeckCardDetail>> {
   if (ids.length === 0) return {};
-  const result = await getSupabase().from('cards').select('id, counter').in('id', ids);
-  const rows = unwrap(result) as Pick<CardRow, 'id' | 'counter'>[];
-  return Object.fromEntries(rows.map((r) => [r.id, r.counter]));
+  const result = await getSupabase().from('cards').select('id, counter, power, effect, trigger, block_number').in('id', ids);
+  const rows = unwrap(result) as Pick<CardRow, 'id' | 'counter' | 'power' | 'effect' | 'trigger' | 'block_number'>[];
+  return Object.fromEntries(
+    rows.map((r) => [
+      r.id,
+      {
+        counter: r.counter,
+        power: r.power,
+        blocker: (r.effect ?? '').includes('[Blocker]'),
+        trigger: r.trigger != null,
+        block: r.block_number,
+      },
+    ]),
+  );
 }
 
 export async function checkDeck(id: string, options: CheckOptions): Promise<CheckRow[]> {

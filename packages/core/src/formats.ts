@@ -20,3 +20,42 @@ export function legality(blockNumber: number | null | undefined): Legality {
   if (blockNumber == null) return 'unknown';
   return STANDARD.blocks.includes(blockNumber) ? 'standard' : 'extra';
 }
+
+/**
+ * Banned cards and banned pairs, from Bandai's "Banned/Restricted Card Addition Notice"
+ * (en.onepiece-cardgame.com/news/restriction.html) as of 12 October 2026 (Dracule Mihawk OP14-020 added).
+ * There are no restricted cards. Bans cover every printing of a card number, parallels included.
+ * Update this list when Bandai announces changes.
+ */
+export const BANLIST = {
+  asOf: '2026-10-12',
+  banned: ['OP03-040', 'OP06-047', 'OP06-086', 'OP06-116', 'OP14-020', 'ST10-001'] as readonly string[],
+  /** These may not be in the same deck. */
+  pairs: [
+    ['OP07-115', 'EB04-058'],
+    ['OP11-040', 'OP11-067'],
+    ['OP11-040', 'OP08-069'],
+  ] as readonly (readonly [string, string])[],
+};
+
+export interface DeckLegality {
+  /** Cards outside the current Standard block window (playable in Extra). */
+  rotated: string[];
+  /** Banned in every format. */
+  banned: string[];
+  /** Banned pairs both present in the deck. */
+  pairs: [string, string][];
+  /** Cards with no known block number. */
+  unknown: string[];
+}
+
+/** Whether a deck (its distinct cards with their block numbers) can be played in Standard / Extra. */
+export function deckLegality(cards: readonly { card_id: string; block: number | null | undefined }[]): DeckLegality {
+  const ids = new Set(cards.map((c) => c.card_id));
+  return {
+    rotated: cards.filter((c) => legality(c.block) === 'extra').map((c) => c.card_id),
+    unknown: cards.filter((c) => legality(c.block) === 'unknown').map((c) => c.card_id),
+    banned: cards.filter((c) => BANLIST.banned.includes(c.card_id)).map((c) => c.card_id),
+    pairs: BANLIST.pairs.filter(([a, b]) => ids.has(a) && ids.has(b)).map(([a, b]) => [a, b]),
+  };
+}

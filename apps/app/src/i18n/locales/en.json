@@ -629,6 +629,9 @@
     "block": "Block {{block}}",
     "standard": "Standard",
     "extraOnly": "Extra only",
+    "banned": "Banned",
+    "bannedNote": "On Bandai’s ban list ({{date}}): not playable in Standard or Extra, in any printing.",
+    "pairNote": "Can’t share a deck with {{cards}} (ban list of {{date}}).",
     "standardNote": "Legal in Standard: its block icon is in the current window (Blocks {{blocks}}, until {{until}}). Ban list aside.",
     "extraNote": "Rotated out of Standard (current window: Blocks {{blocks}}); still legal in Extra, where every card can be played."
   },
@@ -697,5 +700,33 @@
     "addedMissing_one": "{{count}} card added to your wishlist.",
     "addedMissing_other": "{{count}} cards added to your wishlist.",
     "view": "View"
+  },
+  "deckTools": {
+    "profile": "Deck profile",
+    "blockers": "Blockers",
+    "triggers": "Triggers",
+    "counter": "Counter",
+    "counterAvg": "{{avg}} per card on average",
+    "events": "Events",
+    "power": "Characters by power",
+    "powerBar": "Power {{power}}: {{count}} cards",
+    "standardLegal": "Standard legal: every card is in Blocks {{blocks}} (until {{until}}), none banned.",
+    "banned": "Banned: {{card}} (ban list of {{date}}). Not playable in any format.",
+    "bannedPair": "Banned together: {{a}} and {{b}} can’t be in the same deck.",
+    "rotated_one": "Not Standard legal: {{count}} card is outside Blocks {{blocks}} (fine in Extra). Show",
+    "rotated_other": "Not Standard legal: {{count}} cards are outside Blocks {{blocks}} (fine in Extra). Show",
+    "hand": "Test a hand",
+    "drawHand": "Draw a hand",
+    "newHand": "New hand",
+    "mulligan": "Mulligan",
+    "draw": "Draw a card",
+    "life_one": "{{count}} life card",
+    "life_other": "{{count}} life cards",
+    "left_one": "{{count}} card left in the deck",
+    "left_other": "{{count}} cards left in the deck",
+    "handHint": "Shuffle the 50, draw 5, take a mulligan if you like; your leader puts {{life}} life cards face down.",
+    "viewLabel": "Show the decklist as",
+    "listView": "List",
+    "cardsView": "Cards"
   }
 }

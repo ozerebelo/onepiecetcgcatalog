@@ -211,9 +211,12 @@ CSV export covers both languages (it is a full backup).
 
 ## Known limitations
 
+- The ban list (`BANLIST` in `packages/core/src/formats.ts`) is maintained by hand: update it, with its
+  `asOf` date, whenever Bandai announces a change. The opening-hand tester draws from the decklist only
+  (no card effects), and the leader's life comes from its stored cost.
 - Japanese-only cards show Japanese types until the English release fills them in.
 - Legality uses the stored block number only; Bandai's exceptions (some reprinted card numbers, Block X)
-  and the ban list are not modelled yet (`packages/core/src/formats.ts`).
+  are not modelled yet (`packages/core/src/formats.ts`).
 - Trigram ranking is weaker for Japanese queries (matching still works).
 - Supabase's default email sender is rate-limited; production needs custom SMTP (see SETUP.md).
 - Collections track quantity per printing only (no condition, foil, language-of-sleeve notes yet).

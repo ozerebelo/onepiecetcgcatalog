@@ -1,4 +1,4 @@
-import { legality, STANDARD, type Language } from '@binder/core';
+import { BANLIST, legality, STANDARD, type Language } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { Link } from 'expo-router';
@@ -20,14 +20,21 @@ import { formatReleaseDate } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { CARD_ASPECT_RATIO, radius, spacing, usePalette } from '@/theme';
 
-/** Where the card can be played, from its block icon: Standard (current block window) or Extra only. */
-export function LegalityBadge({ block }: { block: number | null }) {
+/**
+ * Where the card can be played, from its block icon: Standard (current block window) or Extra only.
+ * Banned cards (and cards banned together with another) say so, whatever their block.
+ */
+export function LegalityBadge({ block, cardId }: { block: number | null; cardId: string }) {
   const { t, i18n } = useTranslation();
   const palette = usePalette();
   const [open, setOpen] = useState(false);
+  const banned = BANLIST.banned.includes(cardId);
+  const partners = BANLIST.pairs.flatMap(([a, b]) => (a === cardId ? [b] : b === cardId ? [a] : []));
   const status = legality(block);
-  if (status === 'unknown') return null;
+  if (status === 'unknown' && !banned) return null;
   const until = formatReleaseDate(STANDARD.until, i18n.language, 'long');
+  const asOf = formatReleaseDate(BANLIST.asOf, i18n.language, 'long');
+  const color = banned ? palette.danger : status === 'standard' ? palette.text : palette.textSecondary;
   return (
     <View style={styles.legalityWrap}>
       <Pressable
@@ -36,17 +43,25 @@ export function LegalityBadge({ block }: { block: number | null }) {
         accessibilityState={{ expanded: open }}
         style={[
           styles.legality,
-          status === 'standard' ? { borderColor: palette.text } : { borderColor: palette.borderStrong, borderStyle: 'dashed' },
+          banned
+            ? { borderColor: palette.danger }
+            : status === 'standard'
+              ? { borderColor: palette.text }
+              : { borderColor: palette.borderStrong, borderStyle: 'dashed' },
         ]}>
-        <Text variant="caption" weight="semibold" style={{ color: status === 'standard' ? palette.text : palette.textSecondary }}>
-          {t('legality.block', { block })} · {status === 'standard' ? t('legality.standard') : t('legality.extraOnly')}
+        <Text variant="caption" weight="semibold" style={{ color }}>
+          {status === 'unknown' ? '' : `${t('legality.block', { block })} · `}
+          {banned ? t('legality.banned') : status === 'standard' ? t('legality.standard') : t('legality.extraOnly')}
         </Text>
       </Pressable>
       {open ? (
         <Text variant="caption" tone="secondary" style={styles.legalityNote}>
-          {status === 'standard'
-            ? t('legality.standardNote', { blocks: STANDARD.blocks.join(', '), until })
-            : t('legality.extraNote', { blocks: STANDARD.blocks.join(', ') })}
+          {banned
+            ? t('legality.bannedNote', { date: asOf })
+            : status === 'standard'
+              ? t('legality.standardNote', { blocks: STANDARD.blocks.join(', '), until })
+              : t('legality.extraNote', { blocks: STANDARD.blocks.join(', ') })}
+          {partners.length > 0 ? ` ${t('legality.pairNote', { cards: partners.join(', '), date: asOf })}` : ''}
         </Text>
       ) : null}
     </View>

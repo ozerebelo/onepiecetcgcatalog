@@ -205,7 +205,7 @@ function CardInfo({ card }: { card: CardDetail }) {
           <Tag key={color} label={t(`colors.${color}`)} dotColor={CARD_COLORS[color]} />
         ))}
       </View>
-      <LegalityBadge block={card.block_number} />
+      <LegalityBadge block={card.block_number} cardId={card.id} />
 
       {stats.length > 0 ? (
         <View style={[styles.stats, { borderColor: palette.border }]}>

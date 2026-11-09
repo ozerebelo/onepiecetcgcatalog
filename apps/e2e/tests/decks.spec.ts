@@ -29,6 +29,17 @@ test('a saved deck is checked against the collection and the missing cards can b
   await expect(page.getByText('Copied 4 missing cards (Sim format).')).toBeVisible();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('4xOP01-004');
 
+  // Deck depth: legality (these are Block 1 cards), the profile, a test hand and the visual list.
+  await expect(page.getByText(/^Not Standard legal: \d cards are outside Blocks 2, 3, 4, 5/)).toBeVisible();
+  await expect(page.getByText('Deck profile')).toBeVisible();
+  await expect(page.getByLabel(/^Counter: \+/)).toBeVisible();
+  await page.getByRole('button', { name: 'Draw a hand' }).click();
+  await expect(page.getByRole('button', { name: 'New hand' })).toBeVisible();
+  await expect(page.getByLabel('5 life cards')).toBeVisible();
+  await page.getByRole('radio', { name: 'All' }).click();
+  await page.getByRole('radio', { name: 'Cards' }).click();
+  await expect(page.getByText('×4').first()).toBeVisible();
+
   // The card page lists the decks that use a card, and what's missing for each.
   await page.goto('/card/OP01-004');
   await expect(page.getByText('In 1 of your decks')).toBeVisible();

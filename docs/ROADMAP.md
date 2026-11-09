@@ -48,7 +48,7 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
   spares beyond four (trade material), growth over time (from the activity log).
 - Wishlist: mark printings you want (e.g. a chase alt art) or add a deck's missing cards in one tap.
 
-### 4. A deckbuilder's page — deck depth (M)
+### 4. A deckbuilder's page — deck depth (M) ✅
 - Deck profile beside the cost curve: colour split, blockers, triggers, counter total, power curve.
 - Opening-hand tester: draw 5, mulligan, see the life cards; repeat.
 - Visual decklist (card images stacked ×4) next to the list view.

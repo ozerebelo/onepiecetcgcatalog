@@ -75,6 +75,12 @@ test('card page: keyword labels with rules notes, type links, legality and same-
   await expect(page.getByText(/^\d[\d,]* cards$/).first()).toBeVisible();
 });
 
+test('a banned card says so on its page', async ({ page }) => {
+  await page.goto('/card/OP14-020');
+  await page.getByRole('button', { name: 'Block 4 · Banned' }).click();
+  await expect(page.getByText(/^On Bandai’s ban list/)).toBeVisible();
+});
+
 test('search filters: keywords and effect text', async ({ page }) => {
   await page.goto('/cards');
   await page.getByRole('button', { name: /^Filters/ }).click();

@@ -47,3 +47,26 @@ describe('legality', () => {
     expect(legality(null)).toBe('unknown');
   });
 });
+
+describe('deckLegality', () => {
+  it('finds rotated cards, banned cards and banned pairs', async () => {
+    const { deckLegality } = await import('./formats');
+    const result = deckLegality([
+      { card_id: 'OP01-001', block: 1 },
+      { card_id: 'OP05-001', block: 2 },
+      { card_id: 'OP14-020', block: 4 },
+      { card_id: 'OP11-040', block: 3 },
+      { card_id: 'OP08-069', block: 2 },
+      { card_id: 'EB05-014', block: null },
+    ]);
+    expect(result.rotated).toEqual(['OP01-001']);
+    expect(result.banned).toEqual(['OP14-020']);
+    expect(result.pairs).toEqual([['OP11-040', 'OP08-069']]);
+    expect(result.unknown).toEqual(['EB05-014']);
+  });
+
+  it('is clean for a legal deck', async () => {
+    const { deckLegality } = await import('./formats');
+    expect(deckLegality([{ card_id: 'OP09-001', block: 3 }])).toEqual({ rotated: [], banned: [], pairs: [], unknown: [] });
+  });
+});

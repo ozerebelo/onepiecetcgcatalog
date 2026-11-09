@@ -9,6 +9,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { CardImage } from '@/components/card-image';
 import { CostCurve } from '@/components/deck-curve';
 import { DeckProblems } from '@/components/deck-problems';
+import { DeckLegalityNotes, DeckProfile, OpeningHand } from '@/components/deck-tools';
 import { LanguageSwitch } from '@/components/language-switch';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
@@ -20,12 +21,12 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Pips } from '@/components/ui/pips';
 import { ColorMark, CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
-import { checkDeck, deleteDeck, fetchCardCounters, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
+import { checkDeck, deleteDeck, fetchDeckCardDetails, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
 import { useWishlistDeckMissing } from '@/hooks/use-wishlist';
 import { useCardLanguage } from '@/lib/card-language';
 import { confirmAction, notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
-import { WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
+import { WIDE_BREAKPOINT, fonts, radius, spacing, usePalette } from '@/theme';
 
 type Filter = 'all' | 'missing' | 'owned';
 
@@ -43,6 +44,7 @@ export default function DeckScreen() {
   const [language] = useCardLanguage();
   const [reserveBuilt, setReserveBuilt] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
+  const [listView, setListView] = useState<'list' | 'cards'>('list');
   const [moreOpen, setMoreOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -58,8 +60,8 @@ export default function DeckScreen() {
   const cardIds = (check.data ?? []).filter((r) => r.known).map((r) => r.card_id);
   const wishlistMissing = useWishlistDeckMissing();
   const counters = useQuery({
-    queryKey: ['card-counters', [...cardIds].sort().join(',')],
-    queryFn: () => fetchCardCounters(cardIds),
+    queryKey: ['deck-card-details', [...cardIds].sort().join(',')],
+    queryFn: () => fetchDeckCardDetails(cardIds),
     enabled: cardIds.length > 0,
     staleTime: Infinity,
   });
@@ -152,6 +154,7 @@ export default function DeckScreen() {
             {t('decks.verdictSub', { percent, total })}
           </Text>
           <DeckProblems problems={problems} />
+          <DeckLegalityNotes rows={known} details={counters.data} />
           {unknown.length > 0 ? (
             <Text variant="caption" tone="danger">
               {t('decks.unknownCards', { count: unknown.length, codes: unknown.map((u) => u.card_id).join(', ') })}
@@ -275,7 +278,9 @@ export default function DeckScreen() {
 
       {/* The deck as a player reads it: the cost curve, with what you own and what's missing at each cost */}
       <View style={[styles.curve, { borderTopColor: palette.rule }]}>
-        <CostCurve rows={known} counters={counters.data} />
+        <CostCurve rows={known} counters={counters.data ? Object.fromEntries(Object.entries(counters.data).map(([k, v]) => [k, v.counter])) : undefined} />
+        <DeckProfile rows={known} details={counters.data} />
+        <OpeningHand rows={known} life={leader?.cost ?? 5} />
       </View>
 
       {/* The decklist, card by card */}
@@ -283,6 +288,15 @@ export default function DeckScreen() {
         <Text variant="heading" accessibilityRole="header" style={styles.flex}>
           {t('decks.listTitle')}
         </Text>
+        <Segmented
+          accessibilityLabel={t('deckTools.viewLabel')}
+          value={listView}
+          onChange={setListView}
+          options={[
+            { value: 'list', label: t('deckTools.listView') },
+            { value: 'cards', label: t('deckTools.cardsView') },
+          ]}
+        />
         <Segmented
           accessibilityLabel={t('collection.ownedFilter')}
           value={filter}
@@ -296,6 +310,23 @@ export default function DeckScreen() {
       </View>
       {visible.length === 0 ? (
         <EmptyView icon="check-circle" message={filter === 'missing' ? t('decks.nothingMissing') : t('collection.nothingHere')} />
+      ) : listView === 'cards' ? (
+        // The deck laid out as cards, the way it sits on the table: each with its count and what you own.
+        <View style={[styles.cardsGrid, { maxWidth: LIST_WIDTH }]}>
+          {visible.map((row) => (
+            <Link key={row.card_id} href={{ pathname: '/card/[id]', params: { id: row.card_id } }} asChild>
+              <PressableArea accessibilityRole="link" accessibilityLabel={`${row.name}, ${row.card_id}, ×${row.needed}, ${row.have}/${row.needed}`} boxStyle={styles.cardsItem}>
+                <View>
+                  <CardImage uri={row.image_url} label={row.card_id} rounded={radius.sm} />
+                  <View style={[styles.countBadge, { backgroundColor: palette.overlay }]}>
+                    <Text style={styles.countText}>×{row.needed}</Text>
+                  </View>
+                </View>
+                <Pips owned={row.have} need={row.needed} size="sm" />
+              </PressableArea>
+            </Link>
+          ))}
+        </View>
       ) : (
         CATEGORIES.map((category) => {
           const group = visible.filter((r) => r.category === category);
@@ -423,7 +454,12 @@ const styles = StyleSheet.create({
   optionsHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44, paddingVertical: spacing.sm },
   optionsBody: { gap: spacing.lg, paddingBottom: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  curve: { marginTop: spacing.xl, paddingTop: spacing.md, borderTopWidth: 2, maxWidth: LIST_WIDTH },
+  cardsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.md },
+  // Three across on phones (filling the row), more on wide screens.
+  cardsItem: { width: '30%', maxWidth: 140, gap: 4 },
+  countBadge: { position: 'absolute', right: 4, bottom: 4, borderRadius: radius.sm, paddingHorizontal: 5, paddingVertical: 1 },
+  countText: { color: '#fff', fontFamily: fonts.monoBold, fontSize: 12, lineHeight: 16 },
+  curve: { marginTop: spacing.xl, paddingTop: spacing.md, borderTopWidth: 2, maxWidth: LIST_WIDTH, gap: spacing.xxl },
   listHead: {
     flexDirection: 'row',
     flexWrap: 'wrap',
