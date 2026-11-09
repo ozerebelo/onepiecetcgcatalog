@@ -55,9 +55,11 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 - Legality: blocks in rotation (from milestone 1) and the banned/restricted list (a small file in the
   repo we update when Bandai announces changes).
 
-### 5. Meta decks & suggestions (L) — see "Sourcing meta decks" below — built; lists pending
-*The Meta page, pickups, Home suggestions and the deck-page comparison are built and tested; they show
-nothing until `packages/ingest/meta/meta-decks.json` has lists (see "Sourcing meta decks").*
+### 5. Meta decks & suggestions (L) — see "Sourcing meta decks" below ✅
+*Shipped with 20 lists (OP17 + EB05, after the 12 Oct 2026 ban list): the top 4 of the Pomona, Sydney
+and X3 Invitational events and the top 2 of ChinoizeCups #127–#131, read from OPTCG.GG's public deck
+pages with the owner's go-ahead and credited on every list. Refresh by editing
+`packages/ingest/meta/meta-decks.json`.*
 - A Meta page: current top archetypes by leader, each with a reference list, its source and date.
 - "What can you build": every meta deck ranked by how much of it you already own (in your card
   language), with "Missing n" — the deck check you already trust, run against every meta list.
