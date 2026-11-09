@@ -45,6 +45,8 @@ test('set page filters by card type', async ({ page }) => {
   await expect(page.getByText('OP-01 · Set · English')).toBeVisible();
   const nami = page.getByRole('link', { name: /Nami, OP01-016/ }).first();
   await expect(nami).toBeVisible();
+  // On phones the type chips sit behind the Filters button.
+  await page.getByRole('button', { name: /^Filters/ }).click();
   await page.getByRole('checkbox', { name: 'Leaders' }).click();
   await expect(page.getByRole('link', { name: /Roronoa Zoro, OP01-001/ }).first()).toBeVisible();
   await expect(nami).toHaveCount(0);

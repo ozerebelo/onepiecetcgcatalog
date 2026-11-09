@@ -29,6 +29,8 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
   const title = typeof options.title === 'string' ? options.title : '';
+  // Route groups such as "(tabs)" are not page names; fall back to plain "Back".
+  const backLabel = back?.title && !back.title.startsWith('(') ? back.title : t('common.back');
 
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/'));
 
@@ -42,12 +44,16 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
         <Icon name="arrow-left" size={18} />
         {wide ? (
           <Text variant="caption" weight="semibold">
-            {back?.title || t('common.back')}
+            {backLabel}
           </Text>
         ) : null}
       </Pressable>
       {title ? (
-        <Text variant={wide ? 'caption' : 'subheading'} tone={wide ? 'secondary' : 'default'} numberOfLines={1} style={styles.flex}>
+        <Text
+          variant={wide ? 'caption' : 'subheading'}
+          tone={wide ? 'secondary' : 'default'}
+          numberOfLines={1}
+          style={styles.flex}>
           {title}
         </Text>
       ) : null}
@@ -55,7 +61,9 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
   );
 
   if (!wide) {
-    return <View style={[styles.compact, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>{backRow}</View>;
+    return (
+      <View style={[styles.compact, { backgroundColor: palette.background, borderBottomColor: palette.border }]}>{backRow}</View>
+    );
   }
 
   return (
@@ -73,7 +81,12 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
               <Link key={link.key} href={link.href} asChild>
                 <PressableArea accessibilityRole="link" boxStyle={styles.link}>
                   {active ? <View style={[styles.marker, { backgroundColor: palette.highlight }]} /> : null}
-                  <Text style={{ fontFamily: active ? fonts.semibold : fonts.medium, fontSize: 15, color: active ? palette.text : palette.textSecondary }}>
+                  <Text
+                    style={{
+                      fontFamily: active ? fonts.semibold : fonts.medium,
+                      fontSize: 15,
+                      color: active ? palette.onHighlight : palette.textSecondary,
+                    }}>
                     {t(link.key)}
                   </Text>
                 </PressableArea>
@@ -82,18 +95,28 @@ export function WebStackHeader({ options, back }: NativeStackHeaderProps) {
           })}
         </View>
         <View style={styles.flex} />
-        <Link href={user ? '/account' : '/auth/sign-in'} asChild>
-          <PressableArea
-            accessibilityRole="link"
-            accessibilityLabel={user ? t('tabs.account') : t('account.signIn')}
-            boxStyle={user ? [styles.avatar, { borderColor: palette.text }] : [styles.signIn, { backgroundColor: palette.primary }]}>
-            <Text style={{ color: user ? palette.text : palette.onPrimary, fontFamily: user ? fonts.monoBold : fonts.semibold, fontSize: user ? 15 : 14 }}>
-              {user
-                ? ((user.user_metadata?.display_name as string | undefined) || user.email || '?').slice(0, 1).toUpperCase()
-                : t('account.signIn')}
-            </Text>
-          </PressableArea>
-        </Link>
+        {/* No "Sign in" button on the sign-in / sign-up pages themselves. */}
+        {user || !pathname.startsWith('/auth') ? (
+          <Link href={user ? '/account' : '/auth/sign-in'} asChild>
+            <PressableArea
+              accessibilityRole="link"
+              accessibilityLabel={user ? t('tabs.account') : t('account.signIn')}
+              boxStyle={
+                user ? [styles.avatar, { borderColor: palette.text }] : [styles.signIn, { backgroundColor: palette.primary }]
+              }>
+              <Text
+                style={{
+                  color: user ? palette.text : palette.onPrimary,
+                  fontFamily: user ? fonts.monoBold : fonts.semibold,
+                  fontSize: user ? 15 : 14,
+                }}>
+                {user
+                  ? ((user.user_metadata?.display_name as string | undefined) || user.email || '?').slice(0, 1).toUpperCase()
+                  : t('account.signIn')}
+              </Text>
+            </PressableArea>
+          </Link>
+        ) : null}
       </View>
       <View style={[styles.inner, styles.subRow]}>{backRow}</View>
     </View>
@@ -115,11 +138,18 @@ const styles = StyleSheet.create({
   subRow: { height: 44 },
   links: { flexDirection: 'row', gap: spacing.md },
   link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, justifyContent: 'center' },
-  marker: { position: 'absolute', left: 0, right: 0, bottom: 9, height: 9, borderRadius: 1 },
+  marker: { position: 'absolute', left: -4, right: -4, top: 6, bottom: 6, borderRadius: 2 },
   flex: { flex: 1 },
   signIn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radius.md },
   avatar: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   compact: { borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.sm, height: 56, justifyContent: 'center' },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
-  backButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.md },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+  },
 });

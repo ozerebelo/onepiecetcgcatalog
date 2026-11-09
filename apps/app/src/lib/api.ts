@@ -277,6 +277,16 @@ export async function importCollection(items: ImportItem[], mode: ImportMode, dr
   return unwrap(result) as ImportSummary;
 }
 
+/** Names of the given printings (for listing an import's changes), in chunks the API accepts. */
+export async function fetchPrintingNames(ids: string[]): Promise<Record<string, string>> {
+  const names: Record<string, string> = {};
+  for (let i = 0; i < ids.length; i += 300) {
+    const result = await getSupabase().from('printings').select('id, name').in('id', ids.slice(i, i + 300));
+    for (const row of unwrap(result) as { id: string; name: string }[]) names[row.id] = row.name;
+  }
+  return names;
+}
+
 export async function exportCollection(): Promise<CollectionExportRow[]> {
   const result = await getSupabase().rpc('export_collection');
   return (unwrap(result) as CollectionExportRow[] | null) ?? [];

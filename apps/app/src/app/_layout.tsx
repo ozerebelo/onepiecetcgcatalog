@@ -20,6 +20,7 @@ import { Platform, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ConfigMissing } from '@/components/config-missing';
+import { OverlayHost } from '@/components/ui/overlays';
 import { WebStackHeader } from '@/components/web-stack-header';
 import { isSupabaseConfigured } from '@/lib/env';
 import { queryClient } from '@/lib/query-client';
@@ -80,6 +81,7 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <RootStack />
+              <OverlayHost />
             </AuthProvider>
           </QueryClientProvider>
         ) : (

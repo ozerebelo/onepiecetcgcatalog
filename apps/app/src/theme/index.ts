@@ -6,6 +6,7 @@ import { useColorScheme, type TextStyle, type ViewStyle } from 'react-native';
  *  - light "Paper": paper white, black ink, hairline rules
  *  - dark  "Carbon": warm near-black with paper-coloured ink
  * Marks have meaning in both: highlighter yellow = owned / selected, red pen = missing / needed.
+ * There is no green: completion and confirmation are said in ink, never in a third mark colour.
  * Buttons are ink (black on paper, paper on carbon). No gradients; depth comes from rules, not shadows.
  */
 const light = {
@@ -20,7 +21,9 @@ const light = {
   rule: '#141414',
   text: '#141414',
   textSecondary: '#54544E',
-  textMuted: '#6F6F68',
+  textMuted: '#66665F',
+  /** Outline of an empty playset slot (≥3:1 on paper and surfaces). */
+  slot: '#85857D',
   primary: '#141414',
   primaryPressed: '#000000',
   primarySoft: 'rgba(20, 20, 20, 0.07)',
@@ -32,8 +35,8 @@ const light = {
   /** Text-safe version of the highlight (labels, icons). */
   accent: '#7A5C00',
   accentSoft: 'rgba(255, 225, 74, 0.35)',
-  success: '#1D7A4A',
-  successSoft: 'rgba(29, 122, 74, 0.10)',
+  success: '#141414',
+  successSoft: 'rgba(20, 20, 20, 0.07)',
   /** Red pen: missing cards, needed copies, errors. */
   danger: '#D2261C',
   dangerSoft: 'rgba(210, 38, 28, 0.08)',
@@ -55,7 +58,8 @@ const dark: Palette = {
   rule: '#F1F1EA',
   text: '#F1F1EA',
   textSecondary: '#B5B5AB',
-  textMuted: '#8F8F86',
+  textMuted: '#96968D',
+  slot: '#75756E',
   primary: '#F1F1EA',
   primaryPressed: '#FFFFFF',
   primarySoft: 'rgba(241, 241, 234, 0.09)',
@@ -65,8 +69,8 @@ const dark: Palette = {
   onHighlight: '#141414',
   accent: '#FFE14A',
   accentSoft: 'rgba(255, 225, 74, 0.16)',
-  success: '#5BC994',
-  successSoft: 'rgba(91, 201, 148, 0.14)',
+  success: '#F1F1EA',
+  successSoft: 'rgba(241, 241, 234, 0.09)',
   danger: '#FF6A5C',
   dangerSoft: 'rgba(255, 106, 92, 0.13)',
   overlay: 'rgba(0, 0, 0, 0.74)',

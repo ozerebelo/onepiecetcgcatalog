@@ -14,8 +14,8 @@ export function DeckProblems({ problems }: { problems: DeckProblem[] }) {
   if (problems.length === 0) {
     return (
       <View style={styles.row}>
-        <Icon name="check-circle" size={16} color={palette.success} />
-        <Text variant="caption" tone="success">
+        <Icon name="check-circle" size={16} color={palette.text} />
+        <Text variant="caption" tone="secondary">
           {t('decks.problems.none')}
         </Text>
       </View>
@@ -25,7 +25,7 @@ export function DeckProblems({ problems }: { problems: DeckProblem[] }) {
     <View style={styles.list}>
       {problems.map((p, i) => (
         <View key={i} style={styles.row}>
-          <Icon name="alert-triangle" size={16} color={palette.accent} />
+          <Icon name="alert-triangle" size={16} color={palette.text} />
           <Text variant="caption" tone="secondary" style={styles.flex}>
             {p.kind === 'noLeader'
               ? t('decks.problems.noLeader')

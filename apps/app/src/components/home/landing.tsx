@@ -47,9 +47,6 @@ export function Landing() {
       <Container style={[styles.masthead, wide && styles.split]}>
         <View style={[styles.mastText, wide && styles.half]}>
           {!wide ? <Logo size={28} /> : null}
-          <Text variant="eyebrow" tone="secondary">
-            {t('landing.eyebrow')}
-          </Text>
           <Text variant="display" style={[styles.h1, !wide && styles.h1Narrow]} accessibilityRole="header">
             {t('landing.titleLine1')}
             {'\n'}
@@ -61,7 +58,7 @@ export function Landing() {
           <Text style={styles.lead} tone="secondary">
             {t('landing.lead')}
           </Text>
-          <View style={styles.ctaRow}>
+          <View style={[styles.ctaRow, !wide && styles.ctaRowNarrow]}>
             <Link href="/auth/sign-up" asChild>
               <Button title={t('landing.ctaPrimary')} size="lg" trailingIcon="arrow-right" />
             </Link>
@@ -75,7 +72,7 @@ export function Landing() {
 
       {/* How it works: three numbered steps under a printed rule */}
       <Container style={styles.section}>
-        <Text variant="eyebrow" tone="secondary" accessibilityRole="header">
+        <Text variant="heading" accessibilityRole="header">
           {t('landing.stepsTitle')}
         </Text>
         <View style={[styles.steps, { borderTopColor: palette.rule }]}>
@@ -118,11 +115,11 @@ export function Landing() {
               </View>
             ) : null}
             <View style={[styles.latestText, wide && styles.half]}>
-              <Text variant="eyebrow" tone="secondary">
-                {t('landing.latestTag', { code: set.code })}
-              </Text>
               <Text variant="title" accessibilityRole="header">
                 {titleCase(set.name)}
+              </Text>
+              <Text variant="mono" tone="secondary">
+                {t('landing.latestTag', { code: set.code })}
               </Text>
               <Text tone="secondary">
                 {released
@@ -271,6 +268,7 @@ const styles = StyleSheet.create({
   h1Narrow: { fontSize: 44, lineHeight: 54, letterSpacing: -1 },
   lead: { fontSize: 17, lineHeight: 27, maxWidth: 560 },
   ctaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.sm },
+  ctaRowNarrow: { flexDirection: 'column', alignItems: 'stretch' },
   sheet: { borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md },
   sheetTitle: { paddingBottom: spacing.sm },
   sheetNote: { paddingTop: spacing.md },

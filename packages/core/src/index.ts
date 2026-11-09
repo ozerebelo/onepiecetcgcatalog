@@ -5,3 +5,4 @@ export * from './csv';
 export * from './card-list';
 export * from './collection-export';
 export * from './deck';
+export * from './import-diff';

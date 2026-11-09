@@ -80,8 +80,13 @@ export function ChecklistRow({ code, name, variant, rarity, owned, href, onPress
             full && { backgroundColor: palette.highlightSoft },
           ]}>
           {name}
-          {variant ? <Text style={{ color: palette.textSecondary }}>{`  ${variant}`}</Text> : null}
         </Text>
+        {/* The art variant on its own line, so alt arts never truncate into their base card. */}
+        {variant ? (
+          <Text variant="caption" tone="secondary" numberOfLines={1}>
+            {variant}
+          </Text>
+        ) : null}
       </View>
       <Text variant="mono" tone="secondary" style={compact ? styles.rarityCompact : styles.rarity} numberOfLines={1}>
         {rarity ?? ''}
@@ -107,7 +112,7 @@ const styles = StyleSheet.create({
   codeCompact: { width: 70 },
   flex: { flex: 1 },
   nameCell: { minWidth: 0 },
-  name: { fontSize: 15, lineHeight: 22, alignSelf: 'flex-start', paddingHorizontal: 2, marginHorizontal: -2 },
+  name: { fontSize: 15, lineHeight: 22, alignSelf: 'flex-start', maxWidth: '100%', paddingHorizontal: 5, marginHorizontal: -5, borderRadius: 2 },
   rarity: { width: 40 },
   rarityCompact: { width: 30 },
   slots: { width: 56, alignItems: 'flex-start' },

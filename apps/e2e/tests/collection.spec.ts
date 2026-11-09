@@ -33,8 +33,15 @@ test('collect mode on a set page adds and removes copies', async ({ page }) => {
   await card(page, 'Roronoa Zoro', 'OP01-001').click();
   await card(page, 'Trafalgar Law', 'OP01-002').click();
   await expect(page.getByText('You own 2 of 154')).toBeVisible();
+  // The tally strip names the last tap and can undo it.
+  await expect(page.getByText(/Added 1 · Trafalgar Law/)).toBeVisible();
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByText('You own 1 of 154')).toBeVisible();
+  await card(page, 'Trafalgar Law', 'OP01-002').click();
   await page.getByRole('button', { name: 'Remove one OP01-002' }).click();
   await expect(page.getByText('You own 1 of 154')).toBeVisible();
+  // On phones the filters sit behind one button.
+  await page.getByRole('button', { name: /^Filters/ }).click();
   await page.getByRole('radio', { name: 'Missing' }).click();
   await expect(card(page, 'Roronoa Zoro', 'OP01-001')).toHaveCount(0);
 });
@@ -55,11 +62,14 @@ test('importing a pasted list previews exactly, then commits', async ({ page }) 
   await page.getByRole('button', { name: 'Preview import' }).click();
   await expect(page.getByText('Check before importing')).toBeVisible();
   const preview = await page.locator('body').innerText();
-  expect(preview).toMatch(/Cards recognised\s*3/);
+  expect(preview).toContain('3 printings recognised.');
+  // Every change is listed, in copies: 5 Nami, 2 alt-art Zoro, 1 Japanese Zoro.
+  expect(preview).toContain('+8 copies, −0 copies, across 3 printings.');
+  expect(preview).toContain('0 → 5');
   expect(preview).toMatch(/1 card number not found/);
   expect(preview).toContain('OP99-999');
   expect(preview).toMatch(/1 line couldn’t be read/);
-  await page.getByRole('button', { name: 'Import 3 cards' }).click();
+  await page.getByRole('button', { name: 'Add 8 copies' }).click();
   await expect(page.getByText('Import complete')).toBeVisible();
   await page.getByRole('button', { name: 'View collection' }).click();
   // 4 × OP01-001 EN + 5 × OP01-016 + 2 × OP01-025_p1 + 1 × OP01-001 JP
@@ -88,7 +98,10 @@ test('a CSV backup restores the collection exactly', async ({ page }) => {
   await page.getByRole('radio', { name: 'Replace all' }).click();
   await page.getByRole('button', { name: 'Preview import' }).click();
   await expect(page.getByText('Check before importing')).toBeVisible();
-  expect(await page.locator('body').innerText()).toMatch(/Removed\s*4/);
+  await expect(page.getByText('This removes 12 copies that are not in your list.')).toBeVisible();
+  // Replace all stays disabled until a backup is saved or explicitly skipped.
+  await expect(page.getByRole('button', { name: 'Replace my collection' })).toBeDisabled();
+  await page.getByRole('checkbox', { name: 'Continue without a backup' }).click();
   await page.getByRole('button', { name: 'Replace my collection' }).click();
   await expect(page.getByText('Import complete')).toBeVisible();
 
@@ -97,6 +110,8 @@ test('a CSV backup restores the collection exactly', async ({ page }) => {
   await page.getByRole('radio', { name: 'Replace all' }).click();
   await page.getByRole('button', { name: 'Preview import' }).click();
   await expect(page.getByText('Check before importing')).toBeVisible();
+  await page.getByRole('button', { name: 'Download backup (CSV)' }).click();
+  await expect(page.getByRole('button', { name: 'Backup downloaded' })).toBeVisible();
   await page.getByRole('button', { name: 'Replace my collection' }).click();
   await expect(page.getByText('Your collection now has 12 cards in 4 printings')).toBeVisible();
 });

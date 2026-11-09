@@ -19,7 +19,9 @@
     "save": "Save",
     "close": "Close",
     "back": "Back",
-    "notFound": "Not found"
+    "notFound": "Not found",
+    "ok": "OK",
+    "more": "More"
   },
   "languages": {
     "all": "EN + JP",
@@ -116,7 +118,9 @@
       "card": "Card",
       "rarity": "Rar.",
       "playset": "Playset"
-    }
+    },
+    "filters": "Filters",
+    "filtersCount": "Filters · {{count}}"
   },
   "card": {
     "printings": "Printings",
@@ -208,8 +212,8 @@
       "recent": "Recently changed"
     },
     "inCollection": "In your collection",
-    "ownedAcross_one": "You own {{count}} copy of this card ({{printings}} printing).",
-    "ownedAcross_other": "You own {{count}} copies of this card across {{printings}} printing(s).",
+    "ownedAcross_one": "You own {{count}} copy of this card. Any printing counts toward a deck.",
+    "ownedAcross_other": "You own {{count}} copies of this card. Any printing counts toward a deck.",
     "signInToTrack": "Sign in to track which cards you own →",
     "addOne": "Add one {{card}}",
     "removeOne": "Remove one {{card}}",
@@ -226,7 +230,13 @@
     "collectMode": "Tap to collect",
     "collectModeHint": "Tap a card to add a copy; tap − to remove one. Faded cards are ones you don’t own yet.",
     "nothingHere": "No cards to show with this filter.",
-    "eyebrow": "Your collection"
+    "eyebrow": "Your collection",
+    "tally": "{{owned}} / {{total}} owned",
+    "tallyAdded": "Added 1 · {{card}}",
+    "tallyRemoved": "Removed 1 · {{card}}",
+    "undo": "Undo",
+    "doneCollecting": "Done",
+    "noneOfThisCard": "You don’t own this card yet. Any printing counts toward a deck."
   },
   "import": {
     "title": "Import cards",
@@ -254,13 +264,12 @@
     "empty": "Paste a list or choose a file first.",
     "nothingValid": "No line in this list has a card number we recognise.",
     "previewTitle": "Check before importing",
-    "readLines_one": "Read {{count}} line ({{format}}).",
-    "readLines_other": "Read {{count}} lines ({{format}}).",
+    "readLines_one": "Read {{count}} line from your {{format}}.",
+    "readLines_other": "Read {{count}} lines from your {{format}}.",
     "formats": {
       "list": "list",
-      "csv": "CSV"
+      "csv": "CSV file"
     },
-    "matched": "Cards recognised",
     "inserted": "New to your collection",
     "updated": "Quantity changed",
     "unchanged": "Already up to date",
@@ -279,14 +288,34 @@
     },
     "line": "Line {{line}}",
     "andMore": "…and {{count}} more",
-    "confirm_one": "Import {{count}} card",
-    "confirm_other": "Import {{count}} cards",
     "replaceConfirm": "Replace my collection",
-    "replaceConfirmTitle": "Replace your whole collection?",
-    "replaceConfirmBody": "Every card that is not in this list will be removed from your collection. Consider exporting a CSV backup first.",
     "doneTitle": "Import complete",
     "viewCollection": "View collection",
-    "importMore": "Import another list"
+    "importMore": "Import another list",
+    "recognised_one": "{{count}} printing recognised.",
+    "recognised_other": "{{count}} printings recognised.",
+    "noChanges": "Nothing would change: your collection already matches this list.",
+    "changeSummary_one": "+{{added}} copies, −{{removed}} copies, across {{count}} printing.",
+    "changeSummary_other": "+{{added}} copies, −{{removed}} copies, across {{count}} printings.",
+    "afterwards": "Your collection goes from {{before}} to {{after}} copies ({{printings}} printings).",
+    "columns": {
+      "number": "No.",
+      "card": "Card",
+      "change": "Copies"
+    },
+    "removedRow": "{{count}} → removed",
+    "showAll": "Show all {{count}} changes",
+    "showFewer": "Show fewer",
+    "backupTitle": "This removes {{count}} copies that are not in your list.",
+    "backupBody": "Save a backup first, so you can import it again if anything goes wrong.",
+    "backupSave": "Download backup (CSV)",
+    "backupSaved": "Backup downloaded",
+    "backupSkip": "Continue without a backup",
+    "confirmAdd_one": "Add {{count}} copy",
+    "confirmAdd_other": "Add {{count}} copies",
+    "confirmSet_one": "Apply {{count}} change",
+    "confirmSet_other": "Apply {{count}} changes",
+    "editList": "Edit list"
   },
   "cardsPage": {
     "title": "Cards",
@@ -313,7 +342,6 @@
     }
   },
   "landing": {
-    "eyebrow": "One Piece Card Game · English + Japanese",
     "titleLine1": "Every card you own.",
     "titleLine2Before": "Every deck you ",
     "titleLine2Marked": "can build.",
@@ -457,6 +485,23 @@
     "reserved_one": "{{count}} in built decks",
     "reserved_other": "{{count}} in built decks",
     "pullColumn": "Pull list",
-    "pull": "Pull {{count}}"
+    "pull": "Pull {{count}}",
+    "more": "More",
+    "verdictReady": "Ready to build: you own all {{count}} cards.",
+    "verdictPull_one": "Pull {{count}}",
+    "verdictPull_other": "Pull {{count}}",
+    "verdictBuy_one": "Buy {{count}}",
+    "verdictBuy_other": "Buy {{count}}",
+    "verdictSub": "You own {{percent}}% of the {{total}} cards this deck needs.",
+    "checking": "Checking",
+    "change": "Change",
+    "done": "Done",
+    "summary": {
+      "allLanguages": "English and Japanese copies",
+      "englishOnly": "English copies only",
+      "notHoldingBack": "cards in built decks count",
+      "holdingBack": "holding back cards in built decks"
+    },
+    "pullAndNeed": "Pull {{pull}} · Need {{need}}"
   }
 }

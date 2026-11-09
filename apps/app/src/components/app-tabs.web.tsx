@@ -143,7 +143,7 @@ function NavButton({
             style={{
               fontFamily: isFocused ? fonts.semibold : fonts.medium,
               fontSize: 15,
-              color: isFocused ? palette.text : palette.textSecondary,
+              color: isFocused ? palette.onHighlight : palette.textSecondary,
             }}>
             {label}
           </Text>
@@ -231,7 +231,8 @@ const styles = StyleSheet.create({
   links: { flexDirection: 'row', gap: spacing.md },
   spacer: { flex: 1 },
   link: { paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, justifyContent: 'center' },
-  marker: { position: 'absolute', left: 0, right: 0, bottom: 9, height: 9, borderRadius: 1 },
+  // Highlighter stroke behind the whole word (the text on it is always ink).
+  marker: { position: 'absolute', left: -4, right: -4, top: 6, bottom: 6, borderRadius: 2 },
   signIn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.lg, borderRadius: radius.md },
   avatar: { width: 36, height: 36, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   bottomBar: {

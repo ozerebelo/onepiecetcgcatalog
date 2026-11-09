@@ -35,12 +35,10 @@ export function Panel({
 
 /** Page title, an optional one-line subtitle, and the page's actions on the right. */
 export function PageHeader({
-  eyebrow,
   title,
   subtitle,
   actions,
 }: {
-  eyebrow?: string;
   title: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -49,11 +47,6 @@ export function PageHeader({
   return (
     <View style={[styles.header, { borderBottomColor: palette.rule }]}>
       <View style={styles.headerText}>
-        {eyebrow ? (
-          <Text variant="eyebrow" tone="secondary">
-            {eyebrow}
-          </Text>
-        ) : null}
         <Text variant="title" accessibilityRole="header">
           {title}
         </Text>
@@ -113,9 +106,10 @@ export function StatGroup({ stats }: { stats: Stat[] }) {
 }
 
 /** Completion, marked in highlighter on a printed track. */
-export function ProgressBar({ value, tone = 'primary', height = 6 }: { value: number; tone?: 'primary' | 'success' | 'accent'; height?: number }) {
+/** `tone` is accepted for older callers but ignored: progress is always marked in highlighter. */
+export function ProgressBar({ value, height = 6 }: { value: number; tone?: 'primary' | 'success' | 'accent'; height?: number }) {
   const palette = usePalette();
-  const color = tone === 'success' ? palette.success : palette.highlight;
+  const color = palette.highlight;
   const pct = Math.max(0, Math.min(1, value));
   return (
     <View

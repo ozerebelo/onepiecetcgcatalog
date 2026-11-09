@@ -1,6 +1,6 @@
-import type { Language } from '@binder/core';
+import { parsePrintingCode, parsePrintingId, type Language } from '@binder/core';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import {
   adjustCollectionQuantity,
@@ -34,6 +34,20 @@ export function useCollectionQuantities(scope: { setId?: string; cardId?: string
     enabled: Boolean(user),
     staleTime: 30 * 1000,
   });
+}
+
+/** Owned copies per card number, any printing or language (what a deck slot counts). Empty when signed out. */
+export function useOwnedByCard(): Record<string, number> {
+  const all = useCollectionQuantities({});
+  return useMemo(() => {
+    const totals: Record<string, number> = {};
+    for (const [printingId, quantity] of Object.entries(all.data ?? {})) {
+      const code = parsePrintingId(printingId)?.code;
+      const cardId = code ? parsePrintingCode(code)?.cardId : undefined;
+      if (cardId) totals[cardId] = (totals[cardId] ?? 0) + quantity;
+    }
+    return totals;
+  }, [all.data]);
 }
 
 export function useCollectionSummary() {

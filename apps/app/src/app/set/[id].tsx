@@ -4,14 +4,14 @@ import { Image } from 'expo-image';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardTile } from '@/components/card-tile';
 import { ChecklistHeader, ChecklistRow } from '@/components/checklist';
-import { AppSwitch } from '@/components/ui/app-switch';
+import { Button } from '@/components/ui/button';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
-import { Panel, ProgressBar } from '@/components/ui/panel';
+import { ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
@@ -22,7 +22,7 @@ import { useGridColumns } from '@/hooks/use-grid-columns';
 import { fetchSet, fetchSetPrintings, type SetPrinting } from '@/lib/api';
 import { formatReleaseDate, printingLabel, titleCase, variantName } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
-import { radius, spacing, usePalette } from '@/theme';
+import { fonts, radius, spacing, usePalette } from '@/theme';
 
 type OwnedFilter = 'all' | 'owned' | 'missing';
 type ViewMode = 'checklist' | 'grid';
@@ -49,6 +49,11 @@ export default function SetScreen() {
   const [collectMode, setCollectMode] = useState(false);
   const [view, setView] = useState<ViewMode>('checklist');
   const [type, setType] = useState<Category | 'all'>('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  /** The last tap in collect mode, so it can be undone from the tally strip. */
+  const [lastChange, setLastChange] = useState<{ item: SetPrinting; delta: number } | null>(null);
+  const { width } = useWindowDimensions();
+  const compact = width < 560;
 
   const set = useQuery({ queryKey: ['set', id], queryFn: () => fetchSet(id) });
   const printings = useQuery({ queryKey: ['set-printings', id], queryFn: () => fetchSetPrintings(id) });
@@ -98,13 +103,23 @@ export default function SetScreen() {
     ];
   }, [set.data, variantFiltered, owned, ownedFilter, type, columns, view, t]);
 
+  const collect = (item: SetPrinting, delta: number) => {
+    adjust.mutate({ printingId: item.id, delta });
+    setLastChange({ item, delta });
+  };
+  const undo = () => {
+    if (!lastChange) return;
+    adjust.mutate({ printingId: lastChange.item.id, delta: -lastChange.delta });
+    setLastChange(null);
+  };
+
   const renderTile = (item: SetPrinting) => {
     const quantity = owned[item.id] ?? 0;
     const name = item.card?.name ?? item.name;
     return collectMode ? (
       <CardTile
         key={item.id}
-        onPress={() => adjust.mutate({ printingId: item.id, delta: 1 })}
+        onPress={() => collect(item, 1)}
         accessibilityHint={t('collection.addOne', { card: item.code })}
         imageUrl={item.image_url}
         code={item.code}
@@ -133,12 +148,11 @@ export default function SetScreen() {
 
   const removeButton = (item: SetPrinting) => (
     <Pressable
-      onPress={() => adjust.mutate({ printingId: item.id, delta: -1 })}
+      onPress={() => collect(item, -1)}
       accessibilityRole="button"
       accessibilityLabel={t('collection.removeOne', { card: item.code })}
-      hitSlop={8}
       style={({ hovered }) => [styles.minus, { backgroundColor: hovered ? palette.surfaceAlt : palette.surface, borderColor: palette.text }]}>
-      <Icon name="minus" size={14} />
+      <Icon name="minus" size={16} />
     </Pressable>
   );
 
@@ -158,7 +172,7 @@ export default function SetScreen() {
     return collectMode ? (
       <ChecklistRow
         {...common}
-        onPress={() => adjust.mutate({ printingId: item.id, delta: 1 })}
+        onPress={() => collect(item, 1)}
         accessibilityHint={t('collection.addOne', { card: item.code })}
         trailing={<View style={styles.trailing}>{quantity > 0 ? removeButton(item) : null}</View>}
       />
@@ -167,48 +181,9 @@ export default function SetScreen() {
     );
   };
 
-  const header = set.data ? (
-    <View style={styles.header}>
-      <View style={styles.titleRow}>
-        {set.data.image_url ? (
-          <View style={styles.pack}>
-            <Image source={{ uri: set.data.image_url }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={set.data.name} />
-          </View>
-        ) : null}
-        <View style={[styles.titleBlock, styles.flexShrink]}>
-          <Text variant="eyebrow" tone="secondary">
-            {set.data.code} · {t(`sets.kinds.${set.data.kind}`)} · {t(`languages.${set.data.language}`)}
-          </Text>
-          <Text variant="title">{titleCase(set.data.name)}</Text>
-          {set.data.release_date ? (
-            <Text variant="caption" tone="secondary">
-              {t('sets.released', {
-                date: formatReleaseDate(set.data.release_date, i18n.language, 'long'),
-              })}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-
-      {user ? (
-        <Panel style={styles.progressPanel}>
-          <View style={styles.row}>
-            <Text variant="subheading" style={styles.flex}>
-              {t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}
-            </Text>
-          </View>
-          <ProgressBar value={percent / 100} tone={percent === 100 ? 'success' : 'primary'} />
-        </Panel>
-      ) : (
-        <Link href="/auth/sign-in" asChild>
-          <PressableArea accessibilityRole="link">
-            <Text variant="caption" tone="primary" weight="semibold">
-              {t('collection.signInToTrack')}
-            </Text>
-          </PressableArea>
-        </Link>
-      )}
-
+  const activeFilters = (type !== 'all' ? 1 : 0) + (ownedFilter !== 'all' ? 1 : 0) + (showVariants ? 0 : 1);
+  const filterControls = (
+    <>
       {types.length > 1 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typesBar} contentContainerStyle={styles.types}>
           <Chip label={t('sets.types.all')} selected={type === 'all'} onPress={() => setType('all')} />
@@ -217,17 +192,7 @@ export default function SetScreen() {
           ))}
         </ScrollView>
       ) : null}
-
       <View style={styles.controls}>
-        <Segmented
-          accessibilityLabel={t('sets.viewLabel')}
-          value={view}
-          onChange={setView}
-          options={[
-            { value: 'checklist', label: t('sets.views.checklist') },
-            { value: 'grid', label: t('sets.views.grid') },
-          ]}
-        />
         {user ? (
           <Segmented
             accessibilityLabel={t('collection.ownedFilter')}
@@ -241,8 +206,73 @@ export default function SetScreen() {
           />
         ) : null}
         <ToggleRow label={t('sets.showVariants')} value={showVariants} onChange={setShowVariants} />
-        {user ? <ToggleRow label={t('collection.collectMode')} value={collectMode} onChange={setCollectMode} /> : null}
       </View>
+    </>
+  );
+
+  const header = set.data ? (
+    <View style={styles.header}>
+      <View style={styles.titleRow}>
+        {set.data.image_url ? (
+          <View style={[styles.pack, compact && styles.packCompact]}>
+            <Image source={{ uri: set.data.image_url }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel={set.data.name} />
+          </View>
+        ) : null}
+        <View style={[styles.titleBlock, styles.flexShrink]}>
+          <Text variant="title" accessibilityRole="header">
+            {titleCase(set.data.name)}
+          </Text>
+          <Text variant="mono" tone="secondary">
+            {[
+              set.data.code,
+              t(`sets.kinds.${set.data.kind}`),
+              t(`languages.${set.data.language}`),
+              set.data.release_date ? formatReleaseDate(set.data.release_date, i18n.language, 'long') : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+        </View>
+      </View>
+
+      {user ? (
+        <View style={styles.progress}>
+          <Text variant="subheading">{t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}</Text>
+          <ProgressBar value={percent / 100} />
+        </View>
+      ) : (
+        <Link href="/auth/sign-in" asChild>
+          <PressableArea accessibilityRole="link">
+            <Text variant="caption" tone="primary" weight="semibold">
+              {t('collection.signInToTrack')}
+            </Text>
+          </PressableArea>
+        </Link>
+      )}
+
+      <View style={styles.controls}>
+        <Segmented
+          accessibilityLabel={t('sets.viewLabel')}
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'checklist', label: t('sets.views.checklist') },
+            { value: 'grid', label: t('sets.views.grid') },
+          ]}
+        />
+        {user ? <ToggleRow label={t('collection.collectMode')} value={collectMode} onChange={(v) => { setCollectMode(v); setLastChange(null); }} /> : null}
+        {compact ? (
+          <Button
+            title={activeFilters ? t('sets.filtersCount', { count: activeFilters }) : t('sets.filters')}
+            variant="ghost"
+            size="sm"
+            trailingIcon={filtersOpen ? 'chevron-up' : 'chevron-down'}
+            accessibilityState={{ expanded: filtersOpen }}
+            onPress={() => setFiltersOpen((v) => !v)}
+          />
+        ) : null}
+      </View>
+      {!compact || filtersOpen ? filterControls : null}
       {collectMode ? (
         <Text variant="caption" tone="secondary">
           {t('collection.collectModeHint')}
@@ -270,7 +300,7 @@ export default function SetScreen() {
         <FlatList
           data={rows}
           keyExtractor={(row) => row.key}
-          contentContainerStyle={listColumn}
+          contentContainerStyle={[listColumn, collectMode && styles.roomForTally]}
           ListHeaderComponent={header ?? undefined}
           ListEmptyComponent={<EmptyView message={t('collection.nothingHere')} />}
           renderItem={({ item: row }) =>
@@ -298,18 +328,60 @@ export default function SetScreen() {
           }
         />
       )}
+      {collectMode && set.data ? (
+        // The tally strip: always in thumb reach while collecting, with the last tap undoable.
+        <View style={[styles.tally, { backgroundColor: palette.primary }]} accessibilityLiveRegion="polite">
+          <View style={styles.tallyInner}>
+            <View style={styles.flexShrink}>
+              <Text style={[styles.tallyCount, { color: palette.onPrimary }]}>
+                {t('collection.tally', { owned: ownedCount, total: variantFiltered.length })}
+              </Text>
+              {lastChange ? (
+                <Text variant="caption" style={{ color: palette.onPrimary }} numberOfLines={1}>
+                  {t(lastChange.delta > 0 ? 'collection.tallyAdded' : 'collection.tallyRemoved', {
+                    card: `${lastChange.item.card?.name ?? lastChange.item.name} ${printingLabel(lastChange.item.code, t)}`,
+                  })}
+                </Text>
+              ) : null}
+            </View>
+            {lastChange ? (
+              <Pressable accessibilityRole="button" onPress={undo} style={styles.tallyButton}>
+                <Text style={[styles.tallyAction, { color: palette.onPrimary }]}>{t('collection.undo')}</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setCollectMode(false);
+                setLastChange(null);
+              }}
+              style={[styles.tallyButton, styles.tallyDone, { borderColor: palette.onPrimary }]}>
+              <Text style={[styles.tallyAction, { color: palette.onPrimary, textDecorationLine: 'none' }]}>{t('collection.doneCollecting')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
     </Screen>
   );
 }
 
+/** A labelled switch where the whole row (label included) is one 44px target. */
 function ToggleRow({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  const palette = usePalette();
   return (
-    <View style={styles.toggle}>
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      accessibilityState={{ checked: value }}
+      onPress={() => onChange(!value)}
+      style={({ hovered }) => [styles.toggle, hovered && { backgroundColor: palette.primarySoft }]}>
       <Text variant="caption" weight="medium">
         {label}
       </Text>
-      <AppSwitch value={value} onValueChange={onChange} accessibilityLabel={label} />
-    </View>
+      <View style={[styles.track, { backgroundColor: value ? palette.text : 'transparent', borderColor: value ? palette.text : palette.slot }]}>
+        <View style={[styles.knob, { backgroundColor: value ? palette.background : palette.slot }, value && styles.knobOn]} />
+      </View>
+    </Pressable>
   );
 }
 
@@ -319,19 +391,40 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   pack: { width: 136, aspectRatio: 4 / 3, borderRadius: radius.md, overflow: 'hidden' },
   flexShrink: { flexShrink: 1 },
-  progressPanel: { gap: spacing.sm },
+  packCompact: { width: 88 },
+  progress: { gap: spacing.sm, paddingTop: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   typesBar: { flexGrow: 0, flexShrink: 0 },
   types: { gap: spacing.sm },
   controls: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.lg },
-  toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44, paddingHorizontal: spacing.xs, borderRadius: radius.sm },
+  track: { width: 36, height: 20, borderRadius: 10, borderWidth: 1.5, justifyContent: 'center', paddingHorizontal: 2 },
+  knob: { width: 13, height: 13, borderRadius: 7 },
+  knobOn: { alignSelf: 'flex-end' },
+  roomForTally: { paddingBottom: 120 },
+  tally: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  tallyInner: {
+    width: '100%',
+    maxWidth: 1200,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: 64,
+  },
+  tallyCount: { fontFamily: fonts.monoBold, fontSize: 15 },
+  tallyButton: { minHeight: 44, minWidth: 64, paddingHorizontal: spacing.md, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md, marginLeft: 'auto' },
+  tallyDone: { borderWidth: 1.5, marginLeft: 0 },
+  tallyAction: { fontFamily: fonts.semibold, fontSize: 15, textDecorationLine: 'underline' },
   cardRow: { flexDirection: 'row', gap: spacing.sm },
   sectionHeader: { paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.xs, borderTopWidth: 2, marginTop: spacing.xxl },
-  trailing: { width: 30, alignItems: 'flex-end' },
+  trailing: { width: 44, alignItems: 'flex-end' },
   minus: {
-    width: 28,
-    height: 28,
+    width: 44,
+    height: 44,
     borderRadius: radius.sm,
     borderWidth: 1,
     alignItems: 'center',

@@ -28,7 +28,7 @@ export function Pips({ owned, need, size = 'md' }: { owned: number; need?: numbe
               { width: w, height: h },
               filled
                 ? { backgroundColor: palette.highlight, borderColor: palette.text }
-                : { borderColor: missing ? palette.danger : palette.borderStrong },
+                : { borderColor: missing ? palette.danger : palette.slot },
               need !== undefined && i >= need && !filled && styles.unused,
             ]}
           />

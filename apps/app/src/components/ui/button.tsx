@@ -39,8 +39,8 @@ export function Button({
   const look: Record<Variant, { bg: string; hover: string; fg: string; border?: string }> = {
     // Ink: the one solid thing on the page.
     primary: { bg: palette.primary, hover: palette.primaryPressed, fg: palette.onPrimary },
-    // Highlighter: a marked choice next to the primary one.
-    secondary: { bg: palette.highlight, hover: palette.highlight, fg: palette.onHighlight },
+    // Secondary: ink outline. (Highlighter yellow marks owned / selected things, never buttons.)
+    secondary: { bg: 'transparent', hover: palette.primarySoft, fg: palette.text, border: palette.text },
     outline: { bg: 'transparent', hover: palette.primarySoft, fg: palette.text, border: palette.text },
     ghost: { bg: 'transparent', hover: palette.primarySoft, fg: palette.text },
     danger: { bg: 'transparent', hover: palette.dangerSoft, fg: palette.danger, border: palette.danger },
@@ -63,7 +63,6 @@ export function Button({
         },
         v.border ? { borderWidth: 1, borderColor: v.border } : null,
         pressed && { opacity: 0.85 },
-        variant === 'secondary' && hovered && { opacity: 0.9 },
         isDisabled && { opacity: 0.5 },
         boxStyle,
       ]}>

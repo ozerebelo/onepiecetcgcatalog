@@ -32,7 +32,7 @@ export function DeckCard({ deck }: { deck: DeckSummary }) {
             <Text variant="subheading" numberOfLines={1} style={styles.flex}>
               {deck.name}
             </Text>
-            {deck.is_built ? <Badge label={t('decks.built')} tone="accent" icon="package" /> : null}
+            {deck.is_built ? <Badge label={t('decks.built')} icon="package" /> : null}
           </View>
           <View style={styles.leaderRow}>
             {(deck.leader_colors ?? []).map((c) => (

@@ -15,7 +15,7 @@ import { Screen, listColumn } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
-import { useSetProgress } from '@/hooks/use-collection';
+import { useOwnedByCard, useSetProgress } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import {
   SEARCH_PAGE_SIZE,
@@ -27,6 +27,7 @@ import {
   type SetCover,
 } from '@/lib/api';
 import { formatReleaseDate, setDisplayName } from '@/lib/format';
+import { useAuth } from '@/providers/auth';
 import { CARD_ASPECT_RATIO, radius, spacing, tabular, usePalette } from '@/theme';
 
 const SORTS: readonly SearchSort[] = ['relevance', 'number', 'name', 'cost'];
@@ -83,6 +84,8 @@ export default function CardsScreen() {
     staleTime: 60 * 60 * 1000,
   });
   const progress = useSetProgress(language);
+  const ownedByCard = useOwnedByCard();
+  const { user } = useAuth();
   const search = useInfiniteQuery({
     queryKey: ['search-cards', params],
     queryFn: ({ pageParam }) => searchCards(params, pageParam),
@@ -264,6 +267,8 @@ export default function CardsScreen() {
                   name={card.name}
                   width={cardGrid.tileWidth}
                   badge={card.printing_count > 1 ? t('search.arts', { count: card.printing_count }) : null}
+                  quantity={ownedByCard[card.id] ?? 0}
+                  showPips={Boolean(user)}
                 />
               ))}
             </View>

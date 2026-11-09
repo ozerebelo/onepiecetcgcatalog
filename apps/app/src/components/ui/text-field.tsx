@@ -30,6 +30,8 @@ export function TextField({ label, error, hint, icon, style, onFocus, onBlur, ..
           {
             backgroundColor: palette.surface,
             borderColor: error ? palette.danger : focused ? palette.text : palette.borderStrong,
+            // A 2px ink ring when focused (1px border + 1px shadow, so nothing shifts).
+            boxShadow: focused ? `0 0 0 1px ${error ? palette.danger : palette.text}` : undefined,
           },
         ]}>
         {icon ? <Icon name={icon} size={18} color={palette.textMuted} /> : null}

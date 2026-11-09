@@ -10,7 +10,7 @@ import { CardImage } from '@/components/card-image';
 import { DeckProblems } from '@/components/deck-problems';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
-import { Badge, Panel, ProgressBar } from '@/components/ui/panel';
+import { ProgressBar } from '@/components/ui/panel';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { Segmented } from '@/components/ui/segmented';
@@ -18,7 +18,7 @@ import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Pips } from '@/components/ui/pips';
 import { Text } from '@/components/ui/text';
 import { checkDeck, deleteDeck, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
-import { confirmAction, notifyError } from '@/lib/notify';
+import { confirmAction, notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 import { CARD_COLORS, WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
 
@@ -37,7 +37,8 @@ export default function DeckScreen() {
   const [englishOnly, setEnglishOnly] = useState(false);
   const [reserveBuilt, setReserveBuilt] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
-  const [notice, setNotice] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
 
   const userId = user?.id ?? 'anon';
   const deck = useQuery({ queryKey: ['decks', userId, 'deck', id], queryFn: () => fetchDeck(id), enabled: Boolean(user) });
@@ -65,16 +66,22 @@ export default function DeckScreen() {
   const unknown = rows.filter((r) => !r.known);
   const total = known.reduce((n, r) => n + r.needed, 0);
   const have = known.reduce((n, r) => n + r.have, 0);
-  const missingRows = known.filter((r) => r.missing > 0);
+  // Sorted by card number, so copied lists read like a shopping list.
+  const missingRows = known.filter((r) => r.missing > 0).sort((a, b) => a.card_id.localeCompare(b.card_id));
   const missingCount = missingRows.reduce((n, r) => n + r.missing, 0);
   const leader = known.find((r) => r.category === 'Leader');
   const problems = validateDeck(known.map((r) => ({ card_id: r.card_id, category: r.category, quantity: r.needed })));
   const visible = known.filter((r) => (filter === 'all' ? true : filter === 'missing' ? r.missing > 0 : r.missing === 0));
 
+  const percent = total ? Math.round((have / total) * 100) : 0;
+  const optionsSummary = [
+    englishOnly ? t('decks.summary.englishOnly') : t('decks.summary.allLanguages'),
+    reserveBuilt ? t('decks.summary.holdingBack') : t('decks.summary.notHoldingBack'),
+  ].join(' · ');
+
   const copy = async (text: string, message: string) => {
     await Clipboard.setStringAsync(text);
-    setNotice(message);
-    setTimeout(() => setNotice(null), 4000);
+    showToast(message);
   };
 
   const remove = async () => {
@@ -93,44 +100,53 @@ export default function DeckScreen() {
     <Screen scroll edges={[]}>
       <Stack.Screen options={{ title: deck.data.name }} />
 
-      {/* Summary */}
-      <Panel style={[styles.hero, wide && styles.heroWide]}>
-        {wide ? (
-          <View style={styles.leaderArtWide}>
-            <CardImage uri={leader?.image_url} label={leader?.name ?? deck.data.name} rounded={radius.lg} priority="high" />
-          </View>
-        ) : null}
+      {/* The answer first: can I build this, and what do I pull / buy? */}
+      <View style={[styles.hero, wide && styles.heroWide]}>
+        <View style={wide ? styles.leaderArtWide : styles.leaderArtSmall}>
+          <CardImage uri={leader?.image_url} label={leader?.name ?? deck.data.name} rounded={radius.md} priority="high" />
+        </View>
         <View style={styles.heroBody}>
-          <View style={styles.titleRow}>
-            {!wide ? (
-              <View style={styles.leaderArtSmall}>
-                <CardImage uri={leader?.image_url} label={leader?.card_id ?? ''} rounded={radius.sm} priority="high" />
-              </View>
-            ) : null}
-            <View style={styles.titleText}>
-              <View style={styles.row}>
-                {(leader?.colors ?? []).map((c) => (
-                  <View key={c} style={[styles.dot, { backgroundColor: CARD_COLORS[c] }]} />
-                ))}
-                <Text variant="caption" tone="secondary" style={styles.flex} numberOfLines={1}>
-                  {leader ? `${leader.name} · ${leader.card_id}` : t('decks.noLeader')}
+          <View style={styles.row}>
+            {(leader?.colors ?? []).map((c) => (
+              <View key={c} style={[styles.dot, { backgroundColor: CARD_COLORS[c] }]} />
+            ))}
+            <Text variant="caption" tone="secondary" style={styles.flex} numberOfLines={1}>
+              {leader ? `${leader.name} · ${leader.card_id}` : t('decks.noLeader')}
+              {deck.data.is_built ? ` · ${t('decks.built')}` : ''}
+            </Text>
+          </View>
+          <Text variant="title" accessibilityRole="header">
+            {deck.data.name}
+          </Text>
+          <Text variant="heading" accessibilityLiveRegion="polite" style={styles.verdict}>
+            {missingCount === 0 ? (
+              t('decks.verdictReady', { count: total })
+            ) : (
+              <>
+                {t('decks.verdictPull', { count: have })}
+                <Text variant="heading" tone="secondary">
+                  {'  ·  '}
                 </Text>
-              </View>
-              <Text variant="title">{deck.data.name}</Text>
-              {deck.data.is_built ? <Badge label={t('decks.built')} tone="accent" icon="package" /> : null}
-            </View>
-          </View>
-          <View style={styles.statsRow}>
-            <BigStat value={`${have}/${total}`} label={t('decks.cardsOwned')} />
-            <BigStat value={String(missingCount)} label={t('decks.cardsMissing')} tone={missingCount ? 'danger' : 'success'} />
-            <BigStat value={`${total ? Math.round((have / total) * 100) : 0}%`} label={t('decks.complete')} />
-          </View>
-          <ProgressBar value={total ? have / total : 0} tone={missingCount === 0 ? 'success' : 'primary'} height={10} />
+                <Text variant="heading" tone="danger">
+                  {t('decks.verdictBuy', { count: missingCount })}
+                </Text>
+              </>
+            )}
+          </Text>
+          <ProgressBar value={total ? have / total : 0} height={8} />
+          <Text variant="caption" tone="secondary">
+            {t('decks.verdictSub', { percent, total })}
+          </Text>
+          <DeckProblems problems={problems} />
+          {unknown.length > 0 ? (
+            <Text variant="caption" tone="danger">
+              {t('decks.unknownCards', { count: unknown.length, codes: unknown.map((u) => u.card_id).join(', ') })}
+            </Text>
+          ) : null}
           <View style={styles.actions}>
             <Button
               title={t('decks.copyMissing')}
               icon="clipboard"
-              size="sm"
               disabled={missingCount === 0}
               onPress={() =>
                 copy(
@@ -140,72 +156,106 @@ export default function DeckScreen() {
               }
             />
             <Button
-              title={t('decks.copyShopping')}
-              icon="shopping-cart"
-              size="sm"
+              title={t('decks.more')}
+              trailingIcon={moreOpen ? 'chevron-up' : 'chevron-down'}
               variant="outline"
-              disabled={missingCount === 0}
-              onPress={() =>
-                copy(
-                  toShoppingList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing, name: r.name }))),
-                  t('decks.copiedShopping'),
-                )
-              }
+              accessibilityState={{ expanded: moreOpen }}
+              onPress={() => setMoreOpen((v) => !v)}
             />
-            <Button
-              title={t('decks.copyDeck')}
-              icon="copy"
-              size="sm"
-              variant="outline"
-              onPress={() =>
-                copy(toSimList(known.map((r) => ({ card_id: r.card_id, quantity: r.needed }))), t('decks.copiedDeck'))
-              }
-            />
-            <Link href={{ pathname: '/deck/[id]/edit', params: { id } }} asChild>
-              <Button title={t('decks.edit')} icon="edit-2" size="sm" variant="outline" />
-            </Link>
-            <Button title={t('decks.delete')} icon="trash-2" size="sm" variant="danger" onPress={remove} />
           </View>
-          {notice ? (
-            <Text variant="caption" tone="success" accessibilityLiveRegion="polite">
-              {notice}
-            </Text>
+          {moreOpen ? (
+            <View style={[styles.more, { borderTopColor: palette.border }]}>
+              <Button
+                title={t('decks.copyShopping')}
+                icon="shopping-cart"
+                size="sm"
+                variant="ghost"
+                disabled={missingCount === 0}
+                onPress={() =>
+                  copy(
+                    toShoppingList(missingRows.map((r) => ({ card_id: r.card_id, quantity: r.missing, name: r.name }))),
+                    t('decks.copiedShopping'),
+                  )
+                }
+              />
+              <Button
+                title={t('decks.copyDeck')}
+                icon="copy"
+                size="sm"
+                variant="ghost"
+                onPress={() =>
+                  copy(toSimList(known.map((r) => ({ card_id: r.card_id, quantity: r.needed }))), t('decks.copiedDeck'))
+                }
+              />
+              <Link href={{ pathname: '/deck/[id]/edit', params: { id } }} asChild>
+                <Button title={t('decks.edit')} icon="edit-2" size="sm" variant="ghost" />
+              </Link>
+              <View style={styles.flex} />
+              <Button title={t('decks.delete')} icon="trash-2" size="sm" variant="danger" onPress={remove} />
+            </View>
           ) : null}
         </View>
-      </Panel>
+      </View>
 
-      {/* Options */}
-      <Panel style={styles.options}>
-        <Toggle label={t('decks.englishOnly')} hint={t('decks.englishOnlyHint')} value={englishOnly} onChange={setEnglishOnly} />
-        <Toggle label={t('decks.reserveBuilt')} hint={t('decks.reserveBuiltHint')} value={reserveBuilt} onChange={setReserveBuilt} />
-        <Toggle
-          label={t('decks.isBuilt')}
-          hint={t('decks.isBuiltHint')}
-          value={built.isPending ? Boolean(built.variables) : deck.data.is_built}
-          onChange={(v) => built.mutate(v)}
-        />
-      </Panel>
-
-      <Panel>
-        <DeckProblems problems={problems} />
-        {unknown.length > 0 ? (
-          <Text variant="caption" tone="danger">
-            {t('decks.unknownCards', { count: unknown.length, codes: unknown.map((u) => u.card_id).join(', ') })}
+      {/* How the check counts, folded to one line until needed */}
+      <View style={[styles.options, { borderColor: palette.border }]}>
+        <PressableArea
+          accessibilityRole="button"
+          accessibilityState={{ expanded: optionsOpen }}
+          accessibilityLabel={`${t('decks.checking')}: ${optionsSummary}`}
+          onPress={() => setOptionsOpen((v) => !v)}
+          boxStyle={styles.optionsHead}
+          activeStyle={{ backgroundColor: palette.primarySoft }}>
+          <Text variant="caption" weight="semibold">
+            {t('decks.checking')}
           </Text>
+          <Text variant="caption" tone="secondary" style={styles.flex} numberOfLines={1}>
+            {optionsSummary}
+          </Text>
+          <Text variant="caption" weight="semibold">
+            {optionsOpen ? t('decks.done') : t('decks.change')}
+          </Text>
+        </PressableArea>
+        {optionsOpen ? (
+          <View style={styles.optionsBody}>
+            <Toggle
+              label={t('decks.englishOnly')}
+              hint={t('decks.englishOnlyHint')}
+              value={englishOnly}
+              onChange={setEnglishOnly}
+            />
+            <Toggle
+              label={t('decks.reserveBuilt')}
+              hint={t('decks.reserveBuiltHint')}
+              value={reserveBuilt}
+              onChange={setReserveBuilt}
+            />
+            <Toggle
+              label={t('decks.isBuilt')}
+              hint={t('decks.isBuiltHint')}
+              value={built.isPending ? Boolean(built.variables) : deck.data.is_built}
+              onChange={(v) => built.mutate(v)}
+            />
+          </View>
         ) : null}
-      </Panel>
+      </View>
 
-      {/* Card list */}
-      <Segmented
-        accessibilityLabel={t('collection.ownedFilter')}
-        value={filter}
-        onChange={setFilter}
-        options={[
-          { value: 'all', label: t('decks.filters.all', { count: known.length }) },
-          { value: 'missing', label: t('decks.filters.missing', { count: missingRows.length }) },
-          { value: 'owned', label: t('decks.filters.owned', { count: known.length - missingRows.length }) },
-        ]}
-      />
+      {/* The pull list */}
+      <View style={[styles.listHead, { borderTopColor: palette.rule }]}>
+        <Text variant="heading" accessibilityRole="header" style={styles.flex}>
+          {t('decks.pullColumn')}
+        </Text>
+        <Segmented
+          accessibilityLabel={t('collection.ownedFilter')}
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: 'all', label: t('decks.filters.all', { count: known.length }) },
+            { value: 'missing', label: t('decks.filters.missing', { count: missingRows.length }) },
+            { value: 'owned', label: t('decks.filters.owned', { count: known.length - missingRows.length }) },
+          ]}
+        />
+      </View>
       {visible.length === 0 ? (
         <EmptyView icon="check-circle" message={filter === 'missing' ? t('decks.nothingMissing') : t('collection.nothingHere')} />
       ) : (
@@ -217,9 +267,6 @@ export default function DeckScreen() {
               <View style={[styles.groupHead, { borderBottomColor: palette.rule }]}>
                 <Text variant="eyebrow" tone="secondary" style={styles.flex}>
                   {t(`decks.groups.${category}`)} · {group.reduce((n, r) => n + r.needed, 0)}
-                </Text>
-                <Text variant="eyebrow" tone="secondary">
-                  {t('decks.pullColumn')}
                 </Text>
               </View>
               {group.map((row) => (
@@ -237,6 +284,8 @@ export default function DeckScreen() {
 function CheckRowView({ row }: { row: CheckRow }) {
   const { t } = useTranslation();
   const palette = usePalette();
+  // On phones the status may break onto two lines, so the card's own lines keep their room.
+  const compact = useWindowDimensions().width < 520;
   const byLanguage = row.owned_printings.reduce<Record<string, number>>((acc, p) => {
     acc[p.language] = (acc[p.language] ?? 0) + p.quantity;
     return acc;
@@ -261,7 +310,7 @@ function CheckRowView({ row }: { row: CheckRow }) {
           </Text>
           <Text variant="mono" tone="muted" numberOfLines={1}>
             {row.card_id}
-            {row.cost != null ? ` · ${t('card.cost')} ${row.cost}` : ''}
+            {row.cost != null ? ` · ${t(row.category === 'Leader' ? 'card.life' : 'card.cost')} ${row.cost}` : ''}
           </Text>
           <Text variant="caption" tone="secondary" numberOfLines={1}>
             {row.owned > 0 ? t('decks.youHave', { owned: ownedText }) : t('decks.noneOwned')}
@@ -269,28 +318,35 @@ function CheckRowView({ row }: { row: CheckRow }) {
           </Text>
         </View>
         <Pips owned={row.have} need={row.needed} />
-        <Text variant="mono" style={[styles.status, { color: row.missing ? palette.danger : palette.textSecondary }]}>
-          {row.missing ? t('decks.needMore', { count: row.missing }) : t('decks.pull', { count: row.needed })}
+        <Text
+          variant="mono"
+          numberOfLines={2}
+          style={[
+            compact ? styles.statusCompact : styles.status,
+            { color: row.missing ? palette.danger : palette.textSecondary },
+          ]}>
+          {row.missing === 0
+            ? t('decks.pull', { count: row.needed })
+            : row.have > 0
+              ? t('decks.pullAndNeed', { pull: row.have, need: row.missing })
+              : t('decks.needMore', { count: row.missing })}
         </Text>
       </PressableArea>
     </Link>
   );
 }
 
-function BigStat({ value, label, tone = 'default' }: { value: string; label: string; tone?: 'default' | 'danger' | 'success' }) {
-  return (
-    <View style={styles.bigStat}>
-      <Text variant="heading" tone={tone}>
-        {value}
-      </Text>
-      <Text variant="caption" tone="secondary">
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function Toggle({ label, hint, value, onChange }: { label: string; hint: string; value: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <View style={styles.toggle}>
       <View style={styles.flex}>
@@ -304,23 +360,43 @@ function Toggle({ label, hint, value, onChange }: { label: string; hint: string;
   );
 }
 
+/** The pull list stays narrow enough that a card's name and its status read as one line. */
+const LIST_WIDTH = 880;
+
 const styles = StyleSheet.create({
-  hero: { gap: spacing.lg, marginTop: spacing.lg },
-  heroWide: { flexDirection: 'row', alignItems: 'flex-start' },
-  leaderArtWide: { width: 170 },
-  leaderArtSmall: { width: 76 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  titleText: { flex: 1, gap: spacing.xs, minWidth: 0 },
-  heroBody: { flex: 1, gap: spacing.md, minWidth: 0 },
+  hero: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, marginTop: spacing.lg },
+  heroWide: { gap: spacing.xl },
+  leaderArtWide: { width: 150 },
+  leaderArtSmall: { width: 64 },
+  heroBody: { flex: 1, gap: spacing.sm, minWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dot: { width: 10, height: 10, borderRadius: 5 },
   flex: { flex: 1 },
-  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xl },
-  bigStat: { gap: 0 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  options: { gap: spacing.lg },
+  verdict: { marginTop: spacing.xs },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.xs },
+  more: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  options: { borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, maxWidth: LIST_WIDTH },
+  optionsHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44, paddingVertical: spacing.sm },
+  optionsBody: { gap: spacing.lg, paddingBottom: spacing.lg },
   toggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  group: { gap: 0, marginTop: spacing.md },
+  listHead: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderTopWidth: 2,
+    paddingTop: spacing.md,
+    marginTop: spacing.md,
+    maxWidth: LIST_WIDTH,
+  },
+  group: { gap: 0, marginTop: spacing.md, maxWidth: LIST_WIDTH },
   groupHead: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm, borderBottomWidth: 2 },
   checkRow: {
     flexDirection: 'row',
@@ -331,5 +407,6 @@ const styles = StyleSheet.create({
   },
   thumb: { width: 40 },
   checkBody: { flex: 1, gap: 1, minWidth: 0 },
-  status: { width: 64, textAlign: 'right' },
+  status: { width: 130, textAlign: 'right' },
+  statusCompact: { width: 76, textAlign: 'right' },
 });

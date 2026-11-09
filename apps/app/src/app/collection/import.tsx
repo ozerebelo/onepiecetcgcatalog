@@ -1,4 +1,14 @@
-import { parseCardList, toImportItems, type ImportItem, type Language, type ParseResult } from '@binder/core';
+import {
+  collectionToCsv,
+  diffImport,
+  parseCardList,
+  parsePrintingId,
+  toImportItems,
+  type ImportDiff,
+  type ImportItem,
+  type Language,
+  type ParseResult,
+} from '@binder/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
@@ -12,15 +22,15 @@ import { LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { collectionKeys } from '@/hooks/use-collection';
-import { importCollection, type ImportMode, type ImportSummary } from '@/lib/api';
-import { pickTextFile, type PickedTextFile } from '@/lib/files';
-import { confirmAction, notifyError } from '@/lib/notify';
+import { exportCollection, fetchPrintingNames, importCollection, type ImportMode, type ImportSummary } from '@/lib/api';
+import { pickTextFile, saveTextFile, type PickedTextFile } from '@/lib/files';
+import { notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 import { fonts, monoFont, radius, spacing, usePalette } from '@/theme';
 
 type Step =
   | { name: 'edit' }
-  | { name: 'preview'; parsed: ParseResult; items: ImportItem[]; summary: ImportSummary }
+  | { name: 'preview'; parsed: ParseResult; items: ImportItem[]; summary: ImportSummary; diff: ImportDiff; names: Record<string, string> }
   | { name: 'done'; summary: ImportSummary };
 
 const LIST_PREVIEW = 20;
@@ -38,6 +48,9 @@ export default function ImportScreen() {
   const [step, setStep] = useState<Step>({ name: 'edit' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  /** Replace all is enabled once a backup is saved, or the user explicitly skips it. */
+  const [backup, setBackup] = useState<'none' | 'saved' | 'skipped'>('none');
 
   if (initializing) return <LoadingView />;
   if (!user) return <Redirect href="/auth/sign-in" />;
@@ -54,8 +67,14 @@ export default function ImportScreen() {
     }
     setBusy(true);
     try {
-      const summary = await importCollection(items, mode, true);
-      setStep({ name: 'preview', parsed, items, summary });
+      const [summary, current] = await Promise.all([importCollection(items, mode, true), exportCollection()]);
+      const diff = diffImport(new Map(current.map((r) => [r.printing_id, r.quantity])), items, mode, new Set(summary.unknown));
+      const names: Record<string, string> = Object.fromEntries(current.map((r) => [r.printing_id, r.name]));
+      const missingNames = diff.changes.map((c) => c.printing_id).filter((id) => !names[id]);
+      if (missingNames.length) Object.assign(names, await fetchPrintingNames(missingNames));
+      setShowAll(false);
+      setBackup('none');
+      setStep({ name: 'preview', parsed, items, summary, diff, names });
     } catch (e) {
       notifyError(e);
     } finally {
@@ -63,11 +82,18 @@ export default function ImportScreen() {
     }
   };
 
-  const commit = async (items: ImportItem[]) => {
-    if (mode === 'replace_all') {
-      const ok = await confirmAction(t('import.replaceConfirmTitle'), t('import.replaceConfirmBody'), t('import.replaceConfirm'));
-      if (!ok) return;
+  const saveBackup = async () => {
+    try {
+      const rows = await exportCollection();
+      const date = new Date().toISOString().slice(0, 10);
+      await saveTextFile(`playset-collection-${date}.csv`, collectionToCsv(rows), 'text/csv');
+      setBackup('saved');
+    } catch (e) {
+      notifyError(e);
     }
+  };
+
+  const commit = async (items: ImportItem[]) => {
     setBusy(true);
     try {
       const summary = await importCollection(items, mode, false);
@@ -116,23 +142,67 @@ export default function ImportScreen() {
   }
 
   if (step.name === 'preview') {
-    const { parsed, items, summary: s } = step;
+    const { parsed, items, summary: s, diff, names } = step;
+    const shown = showAll ? diff.changes : diff.changes.slice(0, LIST_PREVIEW);
+    const replace = mode === 'replace_all';
+    const ready = !replace || backup !== 'none';
     return (
       <Screen scroll narrow edges={['bottom']}>
         <Text variant="title">{t('import.previewTitle')}</Text>
         <Text tone="secondary">
-          {t('import.readLines', { count: parsed.entries.length + parsed.issues.length, format: t(`import.formats.${parsed.format}`) })}
+          {t('import.readLines', { count: parsed.entries.length + parsed.issues.length, format: t(`import.formats.${parsed.format}`) })}{' '}
+          {t('import.recognised', { count: s.matched })}
         </Text>
-        <View style={[styles.box, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <Stat label={t('import.matched')} value={s.matched} />
-          <Stat label={t('import.inserted')} value={s.inserted} />
-          <Stat label={t('import.updated')} value={s.updated} />
-          {s.unchanged > 0 ? <Stat label={t('import.unchanged')} value={s.unchanged} /> : null}
-          {mode !== 'add' ? <Stat label={t('import.removed')} value={s.removed} danger={s.removed > 0} /> : null}
-          <Text variant="caption" tone="secondary">
-            {t('import.collectionAfter', { copies: s.total_quantity, printings: s.unique_printings })}
-          </Text>
-        </View>
+
+        {/* The whole change in one sentence, in one unit: copies. */}
+        <Text variant="heading">
+          {diff.changes.length === 0
+            ? t('import.noChanges')
+            : t('import.changeSummary', { added: diff.copiesAdded, removed: diff.copiesRemoved, count: diff.changes.length })}
+        </Text>
+        <Text tone="secondary">{t('import.afterwards', { before: diff.copiesBefore, after: diff.copiesAfter, printings: s.unique_printings })}</Text>
+
+        {diff.changes.length > 0 ? (
+          <View>
+            <View style={[styles.diffRow, styles.diffHead, { borderBottomColor: palette.rule }]}>
+              <Text variant="eyebrow" tone="secondary" style={styles.diffCode}>
+                {t('import.columns.number')}
+              </Text>
+              <Text variant="eyebrow" tone="secondary" style={styles.flex}>
+                {t('import.columns.card')}
+              </Text>
+              <Text variant="eyebrow" tone="secondary" style={styles.diffQty}>
+                {t('import.columns.change')}
+              </Text>
+            </View>
+            {shown.map((c) => {
+              const id = parsePrintingId(c.printing_id);
+              const down = c.after < c.before;
+              return (
+                <View key={c.printing_id} style={[styles.diffRow, { borderBottomColor: palette.border }]}>
+                  <Text variant="mono" style={styles.diffCode} numberOfLines={1}>
+                    {id ? `${id.code} ${id.language.toUpperCase()}` : c.printing_id}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.flex}>
+                    {names[c.printing_id] ?? '—'}
+                  </Text>
+                  <Text variant="mono" style={[styles.diffQty, { color: down ? palette.danger : palette.text }]}>
+                    {c.after === 0 ? t('import.removedRow', { count: c.before }) : `${c.before} → ${c.after}`}
+                  </Text>
+                </View>
+              );
+            })}
+            {diff.changes.length > LIST_PREVIEW ? (
+              <Button
+                title={showAll ? t('import.showFewer') : t('import.showAll', { count: diff.changes.length })}
+                variant="ghost"
+                size="sm"
+                onPress={() => setShowAll((v) => !v)}
+                boxStyle={styles.start}
+              />
+            ) : null}
+          </View>
+        ) : null}
 
         {s.unknown_count > 0 ? (
           <IssueList
@@ -152,14 +222,49 @@ export default function ImportScreen() {
           />
         ) : null}
 
+        {replace ? (
+          // Replace all removes everything not in the list: a backup comes first (or is skipped knowingly).
+          <View style={[styles.backup, { borderColor: palette.danger }]}>
+            <Text weight="semibold" tone="danger">
+              {t('import.backupTitle', { count: diff.copiesRemoved })}
+            </Text>
+            <Text variant="caption" tone="secondary">
+              {t('import.backupBody')}
+            </Text>
+            <View style={styles.backupActions}>
+              <Button
+                title={backup === 'saved' ? t('import.backupSaved') : t('import.backupSave')}
+                icon={backup === 'saved' ? 'check' : 'download'}
+                variant="outline"
+                size="sm"
+                onPress={saveBackup}
+              />
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: backup === 'skipped' }}
+                onPress={() => setBackup(backup === 'skipped' ? 'none' : 'skipped')}
+                style={styles.skip}>
+                <View style={[styles.box16, { borderColor: palette.text, backgroundColor: backup === 'skipped' ? palette.text : 'transparent' }]} />
+                <Text variant="caption">{t('import.backupSkip')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : null}
+
         <Button
-          title={mode === 'replace_all' ? t('import.replaceConfirm') : t('import.confirm', { count: s.matched })}
-          variant={mode === 'replace_all' ? 'danger' : 'primary'}
+          title={
+            replace
+              ? t('import.replaceConfirm')
+              : mode === 'add'
+                ? t('import.confirmAdd', { count: diff.copiesAdded })
+                : t('import.confirmSet', { count: diff.changes.length })
+          }
+          variant={replace ? 'danger' : 'primary'}
           loading={busy}
-          disabled={s.matched === 0 && mode !== 'replace_all'}
+          disabled={!ready || (diff.changes.length === 0 && !replace)}
           onPress={() => commit(items)}
         />
-        <Button title={t('common.back')} variant="ghost" onPress={() => setStep({ name: 'edit' })} />
+        <Button title={t('import.editList')} variant="ghost" onPress={() => setStep({ name: 'edit' })} />
       </Screen>
     );
   }
@@ -299,4 +404,13 @@ const styles = StyleSheet.create({
   textarea: { minHeight: 180, paddingTop: spacing.md, fontFamily: monoFont, fontSize: 14 },
   option: { gap: spacing.xs },
   stat: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  start: { alignSelf: 'flex-start' },
+  diffRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 36, paddingVertical: spacing.xs, borderBottomWidth: StyleSheet.hairlineWidth },
+  diffHead: { borderBottomWidth: 2 },
+  diffCode: { width: 128 },
+  diffQty: { width: 104, textAlign: 'right' },
+  backup: { gap: spacing.sm, padding: spacing.md, borderWidth: 1, borderRadius: radius.md },
+  backupActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md },
+  skip: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44 },
+  box16: { width: 16, height: 16, borderWidth: 1.5, borderRadius: 2 },
 });

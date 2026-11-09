@@ -117,10 +117,10 @@ export function Dashboard() {
               ) : null}
               <View style={styles.latestBody}>
                 <View style={styles.latestTitle}>
-                  <Text variant="eyebrow" tone="primary">
+                  <Text variant="heading">{titleCase(latest.name)}</Text>
+                  <Text variant="mono" tone="secondary">
                     {latest.code}
                   </Text>
-                  <Text variant="heading">{titleCase(latest.name)}</Text>
                 </View>
                 <View style={styles.latestProgress}>
                   <ProgressBar value={latest.printing_count ? latestOwned / latest.printing_count : 0} height={6} />
