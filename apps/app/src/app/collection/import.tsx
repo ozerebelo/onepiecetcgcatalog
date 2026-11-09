@@ -24,6 +24,7 @@ import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { collectionKeys } from '@/hooks/use-collection';
 import { exportCollection, fetchPrintingNames, importCollection, type ImportMode, type ImportSummary } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { pickTextFile, saveTextFile, type PickedTextFile } from '@/lib/files';
 import { notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
@@ -44,7 +45,9 @@ export default function ImportScreen() {
 
   const [text, setText] = useState('');
   const [file, setFile] = useState<PickedTextFile | null>(null);
-  const [language, setLanguage] = useState<Language>('en');
+  // Lines without a language take the app's card language (the user can still pick per import).
+  const [cardLanguage] = useCardLanguage();
+  const [language, setLanguage] = useState<Language>(cardLanguage);
   const [mode, setMode] = useState<ImportMode>('add');
   const [step, setStep] = useState<Step>({ name: 'edit' });
   const [busy, setBusy] = useState(false);

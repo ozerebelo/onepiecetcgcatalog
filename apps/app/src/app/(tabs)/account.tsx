@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { LogoMark } from '@/components/brand/logo';
+import { LanguageSwitch } from '@/components/language-switch';
 import { Button } from '@/components/ui/button';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { PageHeader, Panel } from '@/components/ui/panel';
@@ -31,6 +32,15 @@ export default function AccountScreen() {
   return (
     <Screen scroll narrow>
       <PageHeader title={t('account.title')} />
+
+      {/* The one place that explains the language switch shown on Cards, Collection and Decks. */}
+      <Panel style={styles.language}>
+        <View style={styles.flex}>
+          <Text variant="heading">{t('cardLanguage.label')}</Text>
+          <Text tone="secondary">{t('cardLanguage.accountHint')}</Text>
+        </View>
+        <LanguageSwitch />
+      </Panel>
 
       {user ? (
         <>
@@ -118,6 +128,7 @@ function MenuLink({ href, icon, label, last = false }: { href: '/collection' | '
 }
 
 const styles = StyleSheet.create({
+  language: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md },
   profile: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   avatar: { width: 56, height: 56, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
   flex: { flex: 1 },

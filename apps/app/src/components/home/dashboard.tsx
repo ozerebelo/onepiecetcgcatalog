@@ -6,6 +6,7 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 
 import { CardImage } from '@/components/card-image';
 import { DeckCard } from '@/components/deck-card';
+import { LanguageSwitch } from '@/components/language-switch';
 import { Button } from '@/components/ui/button';
 import { EmptyView } from '@/components/ui/state-views';
 import { PageHeader, Panel, ProgressBar, SectionTitle, StatGroup } from '@/components/ui/panel';
@@ -14,6 +15,7 @@ import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { collectionKeys, useCollectionSummary, useSetProgress } from '@/hooks/use-collection';
 import { fetchCatalogStats, fetchDeckSummaries, fetchShowcase, searchCollection } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { WIDE_BREAKPOINT, radius, spacing, tabular, usePalette } from '@/theme';
@@ -29,14 +31,20 @@ export function Dashboard() {
   const name = (user?.user_metadata?.display_name as string | undefined) ?? user?.email?.split('@')[0] ?? '';
   const n = (value: number) => value.toLocaleString(i18n.language);
 
+  // Everything here is in the app's card language: English and Japanese never mix.
+  const [language] = useCardLanguage();
   const summary = useCollectionSummary();
   const catalog = useQuery({ queryKey: ['catalog-stats'], queryFn: fetchCatalogStats, staleTime: 60 * 60 * 1000 });
-  const decks = useQuery({ queryKey: ['decks', userId, 'summaries', null], queryFn: () => fetchDeckSummaries(null), enabled: Boolean(user) });
-  const showcase = useQuery({ queryKey: ['showcase'], queryFn: fetchShowcase, staleTime: 60 * 60 * 1000 });
-  const progress = useSetProgress('en');
+  const decks = useQuery({
+    queryKey: ['decks', userId, 'summaries', language],
+    queryFn: () => fetchDeckSummaries([language]),
+    enabled: Boolean(user),
+  });
+  const showcase = useQuery({ queryKey: ['showcase', language], queryFn: () => fetchShowcase(language), staleTime: 60 * 60 * 1000 });
+  const progress = useSetProgress(language);
   const recentParams = {
     query: '',
-    languages: [],
+    languages: [language],
     setCodes: [],
     colors: [],
     categories: [],
@@ -61,6 +69,7 @@ export function Dashboard() {
         subtitle={t('dashboard.subtitle')}
         actions={
           <>
+            <LanguageSwitch />
             <Link href="/deck/new" asChild>
               <Button title={t('dashboard.checkDeck')} icon="check-square" />
             </Link>

@@ -63,7 +63,7 @@ export default function SetScreen() {
   const adjust = useAdjustQuantity();
   const owned = useMemo(() => quantities.data ?? {}, [quantities.data]);
   // The playset counts every printing of a card, in any set or language: 2 base + 2 alt art is a playset.
-  const byCard = useOwnedByCard();
+  const byCard = useOwnedByCard(set.data?.language);
 
   const variantFiltered = useMemo(
     () => (printings.data ?? []).filter((p) => showVariants || p.variant === 'base'),

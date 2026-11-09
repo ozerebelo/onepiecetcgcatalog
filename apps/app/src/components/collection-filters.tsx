@@ -7,11 +7,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import type { CardFilters } from '@/components/card-filters';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
-import { Segmented } from '@/components/ui/segmented';
 import { ColorMark, RarityTag } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { collectionKeys } from '@/hooks/use-collection';
 import { fetchOwnedSets, type ArtFilter, type PlaysetFilter } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { fonts, radius, spacing, tabular, usePalette } from '@/theme';
@@ -22,18 +22,19 @@ const PLAYSETS: readonly PlaysetFilter[] = ['full', 'incomplete', 'extra'];
 const ARTS: readonly ArtFilter[] = ['base', 'alt'];
 const SETS_SHOWN = 8;
 
-/** The sets you own cards from (by set code, any language), newest first, with owned printings. */
+/** The sets you own cards from in the app's card language, newest first, with owned printings. */
 export function useOwnedSets() {
   const { user } = useAuth();
+  const [language] = useCardLanguage();
   return useQuery({
-    queryKey: [...collectionKeys.all(user?.id ?? 'anon'), 'owned-sets'],
-    queryFn: fetchOwnedSets,
+    queryKey: [...collectionKeys.all(user?.id ?? 'anon'), 'owned-sets', language],
+    queryFn: () => fetchOwnedSets(language),
     enabled: Boolean(user),
   });
 }
 
 /**
- * Every way to narrow a collection, as one printed index: playset status, art, language, set,
+ * Every way to narrow a collection, as one printed index: playset status, art, set,
  * colour, type, cost, rarity, sort. A sidebar beside the grid on wide screens, inline on phones.
  */
 export function CollectionFilterPanel<S extends string>({
@@ -85,18 +86,6 @@ export function CollectionFilterPanel<S extends string>({
         ))}
       </Section>
 
-      <Section label={t('search.language')}>
-        <Segmented
-          accessibilityLabel={t('search.language')}
-          value={f.language}
-          onChange={f.setLanguage}
-          options={[
-            { value: 'all', label: t('languages.all') },
-            { value: 'en', label: t('languages.short.en') },
-            { value: 'ja', label: t('languages.short.ja') },
-          ]}
-        />
-      </Section>
 
       {setList.length > 0 ? (
         <Section label={t('collection.filterPanel.sets')} column>
@@ -240,9 +229,6 @@ export function ActiveFilters<S extends string>({ filters: f }: { filters: CardF
       : []),
     ...(f.art
       ? [{ key: 'art', text: t(`collection.filterPanel.arts.${f.art}`), label: null, onRemove: () => f.toggleArt(f.art!) }]
-      : []),
-    ...(f.language !== 'all'
-      ? [{ key: 'lang', text: t(`languages.${f.language}`), label: null, onRemove: () => f.setLanguage('all') }]
       : []),
     ...f.setCodes.map((code) => ({ key: `set-${code}`, text: code, label: null, onRemove: () => f.toggleSet(code) })),
     ...f.colors.map((c) => ({

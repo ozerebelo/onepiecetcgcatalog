@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useCardLanguage } from '@/lib/card-language';
 import type { ArtFilter, CardSearchParams, PlaysetFilter } from '@/lib/api';
 import { CARD_COLORS, fonts, spacing, usePalette } from '@/theme';
 
@@ -12,8 +13,6 @@ import { Segmented } from './ui/segmented';
 import { Text } from './ui/text';
 import { TextField } from './ui/text-field';
 
-export type LanguageFilter = 'all' | Language;
-const LANGUAGE_PARAMS: Record<LanguageFilter, Language[]> = { all: ['en', 'ja'], en: ['en'], ja: ['ja'] };
 const COSTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 const PLAYABLE_CATEGORIES = CATEGORIES.filter((c) => c !== 'Don');
 
@@ -21,10 +20,13 @@ function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
-/** Search text + filter state shared by the Cards and Collection screens. */
+/**
+ * Search text + filter state shared by the Cards and Collection screens. The card language is not a
+ * filter here: it is the app-wide setting (lib/card-language), so English and Japanese never mix.
+ */
 export function useCardFilters<S extends string>(defaultSort: S) {
   const [query, setQuery] = useState('');
-  const [language, setLanguage] = useState<LanguageFilter>('all');
+  const [language] = useCardLanguage();
   const [colors, setColors] = useState<Color[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [rarities, setRarities] = useState<Rarity[]>([]);
@@ -39,7 +41,7 @@ export function useCardFilters<S extends string>(defaultSort: S) {
   const params = useMemo<Omit<CardSearchParams, 'sort'> & { sort: S }>(
     () => ({
       query: debouncedQuery,
-      languages: LANGUAGE_PARAMS[language],
+      languages: [language] as Language[],
       colors,
       categories,
       rarities,
@@ -58,7 +60,6 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     rarities.length +
     setCodes.length +
     (cost == null ? 0 : 1) +
-    (language === 'all' ? 0 : 1) +
     (art == null ? 0 : 1) +
     (playset == null ? 0 : 1);
 
@@ -66,7 +67,6 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     query,
     setQuery,
     language,
-    setLanguage,
     colors,
     toggleColor: (c: Color) => setColors((list) => toggle(list, c)),
     categories,
@@ -92,7 +92,6 @@ export function useCardFilters<S extends string>(defaultSort: S) {
       setCategories([]);
       setRarities([]);
       setCost(null);
-      setLanguage('all');
       setSetCodes([]);
       setArt(null);
       setPlayset(null);
@@ -156,18 +155,6 @@ export function SearchHeader<S extends string>({
       </View>
       {open ? (
         <ScrollView style={styles.panel} contentContainerStyle={styles.panelContent} nestedScrollEnabled>
-          <FilterRow label={t('search.language')}>
-            <Segmented
-              accessibilityLabel={t('search.language')}
-              value={f.language}
-              onChange={f.setLanguage}
-              options={[
-                { value: 'all', label: t('languages.all') },
-                { value: 'en', label: t('languages.short.en') },
-                { value: 'ja', label: t('languages.short.ja') },
-              ]}
-            />
-          </FilterRow>
           <FilterRow label={t('search.color')}>
             {COLORS.map((color) => (
               <Chip

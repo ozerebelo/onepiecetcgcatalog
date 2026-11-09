@@ -15,6 +15,7 @@ import { PressableArea } from '@/components/ui/pressable-area';
 import { Container } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { fetchCatalogStats, fetchShowcase, type Showcase } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { formatReleaseDate, titleCase } from '@/lib/format';
 import { WIDE_BREAKPOINT, fonts, radius, spacing, usePalette } from '@/theme';
 
@@ -37,7 +38,8 @@ export function Landing() {
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
   const stats = useQuery({ queryKey: ['catalog-stats'], queryFn: fetchCatalogStats, staleTime: 60 * 60 * 1000 });
-  const showcase = useQuery({ queryKey: ['showcase'], queryFn: fetchShowcase, staleTime: 60 * 60 * 1000 });
+  const [language] = useCardLanguage();
+  const showcase = useQuery({ queryKey: ['showcase', language], queryFn: () => fetchShowcase(language), staleTime: 60 * 60 * 1000 });
   const n = (value: number | undefined) => (value == null ? '—' : value.toLocaleString(i18n.language));
   const set = showcase.data?.set;
   const released = set ? formatReleaseDate(set.release_date, i18n.language, 'long') : null;

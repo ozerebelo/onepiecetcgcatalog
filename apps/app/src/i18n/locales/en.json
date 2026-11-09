@@ -142,7 +142,9 @@
       "parallelN": "Alt art {{n}}",
       "reprint": "Reprint",
       "reprintN": "Reprint {{n}}"
-    }
+    },
+    "notInLanguage": "Not printed in {{language}} yet.",
+    "showOtherLanguage": "Show {{language}} printings"
   },
   "account": {
     "title": "Account",
@@ -212,8 +214,8 @@
       "recent": "Recently changed"
     },
     "inCollection": "In your collection",
-    "ownedAcross_one": "You own {{count}} copy of this card. Any printing counts toward a deck.",
-    "ownedAcross_other": "You own {{count}} copies of this card. Any printing counts toward a deck.",
+    "ownedAcross_one": "You own {{count}} copy of this card in {{language}}. Any {{language}} printing counts toward a deck.",
+    "ownedAcross_other": "You own {{count}} copies of this card in {{language}}. Any {{language}} printing counts toward a deck.",
     "signInToTrack": "Sign in to track which cards you own →",
     "addOne": "Add one {{card}}",
     "removeOne": "Remove one {{card}}",
@@ -236,7 +238,7 @@
     "tallyRemoved": "Removed 1 · {{card}}",
     "undo": "Undo",
     "doneCollecting": "Done",
-    "noneOfThisCard": "You don’t own this card yet. Any printing counts toward a deck.",
+    "noneOfThisCard": "You don’t own this card in {{language}} yet. Any {{language}} printing counts toward a deck.",
     "fullPlaysets": "Full playsets: {{count}} of {{total}} cards",
     "playsetOf": "{{count}} of {{playset}} for a playset",
     "legendHere": "Copies of this printing",
@@ -497,8 +499,6 @@
     "delete": "Delete",
     "deleteTitle": "Delete this deck?",
     "deleteBody": "“{{name}}” will be removed. Your collection is not affected.",
-    "englishOnly": "English cards only",
-    "englishOnlyHint": "Ignore Japanese copies (for official English events).",
     "reserveBuilt": "Hold back cards in built decks",
     "reserveBuiltHint": "Copies sleeved in your other built decks don't count as available.",
     "isBuilt": "I've built this deck",
@@ -535,8 +535,7 @@
     "change": "Change",
     "done": "Done",
     "summary": {
-      "allLanguages": "English and Japanese copies",
-      "englishOnly": "English copies only",
+      "language": "{{language}} copies",
       "notHoldingBack": "cards in built decks count",
       "holdingBack": "holding back cards in built decks"
     },
@@ -550,5 +549,10 @@
       "counter": "{{count}} × +{{value}} counter",
       "noCounter": "{{count}} without counter"
     }
+  },
+  "cardLanguage": {
+    "label": "Card language",
+    "deckHint": "Check against your English or Japanese copies. The whole app follows this setting.",
+    "accountHint": "English and Japanese cards are kept apart: search, collection, playsets and deck checks show one language at a time."
   }
 }

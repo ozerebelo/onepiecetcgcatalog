@@ -9,6 +9,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { CardImage } from '@/components/card-image';
 import { CostCurve } from '@/components/deck-curve';
 import { DeckProblems } from '@/components/deck-problems';
+import { LanguageSwitch } from '@/components/language-switch';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
 import { ProgressBar } from '@/components/ui/panel';
@@ -20,6 +21,7 @@ import { Pips } from '@/components/ui/pips';
 import { ColorMark, CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { checkDeck, deleteDeck, fetchCardCounters, fetchDeck, setDeckBuilt, type CheckRow } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { confirmAction, notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 import { WIDE_BREAKPOINT, radius, spacing, usePalette } from '@/theme';
@@ -36,7 +38,8 @@ export default function DeckScreen() {
   const wide = width >= WIDE_BREAKPOINT;
   const palette = usePalette();
 
-  const [englishOnly, setEnglishOnly] = useState(false);
+  // The deck is checked against copies in the app's card language (English or Japanese, never mixed).
+  const [language] = useCardLanguage();
   const [reserveBuilt, setReserveBuilt] = useState(false);
   const [filter, setFilter] = useState<Filter>('all');
   const [moreOpen, setMoreOpen] = useState(false);
@@ -44,7 +47,7 @@ export default function DeckScreen() {
 
   const userId = user?.id ?? 'anon';
   const deck = useQuery({ queryKey: ['decks', userId, 'deck', id], queryFn: () => fetchDeck(id), enabled: Boolean(user) });
-  const options = { languages: englishOnly ? (['en'] as const).slice() : null, reserveBuilt };
+  const options = { languages: [language], reserveBuilt };
   const check = useQuery({
     queryKey: ['decks', userId, 'check', id, options],
     queryFn: () => checkDeck(id, options),
@@ -84,7 +87,7 @@ export default function DeckScreen() {
 
   const percent = total ? Math.round((have / total) * 100) : 0;
   const optionsSummary = [
-    englishOnly ? t('decks.summary.englishOnly') : t('decks.summary.allLanguages'),
+    t('decks.summary.language', { language: t(`languages.${language}`) }),
     reserveBuilt ? t('decks.summary.holdingBack') : t('decks.summary.notHoldingBack'),
   ].join(' · ');
 
@@ -227,12 +230,15 @@ export default function DeckScreen() {
         </PressableArea>
         {optionsOpen ? (
           <View style={styles.optionsBody}>
-            <Toggle
-              label={t('decks.englishOnly')}
-              hint={t('decks.englishOnlyHint')}
-              value={englishOnly}
-              onChange={setEnglishOnly}
-            />
+            <View style={styles.toggle}>
+              <View style={styles.flex}>
+                <Text weight="semibold">{t('cardLanguage.label')}</Text>
+                <Text variant="caption" tone="secondary">
+                  {t('cardLanguage.deckHint')}
+                </Text>
+              </View>
+              <LanguageSwitch />
+            </View>
             <Toggle
               label={t('decks.reserveBuilt')}
               hint={t('decks.reserveBuiltHint')}

@@ -210,8 +210,8 @@ export interface CollectionSummary {
   unique_cards: number;
 }
 
-export async function fetchCollectionSummary(): Promise<CollectionSummary> {
-  const result = await getSupabase().rpc('collection_summary');
+export async function fetchCollectionSummary(language: Language | null = null): Promise<CollectionSummary> {
+  const result = await getSupabase().rpc('collection_summary', { p_language: language });
   const row = (unwrap(result) as CollectionSummary[])[0];
   return {
     total_quantity: Number(row?.total_quantity ?? 0),
@@ -235,8 +235,11 @@ export interface OwnedSet {
   sortOrder: number;
 }
 
-export async function fetchOwnedSets(): Promise<OwnedSet[]> {
-  const progress = unwrap(await getSupabase().rpc('collection_set_progress', {})) as { set_id: string; owned_printings: number }[];
+export async function fetchOwnedSets(language: Language | null = null): Promise<OwnedSet[]> {
+  const progress = unwrap(await getSupabase().rpc('collection_set_progress', { p_language: language })) as {
+    set_id: string;
+    owned_printings: number;
+  }[];
   if (progress.length === 0) return [];
   const owned = new Map(progress.map((r) => [r.set_id, Number(r.owned_printings)]));
   const sets = unwrap(
@@ -382,13 +385,13 @@ export interface Showcase {
   })[];
 }
 
-/** The newest English booster and some of its most striking printings (alt arts / secret rares). */
-export async function fetchShowcase(): Promise<Showcase | null> {
+/** The newest booster in a language and some of its most striking printings (alt arts / secret rares). */
+export async function fetchShowcase(language: Language = 'en'): Promise<Showcase | null> {
   const supabase = getSupabase();
   const sets = await supabase
     .from('sets')
     .select('*')
-    .eq('language', 'en')
+    .eq('language', language)
     .eq('kind', 'booster')
     .order('sort_order', { ascending: false })
     .limit(1);

@@ -9,16 +9,20 @@ import { PageHeader, Panel } from '@/components/ui/panel';
 import { Screen } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
+import { LanguageSwitch } from '@/components/language-switch';
 import { fetchDeckSummaries } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { useAuth } from '@/providers/auth';
 import { spacing } from '@/theme';
 
 export default function DecksScreen() {
   const { t } = useTranslation();
   const { user, initializing } = useAuth();
+  // How much of each deck you own, counted in the app's card language.
+  const [language] = useCardLanguage();
   const decks = useQuery({
-    queryKey: ['decks', user?.id ?? 'anon', 'summaries', null],
-    queryFn: () => fetchDeckSummaries(null),
+    queryKey: ['decks', user?.id ?? 'anon', 'summaries', language],
+    queryFn: () => fetchDeckSummaries([language]),
     enabled: Boolean(user),
   });
 
@@ -48,9 +52,12 @@ export default function DecksScreen() {
         title={t('decks.title')}
         subtitle={t('decks.subtitle')}
         actions={
-          <Link href="/deck/new" asChild>
-            <Button title={t('decks.new')} icon="plus" />
-          </Link>
+          <>
+            <LanguageSwitch />
+            <Link href="/deck/new" asChild>
+              <Button title={t('decks.new')} icon="plus" />
+            </Link>
+          </>
         }
       />
       {decks.isPending ? (

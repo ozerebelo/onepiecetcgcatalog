@@ -8,6 +8,7 @@ import { ActivityIndicator, FlatList, Platform, Pressable, ScrollView, StyleShee
 
 import { SearchHeader, useCardFilters } from '@/components/card-filters';
 import { CardTile } from '@/components/card-tile';
+import { LanguageSwitch } from '@/components/language-switch';
 import { Chip } from '@/components/ui/chip';
 import { Icon } from '@/components/ui/icon';
 import { PageHeader, ProgressBar } from '@/components/ui/panel';
@@ -28,6 +29,7 @@ import {
   type SearchSort,
   type SetCover,
 } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { formatReleaseDate, setDisplayName } from '@/lib/format';
 import { notifyError, showToast } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
@@ -71,7 +73,8 @@ export default function CardsScreen() {
   const { t, i18n } = useTranslation();
   const filters = useCardFilters<SearchSort>('relevance');
   const { params } = filters;
-  const [language, setLanguage] = useState<Language>('en');
+  // One card language for the whole app: the sets listed, search results and quick adds follow it.
+  const [language] = useCardLanguage();
   const [kind, setKind] = useState<KindFilter>('all');
   const searching = params.query.trim() !== '' || filters.activeFilterCount > 0;
   const setGrid = useGridColumns(220, SET_TILE_GAP);
@@ -162,19 +165,7 @@ export default function CardsScreen() {
               : ' '
         }
         fetching={searching ? search.isFetching && !search.isFetchingNextPage : sets.isFetching}
-        actions={
-          searching ? undefined : (
-            <Segmented
-              accessibilityLabel={t('search.language')}
-              value={language}
-              onChange={setLanguage}
-              options={[
-                { value: 'en', label: t('languages.en') },
-                { value: 'ja', label: t('languages.ja') },
-              ]}
-            />
-          )
-        }
+        actions={<LanguageSwitch />}
       />
       {!searching ? (
         <ScrollView

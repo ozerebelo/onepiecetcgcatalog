@@ -191,8 +191,14 @@ for headings, Sans for text, Mono for card numbers and column heads). Marks carr
 **highlighter yellow = owned / selected**, **red pen = missing / needed**. The signature element is the
 row of four *playset slots* (`components/ui/pips.tsx`) on cards, set checklists and deck checks.
 Set pages default to a checklist view (`components/checklist.tsx`) with a grid view beside it; a deck's
-check reads as a decklist marked own / missing. A playset counts every printing of a card: two base
-art and two alt art copies (or Japanese ones) are a full playset.
+check reads as a decklist marked own / missing. A playset counts every printing of a card in one
+language: two base art and two alt art copies are a full playset.
+
+**English and Japanese are kept apart.** One app-wide card language (`lib/card-language.ts`, the EN | JP
+switch on Cards, Collection, Decks, Home, the card page and Account; remembered on the device) decides
+what every screen shows and counts: search results, card printings, the collection and its playsets,
+deck checks and quick adds. Two English + two Japanese copies are two half playsets, not one. Only the
+CSV export covers both languages (it is a full backup).
 
 ## Roadmap
 

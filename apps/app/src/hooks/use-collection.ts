@@ -9,6 +9,7 @@ import {
   fetchSetProgress,
   type QuantityMap,
 } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 
@@ -20,7 +21,7 @@ export const collectionKeys = {
   all: (userId: string) => ['collection', userId] as const,
   quantities: (userId: string, scope: { setId?: string; cardId?: string }) =>
     ['collection', userId, 'quantities', scope.setId ?? null, scope.cardId ?? null] as const,
-  summary: (userId: string) => ['collection', userId, 'summary'] as const,
+  summary: (userId: string, language: Language) => ['collection', userId, 'summary', language] as const,
   setProgress: (userId: string, language: Language) => ['collection', userId, 'set-progress', language] as const,
   search: (userId: string, params: unknown) => ['collection', userId, 'search', params] as const,
 };
@@ -36,25 +37,34 @@ export function useCollectionQuantities(scope: { setId?: string; cardId?: string
   });
 }
 
-/** Owned copies per card number, any printing or language (what a deck slot counts). Empty when signed out. */
-export function useOwnedByCard(): Record<string, number> {
+/**
+ * Owned copies per card number, any printing, in one language (the app's card language unless given):
+ * the playset. Languages are kept apart: two English + two Japanese copies are not one playset.
+ * Empty when signed out.
+ */
+export function useOwnedByCard(language?: Language): Record<string, number> {
+  const [cardLanguage] = useCardLanguage();
+  const lang = language ?? cardLanguage;
   const all = useCollectionQuantities({});
   return useMemo(() => {
     const totals: Record<string, number> = {};
     for (const [printingId, quantity] of Object.entries(all.data ?? {})) {
-      const code = parsePrintingId(printingId)?.code;
-      const cardId = code ? parsePrintingCode(code)?.cardId : undefined;
+      const parsed = parsePrintingId(printingId);
+      if (!parsed || parsed.language !== lang) continue;
+      const cardId = parsePrintingCode(parsed.code)?.cardId;
       if (cardId) totals[cardId] = (totals[cardId] ?? 0) + quantity;
     }
     return totals;
-  }, [all.data]);
+  }, [all.data, lang]);
 }
 
+/** Totals for the collection in the app's card language. */
 export function useCollectionSummary() {
   const { user } = useAuth();
+  const [language] = useCardLanguage();
   return useQuery({
-    queryKey: collectionKeys.summary(user?.id ?? 'anon'),
-    queryFn: fetchCollectionSummary,
+    queryKey: collectionKeys.summary(user?.id ?? 'anon', language),
+    queryFn: () => fetchCollectionSummary(language),
     enabled: Boolean(user),
   });
 }

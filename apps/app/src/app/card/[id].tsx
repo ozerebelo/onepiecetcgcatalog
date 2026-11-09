@@ -1,12 +1,14 @@
 import { rarityShort, type VariantKind } from '@binder/core';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CardImage } from '@/components/card-image';
+import { LanguageSwitch } from '@/components/language-switch';
 import { QuantityStepper } from '@/components/quantity-stepper';
+import { Button } from '@/components/ui/button';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
@@ -15,6 +17,7 @@ import { CostBadge } from '@/components/ui/tcg';
 import { Text } from '@/components/ui/text';
 import { useAdjustQuantity, useCollectionQuantities } from '@/hooks/use-collection';
 import { fetchCard, type CardDetail, type PrintingWithSet } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { printingLabel, variantName } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
 import { CARD_COLORS, fonts, radius, spacing, usePalette } from '@/theme';
@@ -42,10 +45,17 @@ export default function CardScreen() {
   );
 }
 
-function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initialPrintingId?: string }) {
+function CardDetailView({ card: fullCard, initialPrintingId }: { card: CardDetail; initialPrintingId?: string }) {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const wide = width >= WIDE_BREAKPOINT;
+  // Only the printings in the app's card language: English and Japanese are kept apart.
+  const [language, setLanguage] = useCardLanguage();
+  const otherLanguage = language === 'en' ? 'ja' : 'en';
+  const card = useMemo(
+    () => ({ ...fullCard, printings: fullCard.printings.filter((p) => p.language === language) }),
+    [fullCard, language],
+  );
   const [selectedId, setSelectedId] = useState(
     card.printings.find((p) => p.id === initialPrintingId)?.id ?? card.printings[0]?.id,
   );
@@ -53,7 +63,10 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
   const { user } = useAuth();
   const quantities = useCollectionQuantities({ cardId: card.id });
   const adjust = useAdjustQuantity();
-  const owned = quantities.data ?? {};
+  const owned = useMemo(
+    () => Object.fromEntries(Object.entries(quantities.data ?? {}).filter(([pid]) => pid.startsWith(`${language}:`))),
+    [quantities.data, language],
+  );
   const ownedTotal = Object.values(owned).reduce((sum, q) => sum + q, 0);
   const ownedPrintings = Object.keys(owned).length;
   const palette = usePalette();
@@ -88,14 +101,31 @@ function CardDetailView({ card, initialPrintingId }: { card: CardDetail; initial
           <View style={[styles.playset, { borderColor: palette.border }]}>
             <Pips owned={ownedTotal} />
             <Text variant="caption" tone="secondary" style={styles.flex}>
-              {ownedTotal > 0 ? t('collection.ownedAcross', { count: ownedTotal, printings: ownedPrintings }) : t('collection.noneOfThisCard')}
+              {ownedTotal > 0
+                ? t('collection.ownedAcross', { count: ownedTotal, printings: ownedPrintings, language: t(`languages.${language}`) })
+                : t('collection.noneOfThisCard', { language: t(`languages.${language}`) })}
             </Text>
           </View>
         ) : null}
         <View style={styles.section}>
-          <Text variant="label" tone="secondary">
-            {t('card.printings')} ({card.printings.length})
-          </Text>
+          <View style={styles.printingsHead}>
+            <Text variant="label" tone="secondary" style={styles.flex}>
+              {t('card.printings')} ({card.printings.length})
+            </Text>
+            <LanguageSwitch />
+          </View>
+          {card.printings.length === 0 ? (
+            // Some cards exist in only one language (Japanese releases come first).
+            <View style={styles.notInLanguage}>
+              <Text tone="secondary">{t('card.notInLanguage', { language: t(`languages.${language}`) })}</Text>
+              <Button
+                title={t('card.showOtherLanguage', { language: t(`languages.${otherLanguage}`) })}
+                variant="outline"
+                size="sm"
+                onPress={() => setLanguage(otherLanguage)}
+              />
+            </View>
+          ) : null}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.printings}>
             {card.printings.map((p) => (
               <PrintingThumb
@@ -306,6 +336,8 @@ const styles = StyleSheet.create({
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xl, paddingVertical: spacing.md, borderTopWidth: 1, borderBottomWidth: 1 },
   stat: { gap: 2 },
   titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  printingsHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  notInLanguage: { gap: spacing.sm, alignItems: 'flex-start', paddingVertical: spacing.sm },
   section: { gap: spacing.xs },
   link: { fontFamily: fonts.semibold },
   printings: { gap: spacing.sm, paddingVertical: spacing.xs },

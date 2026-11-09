@@ -13,6 +13,7 @@ import { Text } from '@/components/ui/text';
 import { TextField } from '@/components/ui/text-field';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { checkCards, saveDeck } from '@/lib/api';
+import { useCardLanguage } from '@/lib/card-language';
 import { notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
 import { monoFont, spacing } from '@/theme';
@@ -42,9 +43,11 @@ export function DeckEditor({ deckId, initialName = '', initialList = '', initial
 
   const parsed = useMemo(() => parseDecklist(list), [list]);
   const debouncedItems = useDebouncedValue<DeckItem[]>(parsed.items, 400);
+  // The live preview counts copies in the app's card language, like the saved deck's check.
+  const [language] = useCardLanguage();
   const preview = useQuery({
-    queryKey: ['deck-preview', user?.id, debouncedItems],
-    queryFn: () => checkCards(debouncedItems, { languages: null, reserveBuilt: false }),
+    queryKey: ['deck-preview', user?.id, language, debouncedItems],
+    queryFn: () => checkCards(debouncedItems, { languages: [language], reserveBuilt: false }),
     enabled: Boolean(user) && debouncedItems.length > 0,
   });
 

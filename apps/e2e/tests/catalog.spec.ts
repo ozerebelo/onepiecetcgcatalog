@@ -9,7 +9,8 @@ test('Cards page lists products by section, newest first', async ({ page }) => {
   await page.getByRole('checkbox', { name: 'Sets', exact: true }).click();
   await scrollUntil(page, 'OP-01');
   await expect(page.getByText('Romance Dawn').first()).toBeVisible();
-  await page.getByText('Japanese', { exact: true }).click();
+  // The app-wide card language switch: Japanese products only.
+  await page.getByRole('radio', { name: 'JP', exact: true }).click();
   await scrollUntil(page, 'PRB-01');
 });
 

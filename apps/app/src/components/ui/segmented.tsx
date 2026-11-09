@@ -25,6 +25,8 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
             key={option.value}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}
+            // React Native Web drops `checked` for radios; say it in ARIA directly.
+            aria-checked={selected}
             accessibilityLabel={option.label}
             onPress={() => onChange(option.value)}
             style={({ hovered }) => [

@@ -72,14 +72,14 @@ test('importing a pasted list previews exactly, then commits', async ({ page }) 
   await page.getByRole('button', { name: 'Add 8 copies' }).click();
   await expect(page.getByText('Import complete')).toBeVisible();
   await page.getByRole('button', { name: 'View collection' }).click();
-  // 4 × OP01-001 EN + 5 × OP01-016 + 2 × OP01-025_p1 + 1 × OP01-001 JP
-  await expect(page.getByText('12 cards', { exact: false }).first()).toBeVisible();
+  // English side: 4 × OP01-001 + 5 × OP01-016 + 2 × OP01-025_p1 (the Japanese OP01-001 shows under JP).
+  await expect(page.getByText('11 cards ·').first()).toBeVisible();
 });
 
 test('exports as CSV and as a list', async ({ page }) => {
   await signIn(page, USERS.collector);
   await page.goto('/collection');
-  await expect(page.getByText('12 cards', { exact: false }).first()).toBeVisible();
+  await expect(page.getByText('11 cards ·').first()).toBeVisible();
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export CSV' }).click()]);
   csvBackup = fs.readFileSync((await download.path())!, 'utf8');
   expect(csvBackup.startsWith('printing_id,quantity,code')).toBe(true);
@@ -140,11 +140,11 @@ test('alt arts count toward the playset: 2 base + 2 alt art is a full playset', 
   // Both printings' rows show the card's full playset, each with its own copies.
   await expect(page.getByRole('link', { name: 'Roronoa Zoro, OP01-025, ×2, 4 of 4 for a playset' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Roronoa Zoro, OP01-025 · Alt art, ×2, 4 of 4 for a playset' })).toBeVisible();
-  // OP01-025 (2 + 2 alt art), OP01-001 (4 EN + 1 JP) and Nami (5): Japanese copies count too.
+  // In English: OP01-025 (2 + 2 alt art), OP01-001 (4) and Nami (5).
   await expect(page.getByText(/Full playsets: 3 of \d+ cards/)).toBeVisible();
 });
 
-test('collection filters: art, playset status, set and language', async ({ page }) => {
+test('collection filters: art, playset status, set; languages kept apart', async ({ page }) => {
   await signIn(page, USERS.collector);
   await page.goto('/collection');
   await page.getByRole('button', { name: /^Filters/ }).click();
@@ -152,13 +152,14 @@ test('collection filters: art, playset status, set and language', async ({ page 
   await expect(page.getByText('1 printing · 2 copies')).toBeVisible();
   // Active filters show above the grid and can be removed one by one.
   await page.getByRole('button', { name: 'Remove filter: Alt art' }).click();
-  // More than a playset, counting every printing: OP01-001 (4 EN + 1 JP) and Nami (5).
+  // More than a playset, in English only: Nami (5). OP01-001 is 4 English + 1 Japanese, which
+  // the app keeps apart, so it is exactly a playset.
   await page.getByRole('checkbox', { name: 'More than 4' }).click();
-  await expect(page.getByText('3 printings · 10 copies')).toBeVisible();
+  await expect(page.getByText('1 printing · 5 copies')).toBeVisible();
   await page.getByRole('button', { name: /^Clear/ }).click();
-  // A set code covers both languages; the language filter narrows it.
+  // The English OP-01 cards; switching the card language shows the Japanese ones instead.
   await page.getByRole('checkbox', { name: /^OP-01 Romance Dawn/ }).click();
-  await expect(page.getByText('5 printings · 14 copies')).toBeVisible();
+  await expect(page.getByText('4 printings · 13 copies')).toBeVisible();
   await page.getByRole('radio', { name: 'JP', exact: true }).click();
   await expect(page.getByText('1 printing · 1 copy')).toBeVisible();
 });

@@ -9,6 +9,7 @@ import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, useWind
 import { useCardFilters } from '@/components/card-filters';
 import { ActiveFilters, CollectionFilterPanel } from '@/components/collection-filters';
 import { CardTile } from '@/components/card-tile';
+import { LanguageSwitch } from '@/components/language-switch';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/panel';
 import { Screen, listColumn } from '@/components/ui/screen';
@@ -120,6 +121,7 @@ function CollectionView({ userId }: { userId: string }) {
         }
         actions={
           <>
+            <LanguageSwitch />
             <Link href="/collection/import" asChild>
               <Button title={t('collection.import')} icon="upload" size="sm" />
             </Link>
