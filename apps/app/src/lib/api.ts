@@ -696,3 +696,99 @@ export async function removeFromWishlist(printingId: string): Promise<void> {
 export async function wishlistDeckMissing(deckId: string, language: Language): Promise<number> {
   return Number(unwrap(await getSupabase().rpc('wishlist_add_missing', { p_deck_id: deckId, p_language: language })));
 }
+
+// -----------------------------------------------------------------------------
+// Meta decks (milestone 5): curated tournament lists, public; ownership is per user.
+// -----------------------------------------------------------------------------
+
+export interface MetaDeckProgress {
+  id: string;
+  slug: string;
+  archetype: string;
+  leader_card_id: string;
+  leader_name: string;
+  leader_colors: Color[];
+  leader_image: string | null;
+  format: string;
+  event: string;
+  event_date: string;
+  placement: number | null;
+  players: number | null;
+  player: string | null;
+  region: string | null;
+  source_name: string;
+  source_url: string;
+  needed: number;
+  have: number;
+  missing: number;
+}
+
+/** Every meta deck with how much of it you own (in one card language), newest event first. */
+export async function fetchMetaProgress(language: Language): Promise<MetaDeckProgress[]> {
+  return unwrap(await getSupabase().rpc('meta_deck_progress', { p_language: language })) as MetaDeckProgress[];
+}
+
+export interface MetaPickup {
+  card_id: string;
+  name: string;
+  category: Category;
+  colors: Color[];
+  cost: number | null;
+  image_url: string | null;
+  owned: number;
+  /** Copies to buy to cover every meta deck that plays it. */
+  copies: number;
+  /** Meta decks that play it and you're short of. */
+  decks: number;
+  /** Meta decks this card alone would complete. */
+  decks_finished: number;
+}
+
+export async function fetchMetaPickups(language: Language, limit = 12): Promise<MetaPickup[]> {
+  return unwrap(await getSupabase().rpc('meta_pickups', { p_language: language, p_limit: limit })) as MetaPickup[];
+}
+
+export interface MetaCheckRow {
+  card_id: string;
+  name: string;
+  category: Category;
+  colors: Color[];
+  cost: number | null;
+  image_url: string | null;
+  needed: number;
+  owned: number;
+  have: number;
+  missing: number;
+}
+
+/** One meta deck card by card, with what you own (signed out: nothing). */
+export async function fetchMetaDeckCheck(id: string, language: Language): Promise<MetaCheckRow[]> {
+  return unwrap(await getSupabase().rpc('meta_deck_check', { p_meta_deck_id: id, p_language: language })) as MetaCheckRow[];
+}
+
+export interface MetaDeckList {
+  id: string;
+  archetype: string;
+  event: string;
+  event_date: string;
+  placement: number | null;
+  players: number | null;
+  items: (DeckItem & { name: string })[];
+}
+
+/** The meta lists for a leader (newest first), to compare your own deck with. */
+export async function fetchMetaListsForLeader(leaderId: string): Promise<MetaDeckList[]> {
+  const result = await getSupabase()
+    .from('meta_decks')
+    .select('id, archetype, event, event_date, placement, players, meta_deck_cards(card_id, quantity, card:cards(name))')
+    .eq('leader_card_id', leaderId)
+    .order('event_date', { ascending: false })
+    .limit(5);
+  const rows = unwrap(result) as unknown as (Omit<MetaDeckList, 'items'> & {
+    meta_deck_cards: (DeckItem & { card: { name: string } | null })[];
+  })[];
+  return rows.map(({ meta_deck_cards, ...rest }) => ({
+    ...rest,
+    items: meta_deck_cards.map(({ card, ...item }) => ({ ...item, name: card?.name ?? item.card_id })),
+  }));
+}

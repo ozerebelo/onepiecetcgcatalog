@@ -6,6 +6,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { DeckCard } from '@/components/deck-card';
 import { AlmostThere, RecentActivity } from '@/components/home/insights';
+import { MetaSuggestions } from '@/components/home/meta-suggestions';
 import { LanguageSwitch } from '@/components/language-switch';
 import { Button } from '@/components/ui/button';
 import { EmptyView } from '@/components/ui/state-views';
@@ -90,6 +91,7 @@ export function Dashboard() {
       />
 
       <AlmostThere decks={decks.data} />
+      <MetaSuggestions />
 
       <View style={[styles.columns, wide && styles.columnsWide]}>
         <View style={[styles.column, wide && { flex: 3 }]}>

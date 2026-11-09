@@ -42,6 +42,9 @@ export default function DecksScreen() {
             <Button title={t('account.signIn')} variant="outline" />
           </Link>
         </Panel>
+        <Link href="/meta" asChild>
+          <Button title={t('meta.link')} icon="award" variant="outline" boxStyle={styles.metaLink} />
+        </Link>
       </Screen>
     );
   }
@@ -54,6 +57,9 @@ export default function DecksScreen() {
         actions={
           <>
             <LanguageSwitch />
+            <Link href="/meta" asChild>
+              <Button title={t('meta.link')} icon="award" variant="outline" />
+            </Link>
             <Link href="/deck/new" asChild>
               <Button title={t('decks.new')} icon="plus" />
             </Link>
@@ -85,4 +91,5 @@ export default function DecksScreen() {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   center: { alignSelf: 'center' },
+  metaLink: { alignSelf: 'flex-start', marginTop: spacing.md },
 });

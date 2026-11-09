@@ -10,6 +10,7 @@ import { CardImage } from '@/components/card-image';
 import { CostCurve } from '@/components/deck-curve';
 import { DeckProblems } from '@/components/deck-problems';
 import { DeckLegalityNotes, DeckProfile, OpeningHand } from '@/components/deck-tools';
+import { MetaCompare } from '@/components/meta-compare';
 import { LanguageSwitch } from '@/components/language-switch';
 import { AppSwitch } from '@/components/ui/app-switch';
 import { Button } from '@/components/ui/button';
@@ -281,6 +282,7 @@ export default function DeckScreen() {
         <CostCurve rows={known} counters={counters.data ? Object.fromEntries(Object.entries(counters.data).map(([k, v]) => [k, v.counter])) : undefined} />
         <DeckProfile rows={known} details={counters.data} />
         <OpeningHand rows={known} life={leader?.cost ?? 5} />
+        <MetaCompare leaderId={leader?.card_id} rows={known.map((r) => ({ card_id: r.card_id, quantity: r.needed, name: r.name }))} />
       </View>
 
       {/* The decklist, card by card */}

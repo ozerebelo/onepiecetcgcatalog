@@ -7,7 +7,7 @@ API and the Mailpit test inbox). CI runs them on every push to `main` and on pul
 What they cover: the Cards page (sections, search, type filters, alt-art names), card and set pages,
 sign-in / sign-up validation, the full sign-up → branded confirmation email → sign-in flow, the
 collection journey (collect mode, steppers, import preview, CSV / list export, restore from backup)
-and the deck check (missing cards, copy as Sim list). Phone-sized Chromium for most, desktop for the
+and the deck check (missing cards, copy as Sim list, profile, test hand), and meta decks (a fixture list the setup writes). Phone-sized Chromium for most, desktop for the
 top bar and infinite scroll. Any console error fails a test.
 
 ## Run them locally

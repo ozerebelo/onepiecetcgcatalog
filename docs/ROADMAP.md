@@ -55,7 +55,9 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 - Legality: blocks in rotation (from milestone 1) and the banned/restricted list (a small file in the
   repo we update when Bandai announces changes).
 
-### 5. Meta decks & suggestions (L) — see "Sourcing meta decks" below
+### 5. Meta decks & suggestions (L) — see "Sourcing meta decks" below — built; lists pending
+*The Meta page, pickups, Home suggestions and the deck-page comparison are built and tested; they show
+nothing until `packages/ingest/meta/meta-decks.json` has lists (see "Sourcing meta decks").*
 - A Meta page: current top archetypes by leader, each with a reference list, its source and date.
 - "What can you build": every meta deck ranked by how much of it you already own (in your card
   language), with "Missing n" — the deck check you already trust, run against every meta list.
@@ -83,6 +85,12 @@ so the app gets richer every step instead of waiting for a big release. Sizes ar
 
 Decklists are published openly after tournaments, but the collections of them belong to the sites
 that gather them, so we use them with permission and credit. Plan, in order:
+
+**Status (Nov 2026):** OPTCG.GG is the most current source (Regionals, Championship Finals, Egman Events,
+ChinoizeCup up to early November). Limitless and gumgum.gg stopped covering major events in July/August
+2026; BountyLog has player-published lists, not results; Cardkaizoku's lists are premium. Lists go into
+`packages/ingest/meta/meta-decks.json` by hand (README alongside); automated reading of another site's
+data waits for its permission.
 
 1. **Curated by us (no dependency).** A `meta_decks` table we fill from public tournament results:
    ~10–20 reference lists per format, each with leader, archetype, event, date and a link to the

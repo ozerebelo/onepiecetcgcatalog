@@ -82,6 +82,10 @@ collection_items (phase 2)      PK (user_id, printing_id), quantity 1..9999
 
 decks (phase 3)                 id, user_id, name, leader_card_id, notes, is_built, card_count
 deck_cards                      PK (deck_id, card_id), quantity 1..50  — cards, not printings
+
+meta_decks (milestone 5)        id, slug, archetype, leader_card_id, format, event, event_date,
+                                placement, players, player, region, source_name, source_url
+meta_deck_cards                 PK (meta_deck_id, card_id), quantity — public read, importer writes
 ```
 
 ### Deck API (SQL functions, `security invoker`)
@@ -95,6 +99,23 @@ deck_cards                      PK (deck_id, card_id), quantity 1..50  — cards
 
 Decklist parsing, tournament-rule warnings and Sim/shopping-list export live in
 `packages/core/src/deck.ts`.
+
+### Meta decks (milestone 5)
+
+Reference tournament lists, curated by hand in `packages/ingest/meta/meta-decks.json` (validated by
+`parseMetaDecks` in `packages/core/src/meta.ts`, loaded by `pnpm ingest --meta-only`, and by the
+*Update database & card data* workflow on push to main). Every list credits and links to where it was
+published. Ownership is per user, per card, in one card language, and works signed out (nothing owned):
+
+| Function | Purpose |
+|---|---|
+| `meta_deck_progress(language)` | Every meta deck with leader art and `needed / have / missing` — "What can you build". |
+| `meta_pickups(language, limit)` | Missing cards ranked by how many meta decks they would complete / appear in. |
+| `meta_deck_check(meta_deck_id, language)` | One meta deck card by card with what you own. |
+| `owned_card_totals(language)` | Helper: the caller's copies per card (SECURITY DEFINER only so visitors get an empty set). |
+
+Your own deck page compares your list with the newest meta list for the same leader
+(`diffDecklists` in core).
 
 ### Collection API (SQL functions, `security invoker` — RLS applies)
 

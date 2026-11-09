@@ -8,6 +8,8 @@
  *   pnpm ingest --mirror-only                 # only copy images (no catalog refresh)
  *   pnpm ingest --fetch --products            # also read release dates + set artwork from the official site
  *   pnpm ingest --products-only               # only refresh product details (no catalog refresh)
+ *   pnpm ingest --meta-only                   # load the curated meta decks (packages/ingest/meta/meta-decks.json)
+ *   pnpm ingest --meta-only --dry-run         # only validate that file
  *
  * Environment:
  *   DATABASE_URL        Postgres connection string (Supabase: Dashboard → Connect → Session pooler)
@@ -24,6 +26,7 @@ import pg from 'pg';
 
 import { connectionConfig, writeCatalog } from './db';
 import { mirrorImages, supabaseImageStore, supabaseUrlFromDatabaseUrl } from './mirror';
+import { readMetaDecks, writeMetaDecks } from './meta';
 import { normalize } from './normalize';
 import {
   PRODUCT_SITES,
@@ -50,8 +53,14 @@ async function main() {
       'mirror-limit': { type: 'string', default: '12000' },
       products: { type: 'boolean', default: false },
       'products-only': { type: 'boolean', default: false },
+      'meta-only': { type: 'boolean', default: false },
     },
   });
+
+  if (values['meta-only']) {
+    await runMeta(values['dry-run']);
+    return;
+  }
 
   if (values['mirror-only']) {
     await runMirror(Number(values['mirror-limit']));
@@ -117,6 +126,26 @@ async function main() {
 
   if (values.products) await runProducts(languages, { dryRun: false, mirror: values['mirror-images'] });
   if (values['mirror-images']) await runMirror(Number(values['mirror-limit']));
+}
+
+/** Curated meta decks: validate the file, then make the database match it. */
+async function runMeta(dryRun: boolean) {
+  const decks = await readMetaDecks();
+  console.log(`meta decks: ${decks.length} valid in the file`);
+  if (dryRun) {
+    console.log('Dry run: nothing written.');
+    return;
+  }
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) throw new Error('DATABASE_URL is not set (use --dry-run to only validate the file)');
+  const client = new pg.Client(connectionConfig(databaseUrl, process.env.DATABASE_CA_CERT || undefined));
+  await client.connect();
+  try {
+    const stats = await writeMetaDecks(client, decks);
+    console.log(`meta decks: ${stats.upserted} written, ${stats.removed} removed`);
+  } finally {
+    await client.end();
+  }
 }
 
 /**

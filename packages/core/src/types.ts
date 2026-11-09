@@ -114,6 +114,31 @@ export interface DeckRow {
   updated_at: string;
 }
 
+/** A curated tournament list (supabase meta_decks; written only by the importer). */
+export interface MetaDeckRow {
+  id: string;
+  slug: string;
+  archetype: string;
+  leader_card_id: string;
+  format: string;
+  event: string;
+  event_date: string;
+  placement: number | null;
+  players: number | null;
+  player: string | null;
+  region: string | null;
+  source_name: string;
+  source_url: string;
+  card_count: number;
+  updated_at: string;
+}
+
+export interface MetaDeckCardRow {
+  meta_deck_id: string;
+  card_id: string;
+  quantity: number;
+}
+
 export interface DeckCardRow {
   deck_id: string;
   card_id: string;

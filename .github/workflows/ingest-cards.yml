@@ -59,3 +59,6 @@ jobs:
       - name: Import cards and copy images
         if: steps.config.outputs.skip != 'true'
         run: pnpm ingest --fetch --products --mirror-images ${{ inputs.dry_run && '--dry-run' || '' }}
+      - name: Load the curated meta decks
+        if: steps.config.outputs.skip != 'true'
+        run: pnpm ingest --meta-only ${{ inputs.dry_run && '--dry-run' || '' }}
