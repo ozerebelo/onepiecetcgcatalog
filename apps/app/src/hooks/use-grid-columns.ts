@@ -24,11 +24,12 @@ function webScrollbarWidth(): number {
  * How many columns fit the current window: ~3 card columns on phones, more on tablets and desktop,
  * with tiles never narrower than `minTileWidth`. `gap` must match the gap the grid is laid out with.
  */
-export function useGridColumns(minTileWidth = 110, gap: number = spacing.sm) {
+export function useGridColumns(minTileWidth = 110, gap: number = spacing.sm, reserved = 0) {
   const { width } = useWindowDimensions();
   const usable = Platform.OS === 'web' ? width - webScrollbarWidth() : width;
-  const contentWidth = Math.min(usable, MAX_CONTENT_WIDTH) - spacing.lg * 2;
+  // `reserved`: width taken beside the grid inside the content column (e.g. a filter sidebar).
+  const contentWidth = Math.min(usable, MAX_CONTENT_WIDTH) - spacing.lg * 2 - reserved;
   const columns = Math.max(2, Math.min(8, Math.floor((contentWidth + gap) / (minTileWidth + gap))));
   const tileWidth = Math.floor((contentWidth - gap * (columns - 1)) / columns);
-  return { columns, tileWidth };
+  return { columns, tileWidth, usable };
 }

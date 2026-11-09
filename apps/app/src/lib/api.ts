@@ -205,9 +205,44 @@ export async function fetchSetProgress(language: Language): Promise<Record<strin
   return Object.fromEntries(rows.map((r) => [r.set_id, Number(r.owned_printings)]));
 }
 
+/** A set you own cards from, merged across languages by set code (OP-01 = English + Japanese). */
+export interface OwnedSet {
+  code: string;
+  name: string;
+  owned: number;
+  sortOrder: number;
+}
+
+export async function fetchOwnedSets(): Promise<OwnedSet[]> {
+  const progress = unwrap(await getSupabase().rpc('collection_set_progress', {})) as { set_id: string; owned_printings: number }[];
+  if (progress.length === 0) return [];
+  const owned = new Map(progress.map((r) => [r.set_id, Number(r.owned_printings)]));
+  const sets = unwrap(
+    await getSupabase().from('sets').select('id, code, name, language, sort_order').in('id', [...owned.keys()]),
+  ) as Pick<SetRow, 'id' | 'code' | 'name' | 'language' | 'sort_order'>[];
+  const byCode = new Map<string, OwnedSet>();
+  for (const set of sets) {
+    const entry = byCode.get(set.code) ?? { code: set.code, name: set.name, owned: 0, sortOrder: set.sort_order };
+    entry.owned += owned.get(set.id) ?? 0;
+    // Prefer the English name; order by the newest release across languages.
+    if (set.language === 'en') entry.name = set.name;
+    entry.sortOrder = Math.max(entry.sortOrder, set.sort_order);
+    byCode.set(set.code, entry);
+  }
+  return [...byCode.values()].sort((a, b) => b.sortOrder - a.sortOrder);
+}
+
 export type CollectionSort = 'number' | 'name' | 'cost' | 'quantity' | 'recent';
 
-export interface CollectionSearchParams extends Omit<CardSearchParams, 'sort'> {
+export type ArtFilter = 'base' | 'alt';
+export type PlaysetFilter = 'full' | 'incomplete' | 'extra';
+
+export interface CollectionSearchParams extends Omit<CardSearchParams, 'sort' | 'setId'> {
+  /** Set codes (OP-01, ST-10…): each matches the set in every language. */
+  setCodes: string[];
+  art: ArtFilter | null;
+  /** Playset status of the card, counting every printing and language. */
+  playset: PlaysetFilter | null;
   sort: CollectionSort;
 }
 
@@ -227,6 +262,8 @@ export interface CollectionSearchResult {
   colors: Color[];
   cost: number | null;
   quantity: number;
+  /** Copies of the card across all printings and languages (its playset). */
+  card_quantity: number;
   total_count: number;
   total_quantity: number;
 }
@@ -236,12 +273,14 @@ export async function searchCollection(params: CollectionSearchParams, page: num
   const result = await getSupabase().rpc('search_collection', {
     p_query: params.query.trim() || null,
     p_languages: empty(params.languages),
-    p_set_id: params.setId ?? null,
+    p_set_codes: empty(params.setCodes),
     p_colors: empty(params.colors),
     p_categories: empty(params.categories),
     p_rarities: empty(params.rarities),
     p_cost_min: params.costMin ?? null,
     p_cost_max: params.costMax ?? null,
+    p_art: params.art,
+    p_playset: params.playset,
     p_sort: params.sort,
     p_limit: SEARCH_PAGE_SIZE,
     p_offset: page * SEARCH_PAGE_SIZE,
@@ -250,6 +289,7 @@ export async function searchCollection(params: CollectionSearchParams, page: num
   return rows.map((r) => ({
     ...r,
     quantity: Number(r.quantity),
+    card_quantity: Number(r.card_quantity),
     total_count: Number(r.total_count),
     total_quantity: Number(r.total_quantity),
   }));

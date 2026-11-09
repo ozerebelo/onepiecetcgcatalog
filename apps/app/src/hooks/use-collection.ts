@@ -81,7 +81,7 @@ function patchQuantityMaps(client: QueryClient, userId: string, printingId: stri
 
 /** Marks the derived views (totals, collection list, set progress) as stale. */
 export function invalidateCollectionViews(client: QueryClient, userId: string) {
-  for (const view of ['summary', 'search', 'set-progress']) {
+  for (const view of ['summary', 'search', 'set-progress', 'owned-sets']) {
     client.invalidateQueries({ queryKey: [...collectionKeys.all(userId), view] });
   }
 }

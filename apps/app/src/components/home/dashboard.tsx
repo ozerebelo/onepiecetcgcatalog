@@ -34,7 +34,17 @@ export function Dashboard() {
   const decks = useQuery({ queryKey: ['decks', userId, 'summaries', null], queryFn: () => fetchDeckSummaries(null), enabled: Boolean(user) });
   const showcase = useQuery({ queryKey: ['showcase'], queryFn: fetchShowcase, staleTime: 60 * 60 * 1000 });
   const progress = useSetProgress('en');
-  const recentParams = { query: '', languages: [], colors: [], categories: [], rarities: [], sort: 'recent' as const };
+  const recentParams = {
+    query: '',
+    languages: [],
+    setCodes: [],
+    colors: [],
+    categories: [],
+    rarities: [],
+    art: null,
+    playset: null,
+    sort: 'recent' as const,
+  };
   const recent = useQuery({
     queryKey: collectionKeys.search(userId, { ...recentParams, page: 'recent-strip' }),
     queryFn: () => searchCollection(recentParams, 0),

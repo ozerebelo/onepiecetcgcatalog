@@ -194,8 +194,8 @@
     "title": "Collection",
     "signedOutBody": "Create a free account to track every card you own — exact arts and languages included — synced across all your devices.",
     "summary": "{{copies}} cards · {{printings}} printings · {{cards}} different cards",
-    "results_one": "{{count}} printing · {{copies}} copies",
-    "results_other": "{{count}} printings · {{copies}} copies",
+    "results_one": "{{count}} printing · {{copies}}",
+    "results_other": "{{count}} printings · {{copies}}",
     "import": "Import",
     "exportCsv": "Export CSV",
     "copyList": "Copy as list",
@@ -240,7 +240,34 @@
     "fullPlaysets": "Full playsets: {{count}} of {{total}} cards",
     "playsetOf": "{{count}} of {{playset}} for a playset",
     "legendHere": "Copies of this printing",
-    "legendElsewhere": "Copies of its other arts and languages"
+    "legendElsewhere": "Copies of its other arts and languages",
+    "filterPanel": {
+      "title": "Filters",
+      "clear_one": "Clear ({{count}})",
+      "clear_other": "Clear all ({{count}})",
+      "playset": "Playset",
+      "playsets": {
+        "full": "Full playset",
+        "incomplete": "Under 4 copies",
+        "extra": "More than 4"
+      },
+      "art": "Art",
+      "arts": {
+        "base": "Base art",
+        "alt": "Alt art"
+      },
+      "sets": "Set",
+      "ownedPrintings_one": "{{count}} printing owned",
+      "ownedPrintings_other": "{{count}} printings owned",
+      "allSets": "Show all {{count}} sets",
+      "fewerSets": "Show fewer sets",
+      "remove": "Remove filter: {{filter}}",
+      "show": "Filters",
+      "showCount": "Filters ({{count}})",
+      "hide": "Hide filters"
+    },
+    "copiesCount_one": "{{formatted}} copy",
+    "copiesCount_other": "{{formatted}} copies"
   },
   "import": {
     "title": "Import cards",

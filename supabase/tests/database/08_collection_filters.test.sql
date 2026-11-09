@@ -1,0 +1,62 @@
+-- Collection browsing filters: sets by code (any language), base vs alt art, playset status.
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(8);
+
+insert into public.sets (id, language, source_id, code, name, kind, sort_order) values
+  ('en-569101', 'en', '569101', 'OP-01', 'ROMANCE DAWN', 'booster', 569101),
+  ('ja-550101', 'ja', '550101', 'OP-01', 'ROMANCE DAWN', 'booster', 550101),
+  ('en-569102', 'en', '569102', 'OP-02', 'PARAMOUNT WAR', 'booster', 569102);
+insert into public.cards (id, name_en, name_ja, category, colors, cost, types) values
+  ('OP01-025', 'Roronoa Zoro', 'ロロノア・ゾロ', 'Character', '{Red}', 3, '{}'),
+  ('OP01-016', 'Nami', 'ナミ', 'Character', '{Red}', 1, '{}'),
+  ('OP02-001', 'Edward.Newgate', 'エドワード・ニューゲート', 'Leader', '{Red}', 6, '{}');
+insert into public.printings (id, card_id, language, code, variant, variant_index, set_id, rarity, name, image_url) values
+  ('en:OP01-025',    'OP01-025', 'en', 'OP01-025',    'base',     0, 'en-569101', 'SuperRare', 'Roronoa Zoro', 'x'),
+  ('en:OP01-025_p1', 'OP01-025', 'en', 'OP01-025_p1', 'parallel', 1, 'en-569101', 'SuperRare', 'Roronoa Zoro', 'x'),
+  ('ja:OP01-016',    'OP01-016', 'ja', 'OP01-016',    'base',     0, 'ja-550101', 'Rare',      'ナミ', 'x'),
+  ('en:OP02-001',    'OP02-001', 'en', 'OP02-001',    'base',     0, 'en-569102', 'Leader',    'Edward.Newgate', 'x');
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000a1', 'alice@example.com'),
+  ('00000000-0000-0000-0000-0000000000b2', 'bob@example.com');
+
+set local role authenticated;
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000a1", "role": "authenticated"}';
+-- Alice: 2 base + 2 alt-art Zoro (a full playset), 1 Japanese Nami, 6 Newgate.
+select public.set_collection_quantity('en:OP01-025', 2);
+select public.set_collection_quantity('en:OP01-025_p1', 2);
+select public.set_collection_quantity('ja:OP01-016', 1);
+select public.set_collection_quantity('en:OP02-001', 6);
+
+select set_eq(
+  $$select printing_id from public.search_collection(p_set_codes => array['OP-01'])$$,
+  $$values ('en:OP01-025'), ('en:OP01-025_p1'), ('ja:OP01-016')$$,
+  'a set code matches the set in every language');
+select set_eq(
+  $$select printing_id from public.search_collection(p_set_codes => array['OP-01', 'OP-02'], p_languages => array['en'])$$,
+  $$values ('en:OP01-025'), ('en:OP01-025_p1'), ('en:OP02-001')$$,
+  'several sets at once, combined with language');
+select set_eq(
+  $$select printing_id from public.search_collection(p_art => 'alt')$$,
+  $$values ('en:OP01-025_p1')$$,
+  'alternate arts only');
+select is((select count(*)::int from public.search_collection(p_art => 'base')), 3, 'base arts only');
+select set_eq(
+  $$select printing_id from public.search_collection(p_playset => 'full')$$,
+  $$values ('en:OP01-025'), ('en:OP01-025_p1'), ('en:OP02-001')$$,
+  '2 base + 2 alt art is a full playset');
+select set_eq(
+  $$select printing_id from public.search_collection(p_playset => 'incomplete')$$,
+  $$values ('ja:OP01-016')$$,
+  'incomplete playsets');
+select set_eq(
+  $$select printing_id, card_quantity::int from public.search_collection(p_playset => 'extra')$$,
+  $$values ('en:OP02-001'::text, 6)$$,
+  'more than a playset, with the card total');
+
+-- Bob sees none of it.
+set local request.jwt.claims = '{"sub": "00000000-0000-0000-0000-0000000000b2", "role": "authenticated"}';
+select is((select count(*)::int from public.search_collection()), 0, 'filters never reach another user''s collection');
+
+select * from finish();
+rollback;

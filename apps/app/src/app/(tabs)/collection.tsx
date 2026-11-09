@@ -4,24 +4,30 @@ import * as Clipboard from 'expo-clipboard';
 import { Link } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { SearchHeader, useCardFilters } from '@/components/card-filters';
+import { useCardFilters } from '@/components/card-filters';
+import { ActiveFilters, CollectionFilterPanel } from '@/components/collection-filters';
 import { CardTile } from '@/components/card-tile';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/panel';
 import { Screen, listColumn } from '@/components/ui/screen';
 import { EmptyView, ErrorView, LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
+import { TextField } from '@/components/ui/text-field';
 import { collectionKeys, useCollectionSummary, useOwnedByCard } from '@/hooks/use-collection';
 import { useGridColumns } from '@/hooks/use-grid-columns';
 import { exportCollection, SEARCH_PAGE_SIZE, searchCollection, type CollectionSort } from '@/lib/api';
 import { saveTextFile } from '@/lib/files';
 import { notifyError } from '@/lib/notify';
 import { useAuth } from '@/providers/auth';
-import { radius, spacing, usePalette } from '@/theme';
+import { MAX_CONTENT_WIDTH, fonts, radius, spacing, usePalette } from '@/theme';
 
 const SORTS: readonly CollectionSort[] = ['number', 'name', 'cost', 'quantity', 'recent'];
+/** From this width the filters sit in a sidebar beside the grid; below it they fold behind a button. */
+const SIDEBAR_BREAKPOINT = 960;
+const SIDEBAR_WIDTH = 256;
+const SIDEBAR_GAP = spacing.xl;
 
 export default function CollectionScreen() {
   const { user, initializing } = useAuth();
@@ -54,9 +60,12 @@ function SignedOut() {
 function CollectionView({ userId }: { userId: string }) {
   const { t, i18n } = useTranslation();
   const palette = usePalette();
-  const { columns, tileWidth } = useGridColumns();
+  const { width } = useWindowDimensions();
+  const sidebar = width >= SIDEBAR_BREAKPOINT;
+  const { columns, tileWidth, usable } = useGridColumns(110, spacing.sm, sidebar ? SIDEBAR_WIDTH + SIDEBAR_GAP : 0);
   const filters = useCardFilters<CollectionSort>('number');
-  const { params } = filters;
+  const params = filters.collectionParams;
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const summary = useCollectionSummary();
   // Slots show the card's playset across all printings; this printing's copies are the solid ones.
   const byCard = useOwnedByCard();
@@ -75,6 +84,7 @@ function CollectionView({ userId }: { userId: string }) {
   const first = items[0];
   const isEmptyCollection = summary.data?.unique_printings === 0;
   const number = (n: number) => n.toLocaleString(i18n.language);
+  const copiesLabel = (n: number) => t('collection.copiesCount', { count: n, formatted: number(n) });
 
   const runExport = async (kind: 'csv' | 'list') => {
     setExporting(kind);
@@ -143,7 +153,12 @@ function CollectionView({ userId }: { userId: string }) {
       </View>
 
       {isEmptyCollection ? (
-        <View style={[styles.card, styles.emptyCard, { backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow }]}>
+        <View
+          style={[
+            styles.card,
+            styles.emptyCard,
+            { backgroundColor: palette.surface, borderColor: palette.border, boxShadow: palette.shadow },
+          ]}>
           <Text variant="heading">{t('collection.emptyTitle')}</Text>
           <Text tone="secondary">{t('collection.emptyBody')}</Text>
           <Link href="/cards" asChild>
@@ -151,71 +166,115 @@ function CollectionView({ userId }: { userId: string }) {
           </Link>
         </View>
       ) : (
-        <SearchHeader
-          filters={filters}
-          sortOptions={SORTS}
-          sortLabel={(s) => t(`collection.sorts.${s}`)}
-          countLabel={
-            search.isSuccess
-              ? t('collection.results', {
-                  count: first?.total_count ?? 0,
-                  copies: number(first?.total_quantity ?? 0),
-                })
-              : ' '
-          }
-          fetching={search.isFetching && !search.isFetchingNextPage}
-        />
+        <View style={styles.searchBlock}>
+          <TextField
+            value={filters.query}
+            onChangeText={filters.setQuery}
+            placeholder={t('search.placeholder')}
+            accessibilityLabel={t('search.placeholder')}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+          />
+          <View style={styles.toolbar}>
+            <Text variant="caption" tone="secondary" style={styles.flex}>
+              {search.isSuccess
+                ? t('collection.results', { count: first?.total_count ?? 0, copies: copiesLabel(first?.total_quantity ?? 0) })
+                : ' '}
+            </Text>
+            {search.isFetching && !search.isFetchingNextPage ? (
+              <ActivityIndicator size="small" color={palette.textMuted} />
+            ) : null}
+            {sidebar ? null : (
+              <Pressable
+                onPress={() => setFiltersOpen((v) => !v)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: filtersOpen }}
+                hitSlop={8}>
+                <Text variant="caption" weight="semibold" style={styles.underline}>
+                  {filtersOpen
+                    ? t('collection.filterPanel.hide')
+                    : filters.activeFilterCount > 0
+                      ? t('collection.filterPanel.showCount', { count: filters.activeFilterCount })
+                      : t('collection.filterPanel.show')}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+          <ActiveFilters filters={filters} />
+          {!sidebar && filtersOpen ? (
+            <View style={[styles.inlinePanel, { borderColor: palette.border }]}>
+              <CollectionFilterPanel filters={filters} sortOptions={SORTS} sortLabel={(s) => t(`collection.sorts.${s}`)} />
+            </View>
+          ) : null}
+        </View>
       )}
     </View>
   );
 
+  // Wide screens: the filters sit in their own column, lined up with the page's content column, and the
+  // grid scrolls the rest of the window (its scrollbar at the window's edge).
+  const outer = Math.max(0, (usable - MAX_CONTENT_WIDTH) / 2) + spacing.lg;
+  const showSidebar = sidebar && !isEmptyCollection;
+
   return (
     <Screen bleed>
-      <FlatList
-        key={columns}
-        data={isEmptyCollection ? [] : items}
-        numColumns={columns}
-        keyExtractor={(item) => item.printing_id}
-        columnWrapperStyle={columns > 1 ? styles.row : undefined}
-        contentContainerStyle={listColumn}
-        ListHeaderComponent={header}
-        keyboardDismissMode="on-drag"
-        onEndReachedThreshold={0.6}
-        onEndReached={() => {
-          if (search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
-        }}
-        ListEmptyComponent={
-          isEmptyCollection ? undefined : search.isPending ? (
-            <LoadingView />
-          ) : search.isError ? (
-            <ErrorView error={search.error} onRetry={() => search.refetch()} />
-          ) : (
-            <EmptyView
-              message={t('search.noResults')}
-              action={
-                filters.activeFilterCount > 0
-                  ? { label: t('search.clearFilters'), onPress: filters.clearFilters }
-                  : undefined
-              }
+      <View style={styles.split}>
+        {showSidebar ? (
+          <ScrollView
+            style={{ width: outer + SIDEBAR_WIDTH, flexGrow: 0, flexShrink: 0 }}
+            contentContainerStyle={[styles.sidebar, { paddingLeft: outer }]}>
+            <CollectionFilterPanel filters={filters} sortOptions={SORTS} sortLabel={(s) => t(`collection.sorts.${s}`)} />
+          </ScrollView>
+        ) : null}
+        <FlatList
+          style={styles.flex}
+          key={columns}
+          data={isEmptyCollection ? [] : items}
+          numColumns={columns}
+          keyExtractor={(item) => item.printing_id}
+          columnWrapperStyle={columns > 1 ? styles.row : undefined}
+          contentContainerStyle={
+            showSidebar ? [styles.gridColumn, { paddingLeft: SIDEBAR_GAP, paddingRight: outer }] : listColumn
+          }
+          ListHeaderComponent={header}
+          keyboardDismissMode="on-drag"
+          onEndReachedThreshold={0.6}
+          onEndReached={() => {
+            if (search.hasNextPage && !search.isFetchingNextPage) search.fetchNextPage();
+          }}
+          ListEmptyComponent={
+            isEmptyCollection ? undefined : search.isPending ? (
+              <LoadingView />
+            ) : search.isError ? (
+              <ErrorView error={search.error} onRetry={() => search.refetch()} />
+            ) : (
+              <EmptyView
+                message={t('search.noResults')}
+                action={
+                  filters.activeFilterCount > 0 ? { label: t('search.clearFilters'), onPress: filters.clearFilters } : undefined
+                }
+              />
+            )
+          }
+          ListFooterComponent={
+            search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} color={palette.primary} /> : undefined
+          }
+          renderItem={({ item }) => (
+            <CardTile
+              href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
+              imageUrl={item.image_url}
+              code={item.code}
+              name={item.name}
+              width={tileWidth}
+              quantity={item.quantity}
+              ownedCard={Math.max(byCard[item.card_id] ?? 0, item.quantity)}
+              badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
             />
-          )
-        }
-        ListFooterComponent={
-          search.isFetchingNextPage ? <ActivityIndicator style={styles.footer} color={palette.primary} /> : undefined
-        }
-        renderItem={({ item }) => (
-          <CardTile
-            href={{ pathname: '/card/[id]', params: { id: item.card_id, printing: item.printing_id } }}
-            imageUrl={item.image_url}
-            code={item.code}
-            name={item.name}
-            width={tileWidth}
-            quantity={item.quantity}
-            ownedCard={Math.max(byCard[item.card_id] ?? 0, item.quantity)}
-            badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
-          />
-        )}
-      />
+          )}
+        />
+      </View>
     </Screen>
   );
 }
@@ -226,4 +285,12 @@ const styles = StyleSheet.create({
   emptyCard: { marginTop: spacing.xl },
   row: { gap: spacing.sm },
   footer: { marginVertical: spacing.lg },
+  split: { flex: 1, flexDirection: 'row' },
+  flex: { flex: 1 },
+  sidebar: { paddingTop: spacing.xl, paddingBottom: spacing.xxxl },
+  gridColumn: { flexGrow: 1, paddingBottom: spacing.xxxl },
+  searchBlock: { gap: spacing.sm },
+  toolbar: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 28 },
+  underline: { fontFamily: fonts.semibold, textDecorationLine: 'underline' },
+  inlinePanel: { borderTopWidth: 2, paddingTop: spacing.md, marginTop: spacing.xs, marginBottom: spacing.md },
 });

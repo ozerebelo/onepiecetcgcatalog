@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { radius, spacing, usePalette } from '@/theme';
@@ -10,16 +11,20 @@ export interface ChipProps {
   onPress?: () => void;
   /** Optional color swatch shown before the label (card colors). */
   dotColor?: string;
+  /** A small mark before the label (a colour disc, cost circle, rarity tag). */
+  leading?: ReactNode;
+  /** Defaults to the label; give it when the label alone is ambiguous. */
+  accessibilityLabel?: string;
 }
 
-export function Chip({ label, selected = false, onPress, dotColor }: ChipProps) {
+export function Chip({ label, selected = false, onPress, dotColor, leading, accessibilityLabel }: ChipProps) {
   const palette = usePalette();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       hitSlop={4}
       style={({ pressed, hovered }) => [
         styles.chip,
@@ -31,6 +36,7 @@ export function Chip({ label, selected = false, onPress, dotColor }: ChipProps) 
         pressed && { opacity: 0.8 },
       ]}>
       {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
+      {leading}
       <Text variant="caption" weight="semibold" style={{ color: selected ? palette.onHighlight : palette.text }}>
         {label}
       </Text>

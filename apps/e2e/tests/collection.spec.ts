@@ -143,3 +143,22 @@ test('alt arts count toward the playset: 2 base + 2 alt art is a full playset', 
   // OP01-025 (2 + 2 alt art), OP01-001 (4 EN + 1 JP) and Nami (5): Japanese copies count too.
   await expect(page.getByText(/Full playsets: 3 of \d+ cards/)).toBeVisible();
 });
+
+test('collection filters: art, playset status, set and language', async ({ page }) => {
+  await signIn(page, USERS.collector);
+  await page.goto('/collection');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByRole('checkbox', { name: 'Alt art' }).click();
+  await expect(page.getByText('1 printing · 2 copies')).toBeVisible();
+  // Active filters show above the grid and can be removed one by one.
+  await page.getByRole('button', { name: 'Remove filter: Alt art' }).click();
+  // More than a playset, counting every printing: OP01-001 (4 EN + 1 JP) and Nami (5).
+  await page.getByRole('checkbox', { name: 'More than 4' }).click();
+  await expect(page.getByText('3 printings · 10 copies')).toBeVisible();
+  await page.getByRole('button', { name: /^Clear/ }).click();
+  // A set code covers both languages; the language filter narrows it.
+  await page.getByRole('checkbox', { name: /^OP-01 Romance Dawn/ }).click();
+  await expect(page.getByText('5 printings · 14 copies')).toBeVisible();
+  await page.getByRole('radio', { name: 'JP', exact: true }).click();
+  await expect(page.getByText('1 printing · 1 copy')).toBeVisible();
+});

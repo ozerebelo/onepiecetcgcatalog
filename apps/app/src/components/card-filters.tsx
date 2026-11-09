@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import type { CardSearchParams } from '@/lib/api';
+import type { ArtFilter, CardSearchParams, PlaysetFilter } from '@/lib/api';
 import { CARD_COLORS, fonts, spacing, usePalette } from '@/theme';
 
 import { Chip } from './ui/chip';
@@ -29,6 +29,10 @@ export function useCardFilters<S extends string>(defaultSort: S) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [rarities, setRarities] = useState<Rarity[]>([]);
   const [cost, setCost] = useState<number | null>(null);
+  // Collection-only filters (the Cards search ignores them).
+  const [setCodes, setSetCodes] = useState<string[]>([]);
+  const [art, setArt] = useState<ArtFilter | null>(null);
+  const [playset, setPlayset] = useState<PlaysetFilter | null>(null);
   const [sort, setSort] = useState<S>(defaultSort);
   const debouncedQuery = useDebouncedValue(query, 300);
 
@@ -46,8 +50,17 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     [debouncedQuery, language, colors, categories, rarities, cost, sort],
   );
 
+  const collectionParams = useMemo(() => ({ ...params, setCodes, art, playset }), [params, setCodes, art, playset]);
+
   const activeFilterCount =
-    colors.length + categories.length + rarities.length + (cost == null ? 0 : 1) + (language === 'all' ? 0 : 1);
+    colors.length +
+    categories.length +
+    rarities.length +
+    setCodes.length +
+    (cost == null ? 0 : 1) +
+    (language === 'all' ? 0 : 1) +
+    (art == null ? 0 : 1) +
+    (playset == null ? 0 : 1);
 
   return {
     query,
@@ -62,9 +75,17 @@ export function useCardFilters<S extends string>(defaultSort: S) {
     toggleRarity: (r: Rarity) => setRarities((list) => toggle(list, r)),
     cost,
     toggleCost: (value: number) => setCost((current) => (current === value ? null : value)),
+    setCodes,
+    toggleSet: (code: string) => setSetCodes((list) => toggle(list, code)),
+    art,
+    toggleArt: (value: ArtFilter) => setArt((current) => (current === value ? null : value)),
+    playset,
+    togglePlayset: (value: PlaysetFilter) => setPlayset((current) => (current === value ? null : value)),
     sort,
     setSort,
     params,
+    /** `params` plus the collection-only filters. */
+    collectionParams,
     activeFilterCount,
     clearFilters: () => {
       setColors([]);
@@ -72,6 +93,9 @@ export function useCardFilters<S extends string>(defaultSort: S) {
       setRarities([]);
       setCost(null);
       setLanguage('all');
+      setSetCodes([]);
+      setArt(null);
+      setPlayset(null);
     },
   };
 }
