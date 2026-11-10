@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'expo-router';
+import { Link, router, type Href } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -13,7 +13,10 @@ import { PressableArea } from '@/components/ui/pressable-area';
 import { Screen } from '@/components/ui/screen';
 import { LoadingView } from '@/components/ui/state-views';
 import { Text } from '@/components/ui/text';
-import { fetchLastCatalogUpdate } from '@/lib/api';
+import { deleteAccount, fetchLastCatalogUpdate } from '@/lib/api';
+import { confirmAction, notifyError, showToast } from '@/lib/notify';
+import { queryClient } from '@/lib/query-client';
+import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth';
 import { fonts, radius, spacing, usePalette } from '@/theme';
 
@@ -22,6 +25,25 @@ export default function AccountScreen() {
   const palette = usePalette();
   const { user, initializing, signOut } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const removeAccount = async () => {
+    if (!(await confirmAction(t('account.deleteTitle'), t('account.deleteBody'), t('account.deleteConfirm')))) return;
+    setDeleting(true);
+    try {
+      await deleteAccount();
+      // The account no longer exists on the server, so only this device's session is left to clear
+      // (the server refuses to sign out a user that's gone, which is fine), plus everything cached for it.
+      await getSupabase().auth.signOut({ scope: 'local' });
+      queryClient.clear();
+      showToast(t('account.deleted'));
+      router.replace('/');
+    } catch (error) {
+      notifyError(error);
+    } finally {
+      setDeleting(false);
+    }
+  };
   const lastUpdate = useQuery({ queryKey: ['catalog-updated'], queryFn: fetchLastCatalogUpdate });
 
   if (initializing) return <LoadingView />;
@@ -61,6 +83,11 @@ export default function AccountScreen() {
             <MenuLink href="/cards" icon="grid" label={t('tabs.cards')} last />
           </Panel>
 
+          <Panel padded={false}>
+            <MenuLink href="/auth/update-password" icon="lock" label={t('account.changePassword')} />
+            <MenuLink href="/feedback" icon="message-square" label={t('account.feedback')} last />
+          </Panel>
+
           <Button
             title={t('account.signOut')}
             icon="log-out"
@@ -90,6 +117,22 @@ export default function AccountScreen() {
         </Panel>
       )}
 
+      {user ? null : (
+        <Panel padded={false}>
+          <MenuLink href="/feedback" icon="message-square" label={t('account.feedback')} last />
+        </Panel>
+      )}
+
+      <Panel padded={false}>
+        <MenuLink href="/legal/privacy" icon="shield" label={t('account.privacy')} />
+        <MenuLink href="/legal/terms" icon="file-text" label={t('account.terms')} last />
+      </Panel>
+
+      {user ? (
+        // Last on the page and in red pen: the one action here that can't be undone.
+        <Button title={t('account.deleteAccount')} icon="trash-2" variant="danger" loading={deleting} onPress={removeAccount} boxStyle={styles.delete} />
+      ) : null}
+
       <View style={styles.footer}>
         {lastUpdate.data ? (
           <View style={styles.row}>
@@ -109,7 +152,7 @@ export default function AccountScreen() {
   );
 }
 
-function MenuLink({ href, icon, label, last = false }: { href: '/collection' | '/decks' | '/collection/import' | '/cards'; icon: IconName; label: string; last?: boolean }) {
+function MenuLink({ href, icon, label, last = false }: { href: Href; icon: IconName; label: string; last?: boolean }) {
   const palette = usePalette();
   return (
     <Link href={href} asChild>
@@ -134,5 +177,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   menuItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.md + 2, borderRadius: radius.lg },
   footer: { gap: spacing.sm, paddingTop: spacing.md },
+  delete: { alignSelf: 'flex-start' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });

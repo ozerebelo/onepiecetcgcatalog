@@ -804,3 +804,19 @@ export async function fetchMetaCardInfo(language: Language): Promise<Record<stri
   const rows = unwrap(await getSupabase().rpc('meta_card_info', { p_language: language })) as MetaCardInfo[];
   return Object.fromEntries(rows.map((r) => [r.card_id, r]));
 }
+
+// -----------------------------------------------------------------------------
+// Account and feedback (milestone 6)
+// -----------------------------------------------------------------------------
+
+/** Permanently deletes the signed-in account with its collection, decks and wishlist. */
+export async function deleteAccount(): Promise<void> {
+  const { error } = await getSupabase().rpc('delete_account');
+  if (error) throw new ApiError(error.message);
+}
+
+/** Sends a note to the people who run the app. `contact` is an optional reply address. */
+export async function sendFeedback(message: string, contact: string | null, page: string | null): Promise<void> {
+  const { error } = await getSupabase().from('feedback').insert({ message, contact, page });
+  if (error) throw new ApiError(error.message);
+}

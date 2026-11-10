@@ -237,6 +237,9 @@ CSV export covers both languages (it is a full backup).
 
 ## Known limitations
 
+- The privacy policy and terms (`legal.*` in the locale file, `components/legal-page.tsx`) don't name
+  who runs the service until `OPERATOR_NAME` / `CONTACT_EMAIL` are set in `apps/app/src/lib/legal.ts`.
+  Feedback sent from the app lands in the `feedback` table (readable only in the database dashboard).
 - The ban list (`BANLIST` in `packages/core/src/formats.ts`) is maintained by hand: update it, with its
   `asOf` date, whenever Bandai announces a change. The opening-hand tester draws from the decklist only
   (no card effects), and the leader's life comes from its stored cost.

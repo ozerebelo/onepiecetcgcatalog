@@ -106,6 +106,21 @@ export default function SignUpScreen() {
         </Text>
       ) : null}
       <Button title={t('account.signUp')} onPress={submit} loading={submitting} />
+      <Text variant="caption" tone="secondary">
+        {t('account.agreeBefore')}{' '}
+        <Link href="/legal/terms">
+          <Text variant="caption" weight="semibold" style={{ textDecorationLine: 'underline' }}>
+            {t('account.terms')}
+          </Text>
+        </Link>{' '}
+        {t('account.agreeAnd')}{' '}
+        <Link href="/legal/privacy">
+          <Text variant="caption" weight="semibold" style={{ textDecorationLine: 'underline' }}>
+            {t('account.privacy')}
+          </Text>
+        </Link>
+        .
+      </Text>
       <Link href="/auth/sign-in" replace asChild>
         <PressableArea accessibilityRole="link">
           <Text tone="primary">{t('auth.haveAccount')}</Text>

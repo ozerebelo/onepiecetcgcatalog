@@ -205,6 +205,21 @@ export function Landing() {
           <Text variant="caption" tone="muted" style={styles.footerText}>
             {t('account.about')}
           </Text>
+          <View style={styles.footerLinks}>
+            {(
+              [
+                ['/legal/privacy', 'account.privacy'],
+                ['/legal/terms', 'account.terms'],
+                ['/feedback', 'account.feedback'],
+              ] as const
+            ).map(([href, key]) => (
+              <Link key={href} href={href}>
+                <Text variant="caption" weight="semibold" style={styles.footerLink}>
+                  {t(key)}
+                </Text>
+              </Link>
+            ))}
+          </View>
         </View>
       </Container>
     </ScrollView>
@@ -312,6 +327,8 @@ const styles = StyleSheet.create({
   sheetTitle: { paddingBottom: spacing.sm },
   sheetNote: { paddingTop: spacing.md },
   section: { gap: spacing.lg },
+  footerLinks: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.lg, rowGap: spacing.xs },
+  footerLink: { textDecorationLine: 'underline' },
   metaList: { borderTopWidth: 2 },
   metaCta: { alignSelf: 'flex-start' },
   steps: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: 2 },

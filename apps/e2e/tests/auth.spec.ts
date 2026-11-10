@@ -37,7 +37,9 @@ async function latestEmail(to: string): Promise<{ subject: string; html: string 
   throw new Error(`No email to ${to} arrived in ${MAILPIT_URL}`);
 }
 
-test('sign-up sends the branded confirmation email and its link signs you in', async ({ page }) => {
+test('sign-up sends the branded confirmation email and its link signs you in', async ({ page, allowedConsoleErrors }) => {
+  // Deleting the account ends with a sign-out request for a user that no longer exists (HTTP 403).
+  allowedConsoleErrors.push(/status of 403/);
   const email = `e2e-signup-${Date.now()}@example.com`;
   await page.goto('/auth/sign-up');
   await page.getByLabel('Display name').fill('Usopp');
@@ -57,4 +59,31 @@ test('sign-up sends the branded confirmation email and its link signs you in', a
   await page.goto(link!);
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByText(`Signed in as ${email}`)).toBeVisible();
+
+  // A brand-new account is shown where to start.
+  await page.getByRole('tab', { name: 'Home' }).click();
+  await expect(page.getByRole('heading', { name: 'Start your checklist' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open packs' })).toBeVisible();
+
+  // The account can be deleted from the Account page; the visitor lands on the public home page.
+  await page.getByRole('tab', { name: 'Account' }).click();
+  await page.getByRole('button', { name: 'Delete account' }).click();
+  await page.getByRole('button', { name: 'Delete everything' }).click();
+  await expect(page.getByText('Your account was deleted.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Start your checklist' }).filter({ visible: true }).first()).toBeVisible();
+});
+
+test('legal pages are public, and a visitor can send feedback', async ({ page }) => {
+  await page.goto('/auth/sign-up');
+  await page.getByRole('link', { name: 'Privacy policy' }).click();
+  await expect(page.getByRole('heading', { name: 'What we store' })).toBeVisible();
+  await page.goto('/legal/terms');
+  await expect(page.getByRole('heading', { name: 'What Yonko is' })).toBeVisible();
+
+  await page.goto('/feedback');
+  await page.getByRole('button', { name: 'Send' }).click();
+  await expect(page.getByText('Write a few words first.')).toBeVisible();
+  await page.getByLabel('Your message').fill('The deck check is great.');
+  await page.getByRole('button', { name: 'Send' }).click();
+  await expect(page.getByText('Thanks. Your feedback was sent.')).toBeVisible();
 });

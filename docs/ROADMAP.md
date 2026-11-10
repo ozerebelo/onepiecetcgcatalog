@@ -96,7 +96,11 @@ that. Launch, marketing and monetization are planned in `docs/LAUNCH.md`.
 - Nothing tells a user when something changes (new set, ban list, a wishlist card arriving).
 - No prices anywhere, so "what's missing" never becomes "what will it cost".
 
-### 6. Ready to show people (M) — do before any marketing
+### 6. Ready to show people (M) — do before any marketing — in progress
+*Done: privacy policy and terms pages, change password and delete account, in-app feedback form,
+first-run guide. Still to do: analytics and error reporting (needs a tool choice), search-engine
+rendering and share images, legality exceptions and DON!! cards, Google/Apple sign-in (needs provider
+setup), and the operator name and contact in `apps/app/src/lib/legal.ts`.*
 - Privacy policy and terms pages (linked from the footer, Account and sign-up); cookie-free analytics
   and error reporting; a feedback link.
 - Account: change password, delete account (removes collection, decks and profile).

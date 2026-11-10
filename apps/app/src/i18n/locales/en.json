@@ -178,7 +178,18 @@
     "comingSoon": "Track your cards in Collection and check decklists in Decks.",
     "catalogUpdated": "Card data updated {{date}}",
     "about": "Card data and images © Eiichiro Oda/Shueisha, Toei Animation, Bandai. This is an unofficial fan project, not affiliated with Bandai.",
-    "eyebrow": "Your account"
+    "eyebrow": "Your account",
+    "changePassword": "Change password",
+    "feedback": "Send feedback",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "This permanently deletes your account, collection, decks and wishlist. It can’t be undone. Export a CSV backup first if you might want your collection later.",
+    "deleteConfirm": "Delete everything",
+    "deleted": "Your account was deleted.",
+    "agreeBefore": "By creating an account you agree to the",
+    "agreeAnd": "and the"
   },
   "auth": {
     "email": "Email",
@@ -485,7 +496,8 @@
     "seeAll": "See all",
     "latestSet": "Newest set",
     "continueCollecting": "Continue collecting",
-    "recent": "Recently added"
+    "recent": "Recently added",
+    "greetingNew": "Welcome, {{name}}"
   },
   "decks": {
     "eyebrow": "Deck check",
@@ -840,5 +852,150 @@
     "leaderLists_one": "{{count}} list, {{share}}% of the meta",
     "leaderLists_other": "{{count}} lists, {{share}}% of the meta",
     "first": "1st"
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "lead": "Tell us what’s broken, confusing or missing. Every note is read.",
+    "message": "Your message",
+    "contact": "Email for a reply (optional)",
+    "contactHint": "Only used to answer this message.",
+    "replyTo": "If we need to reply, we’ll write to {{email}}.",
+    "send": "Send",
+    "sent": "Thanks. Your feedback was sent.",
+    "errors": {
+      "empty": "Write a few words first."
+    }
+  },
+  "legal": {
+    "updated": "Last updated {{date}}",
+    "contactTitle": "Contact",
+    "operator": "Yonko is run by {{name}}.",
+    "contactEmail": "Questions or requests about your data: {{email}}",
+    "contactForm": "Questions or requests about your data? Write to us with the in-app form:",
+    "privacy": {
+      "title": "Privacy policy",
+      "intro": "Yonko keeps a checklist of the One Piece Card Game cards you own and the decks you save. This page says what we store, why, and how to remove it. We keep it short and collect as little as we can.",
+      "sections": [
+        {
+          "title": "What we store",
+          "body": [
+            "Your account: your email address, the display name you chose and a protected (hashed) version of your password. We never see your password.",
+            "What you enter: the cards in your collection, your decks and their notes, your wishlist, and a log of the cards you added or removed (it powers the activity list and the growth chart).",
+            "Feedback you send us, and the email address you add to it if you’re not signed in.",
+            "On your device: your sign-in session and your card-language choice (English or Japanese), kept in the browser’s or app’s local storage so you stay signed in."
+          ]
+        },
+        {
+          "title": "What we don’t do",
+          "body": [
+            "No advertising, no advertising cookies and no selling or sharing of your data for marketing.",
+            "Your collection and decks are private to your account. Other users can’t see them."
+          ]
+        },
+        {
+          "title": "Why we store it",
+          "body": [
+            "To run the service you asked for: signing you in, saving your collection and decks, and showing what you own and what you’re missing.",
+            "To send the emails an account needs: confirming your address and resetting your password."
+          ]
+        },
+        {
+          "title": "Who helps us run it",
+          "body": [
+            "We use service providers to host the app: Supabase (database and sign-in), Vercel (web hosting) and an email delivery service for account emails. They process data only to provide those services. Like any website, the hosting records technical request data such as IP addresses for security and reliability."
+          ]
+        },
+        {
+          "title": "How long we keep it",
+          "body": [
+            "Until you delete it. You can remove single cards and decks at any time, and “Delete account” on the Account page permanently removes your account, collection, decks and wishlist. Copies in our providers’ backups expire on their normal schedule."
+          ]
+        },
+        {
+          "title": "Your choices",
+          "body": [
+            "Export your collection as a CSV file from the Collection page.",
+            "Change your password or delete your account from the Account page.",
+            "Ask us for a copy of your data, to correct it or to delete it, using the contact below. If you’re in the EU or UK you also have the right to complain to your data-protection authority."
+          ]
+        },
+        {
+          "title": "Children",
+          "body": [
+            "Yonko isn’t aimed at children under 13, and we don’t knowingly collect their data."
+          ]
+        },
+        {
+          "title": "Changes",
+          "body": [
+            "If this policy changes in a way that matters, we’ll say so in the app before it takes effect. The date at the top shows the latest version."
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "title": "Terms of use",
+      "intro": "These are the rules for using Yonko. By using the app you agree to them.",
+      "sections": [
+        {
+          "title": "What Yonko is",
+          "body": [
+            "Yonko is an unofficial fan project for players and collectors of the One Piece Card Game. It is not affiliated with, endorsed by or sponsored by Bandai, Shueisha or Toei Animation. Card names, text and images are © Eiichiro Oda/Shueisha, Toei Animation and Bandai."
+          ]
+        },
+        {
+          "title": "Your account",
+          "body": [
+            "Keep your password to yourself and tell us if you think someone else has used your account. You’re responsible for what happens under it. You can delete your account at any time from the Account page."
+          ]
+        },
+        {
+          "title": "Fair use",
+          "body": [
+            "Don’t try to break, overload or get around the security of the service, don’t collect its data in bulk with automated tools, and don’t use it for anything unlawful. We may suspend accounts that do."
+          ]
+        },
+        {
+          "title": "Accuracy",
+          "body": [
+            "We work to keep card data, format legality, ban lists and tournament lists correct, but they come from outside sources and can be wrong or out of date. Check the official rules and announcements before a tournament or a purchase. Tournament lists are credited to where they were published."
+          ]
+        },
+        {
+          "title": "No warranty",
+          "body": [
+            "Yonko is provided as it is, free of charge, without guarantees of availability or fitness for a particular purpose. To the extent the law allows, we aren’t liable for losses that come from using it, including lost data. Keep a CSV backup of a collection you care about."
+          ]
+        },
+        {
+          "title": "Changes",
+          "body": [
+            "We may change the app and these terms. If a change matters, we’ll say so in the app before it takes effect. If you keep using Yonko after that, you accept the new terms."
+          ]
+        }
+      ]
+    }
+  },
+  "onboarding": {
+    "title": "Start your checklist",
+    "lead": "Three steps and you’ll know which decks you can build.",
+    "language": {
+      "title": "Choose your card language",
+      "body": "English and Japanese cards are kept apart. You can switch any time."
+    },
+    "cards": {
+      "title": "Add the cards you own",
+      "body": "Tick off a set, type card numbers as you open packs, or paste a list you already have.",
+      "set": "Tick off {{code}}",
+      "sets": "Browse sets",
+      "packs": "Open packs",
+      "import": "Import a list"
+    },
+    "deck": {
+      "title": "Check a deck",
+      "body": "Paste any decklist to see what you own and what’s missing, or see how close you are to the decks that are winning.",
+      "check": "Check a decklist",
+      "meta": "Open the meta"
+    }
   }
 }

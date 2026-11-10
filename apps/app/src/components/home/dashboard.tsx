@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { DeckCard } from '@/components/deck-card';
+import { FirstRun } from '@/components/home/first-run';
 import { AlmostThere, RecentActivity } from '@/components/home/insights';
 import { MetaSuggestions } from '@/components/home/meta-suggestions';
 import { LanguageSwitch } from '@/components/language-switch';
@@ -14,7 +15,7 @@ import { PageHeader, Panel, ProgressBar, SectionTitle, StatGroup } from '@/compo
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
 import { collectionKeys, useCollectionSummary, useSetProgress } from '@/hooks/use-collection';
-import { fetchCatalogStats, fetchCollectionStats, fetchDeckSummaries, fetchShowcase } from '@/lib/api';
+import { fetchCatalogStats, fetchCollectionStats, fetchCollectionSummary, fetchDeckSummaries, fetchShowcase } from '@/lib/api';
 import { useCardLanguage } from '@/lib/card-language';
 import { titleCase } from '@/lib/format';
 import { useAuth } from '@/providers/auth';
@@ -50,12 +51,19 @@ export function Dashboard() {
 
   const latest = showcase.data?.set;
   const latestOwned = latest ? (progress.data?.[latest.id] ?? 0) : 0;
+  // Brand-new account (nothing owned in either language, no decks): show the way in, not empty totals.
+  const allCards = useQuery({
+    queryKey: [...collectionKeys.all(userId), 'summary', 'all'],
+    queryFn: () => fetchCollectionSummary(null),
+    enabled: Boolean(user),
+  });
+  const firstRun = allCards.data?.total_quantity === 0 && decks.data?.length === 0;
 
   return (
     <Screen scroll>
       <PageHeader
-        title={t('dashboard.greeting', { name })}
-        subtitle={t('dashboard.subtitle')}
+        title={t(firstRun ? 'dashboard.greetingNew' : 'dashboard.greeting', { name })}
+        subtitle={firstRun ? undefined : t('dashboard.subtitle')}
         actions={
           <>
             <LanguageSwitch />
@@ -69,90 +77,96 @@ export function Dashboard() {
         }
       />
 
-      <StatGroup
-        stats={[
-          { label: t('dashboard.stats.copies'), value: n(summary.data?.total_quantity ?? 0) },
-          {
-            label: t('dashboard.stats.playsets'),
-            value: n(stats.data?.playsets ?? 0),
-            hint: stats.data?.spares ? t('dashboard.stats.spares', { count: stats.data.spares }) : undefined,
-          },
-          {
-            label: t('dashboard.stats.cards'),
-            value: n(summary.data?.unique_cards ?? 0),
-            hint: catalog.data ? t('dashboard.stats.ofTotal', { total: n(catalog.data.cards) }) : undefined,
-          },
-          {
-            label: t('dashboard.stats.decks'),
-            value: n(decks.data?.length ?? 0),
-            hint: decks.data?.length ? t('dashboard.stats.built', { count: decks.data.filter((d) => d.is_built).length }) : undefined,
-          },
-        ]}
-      />
+      {firstRun ? (
+        <FirstRun latestSet={latest ? { id: latest.id, code: latest.code } : null} />
+      ) : (
+        <>
+        <StatGroup
+          stats={[
+            { label: t('dashboard.stats.copies'), value: n(summary.data?.total_quantity ?? 0) },
+            {
+              label: t('dashboard.stats.playsets'),
+              value: n(stats.data?.playsets ?? 0),
+              hint: stats.data?.spares ? t('dashboard.stats.spares', { count: stats.data.spares }) : undefined,
+            },
+            {
+              label: t('dashboard.stats.cards'),
+              value: n(summary.data?.unique_cards ?? 0),
+              hint: catalog.data ? t('dashboard.stats.ofTotal', { total: n(catalog.data.cards) }) : undefined,
+            },
+            {
+              label: t('dashboard.stats.decks'),
+              value: n(decks.data?.length ?? 0),
+              hint: decks.data?.length ? t('dashboard.stats.built', { count: decks.data.filter((d) => d.is_built).length }) : undefined,
+            },
+          ]}
+        />
 
-      <AlmostThere decks={decks.data} />
-      <MetaSuggestions />
+        <AlmostThere decks={decks.data} />
+        <MetaSuggestions />
 
-      <View style={[styles.columns, wide && styles.columnsWide]}>
-        <View style={[styles.column, wide && { flex: 3 }]}>
-          <SectionTitle
-            title={t('dashboard.yourDecks')}
-            action={
-              <Link href="/decks" asChild>
-                <Button title={t('dashboard.seeAll')} variant="ghost" size="sm" trailingIcon="arrow-right" />
-              </Link>
-            }
-          />
-          {decks.data && decks.data.length > 0 ? (
-            <View style={styles.deckGrid}>
-              {decks.data.slice(0, 4).map((deck) => (
-                <DeckCard key={deck.id} deck={deck} />
-              ))}
-            </View>
-          ) : (
-            <Panel>
-              <EmptyView
-                icon="copy"
-                title={t('decks.emptyTitle')}
-                message={t('decks.emptyBody')}
-              />
-              <Link href="/deck/new" asChild>
-                <Button title={t('decks.new')} icon="plus" boxStyle={styles.centerButton} />
-              </Link>
-            </Panel>
-          )}
-        </View>
-
-        <View style={[styles.column, wide && { flex: 2 }]}>
-          <SectionTitle title={t('dashboard.latestSet')} />
-          {latest ? (
-            <Panel padded={false} style={styles.latest}>
-              {latest.image_url ? (
-                <Image source={{ uri: latest.image_url }} style={styles.latestArt} contentFit="cover" transition={150} accessibilityLabel={latest.name} />
-              ) : null}
-              <View style={styles.latestBody}>
-                <View style={styles.latestTitle}>
-                  <Text variant="heading">{titleCase(latest.name)}</Text>
-                  <Text variant="mono" tone="secondary">
-                    {latest.code}
-                  </Text>
-                </View>
-                <View style={styles.latestProgress}>
-                  <ProgressBar value={latest.printing_count ? latestOwned / latest.printing_count : 0} height={6} />
-                  <Text variant="caption" tone="secondary" style={tabular}>
-                    {t('collection.setRowProgress', { owned: latestOwned, total: latest.printing_count })}
-                  </Text>
-                </View>
-                <Link href={{ pathname: '/set/[id]', params: { id: latest.id } }} asChild>
-                  <Button title={t('dashboard.continueCollecting')} variant="outline" trailingIcon="arrow-right" />
+        <View style={[styles.columns, wide && styles.columnsWide]}>
+          <View style={[styles.column, wide && { flex: 3 }]}>
+            <SectionTitle
+              title={t('dashboard.yourDecks')}
+              action={
+                <Link href="/decks" asChild>
+                  <Button title={t('dashboard.seeAll')} variant="ghost" size="sm" trailingIcon="arrow-right" />
                 </Link>
+              }
+            />
+            {decks.data && decks.data.length > 0 ? (
+              <View style={styles.deckGrid}>
+                {decks.data.slice(0, 4).map((deck) => (
+                  <DeckCard key={deck.id} deck={deck} />
+                ))}
               </View>
-            </Panel>
-          ) : null}
-        </View>
-      </View>
+            ) : (
+              <Panel>
+                <EmptyView
+                  icon="copy"
+                  title={t('decks.emptyTitle')}
+                  message={t('decks.emptyBody')}
+                />
+                <Link href="/deck/new" asChild>
+                  <Button title={t('decks.new')} icon="plus" boxStyle={styles.centerButton} />
+                </Link>
+              </Panel>
+            )}
+          </View>
 
-      <RecentActivity />
+          <View style={[styles.column, wide && { flex: 2 }]}>
+            <SectionTitle title={t('dashboard.latestSet')} />
+            {latest ? (
+              <Panel padded={false} style={styles.latest}>
+                {latest.image_url ? (
+                  <Image source={{ uri: latest.image_url }} style={styles.latestArt} contentFit="cover" transition={150} accessibilityLabel={latest.name} />
+                ) : null}
+                <View style={styles.latestBody}>
+                  <View style={styles.latestTitle}>
+                    <Text variant="heading">{titleCase(latest.name)}</Text>
+                    <Text variant="mono" tone="secondary">
+                      {latest.code}
+                    </Text>
+                  </View>
+                  <View style={styles.latestProgress}>
+                    <ProgressBar value={latest.printing_count ? latestOwned / latest.printing_count : 0} height={6} />
+                    <Text variant="caption" tone="secondary" style={tabular}>
+                      {t('collection.setRowProgress', { owned: latestOwned, total: latest.printing_count })}
+                    </Text>
+                  </View>
+                  <Link href={{ pathname: '/set/[id]', params: { id: latest.id } }} asChild>
+                    <Button title={t('dashboard.continueCollecting')} variant="outline" trailingIcon="arrow-right" />
+                  </Link>
+                </View>
+              </Panel>
+            ) : null}
+          </View>
+        </View>
+
+        <RecentActivity />
+        </>
+      )}
     </Screen>
   );
 }
