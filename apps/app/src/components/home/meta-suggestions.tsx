@@ -29,7 +29,7 @@ export function MetaSuggestions() {
       />
       <View style={styles.list}>
         {closest.map(({ leader, rank }) => (
-          <MetaLeaderRow key={leader.leader} rank={rank} leader={leader} info={meta.cards.data?.[leader.leader]} maxShare={maxShare} signedIn />
+          <MetaLeaderRow key={leader.leader} rank={rank} leader={leader} info={meta.cards.data?.[leader.leader]} maxShare={maxShare} signedIn hideRank />
         ))}
       </View>
     </View>

@@ -69,21 +69,79 @@ public deck pages with the owner's go-ahead and credited on every list. Cardkaiz
 - Suggestions on Home and in the deck editor: decks for the leaders and colours you collect; on your
   own deck page, how your list differs from the meta list for the same leader.
 
-### 6. Prices (L) — needs a decision (see below)
-- Nightly price snapshot per printing; collection value; "Missing 15 ≈ €38" on deck checks and meta
-  decks; cheapest way to finish a deck; price history and alerts. The natural paid feature later.
+## What's next (written 10 November 2026, after a full review of the app)
 
-### 7. Binder view & delight (M)
-- Binder view: your cards in 3×3 pages you flip through, by set or by your own order.
-- Small moments: a highlighter "stamp" when a playset or set completes; shareable deck images.
+Milestones 1–5 are live. The review below looked at every screen on phone and desktop, signed in and
+signed out. The app does its core job well; what it lacks is (a) the basics a public product needs,
+(b) reasons to come back between set releases, and (c) anything that earns money. The order follows
+that. Launch, marketing and monetization are planned in `docs/LAUNCH.md`.
 
-### 8. Community (L)
-- Public profile and collection pages (opt-in, private by default), trade list built from spares and
-  wishlist, "who has what I need" matching, shareable deck pages.
+### What the review found
 
-### 9. Phones & stores (L)
-- Camera scanning (read the card number from a photo), Google / Apple sign-in, App Store and Play
-  Store release, card condition / graded copies, more interface languages.
+**Gaps that block a public launch**
+- No privacy policy or terms, and no way to delete an account or change a password in the app.
+- No analytics and no error reporting: we can't see whether anyone finishes signing up or where it breaks.
+- No feedback channel (a link, an email, a Discord).
+- The website is one page to search engines (`"output": "single"`): card, set and meta pages have no
+  titles, descriptions or share images of their own, so nothing can rank or preview when shared.
+- A new account lands on an empty Home with no guidance on what to do first.
+- Bandai's block exceptions (reprinted card numbers that stay legal) aren't modelled, so some legal
+  tournament lists read "Not Standard legal". DON!! cards are missing from the data.
+
+**Gaps in the product**
+- Decks can only be created by pasting a list. There is no way to build one by searching and adding
+  cards, which is what most players expect from a deck tool.
+- Nothing is shareable: no public deck link, no image of a deck or of collection progress.
+- The meta is refreshed by hand and has no history (what was winning last month), no matchups.
+- Nothing tells a user when something changes (new set, ban list, a wishlist card arriving).
+- No prices anywhere, so "what's missing" never becomes "what will it cost".
+
+### 6. Ready to show people (M) — do before any marketing
+- Privacy policy and terms pages (linked from the footer, Account and sign-up); cookie-free analytics
+  and error reporting; a feedback link.
+- Account: change password, delete account (removes collection, decks and profile).
+- First-run guide on an empty Home: choose card language → pick the set you opened most → tick cards
+  or paste a list → check a deck. Three steps, skippable.
+- Search-engine and sharing basics: static rendering for public pages (cards, sets, meta, leaders) with
+  their own titles, descriptions and share images; a sitemap.
+- Legality exceptions and DON!! cards in the data.
+- Google and Apple sign-in (fewer abandoned sign-ups than email + password).
+
+### 7. Build and share decks (M)
+- Deck builder: search, filter and add cards from inside the deck editor, with the cost curve, rule
+  warnings and "own / missing" updating as you go. Pasting stays.
+- Public deck links (read-only, opt-in per deck) with a share image; "Copy this deck" for visitors.
+- Deck versions and notes; duplicate a deck; sideboard-style "maybe" list.
+
+### 8. A meta worth returning to (M)
+- Weekly refresh on a fixed day, automated where a source has agreed (see "Sourcing meta decks"),
+  by hand otherwise. A dated "what changed this week" note at the top of the Meta page.
+- History: each leader's share over time, per format.
+- "Build it from what you own": the closest list to your collection for each leader, not just the consensus.
+- Email (opt-in): new set released, ban list changed, weekly meta summary.
+
+### 9. Prices and the first revenue (L) — needs the decisions in "Prices: options"
+- Nightly price per printing; collection value; "Missing 12 ≈ €38" on every deck and leader page.
+- "Buy missing" links to a marketplace through an affiliate programme (see `docs/LAUNCH.md`).
+- Price history and alerts are the first paid features.
+
+### 10. Match log (M)
+- Log games in two taps (your leader, their leader, went first/second, won/lost; simulator or paper).
+- Personal win rates by leader and matchup. With enough users, community matchup data that no
+  partner has to give us.
+
+### 11. Trade and community (L)
+- Public profile (opt-in), trade list built from spares and wishlist, "who has what I need" matching,
+  local-scene groups (a store or a playgroup sharing a page).
+
+### 12. Phones and stores (L)
+- Camera scanning (read the card number), App Store and Play Store release, offline entry at the
+  table, card condition and graded copies, more interface languages (Portuguese, Spanish, French,
+  German, Japanese).
+
+### Later, if wanted
+- Binder view (3×3 pages), completion stamps, tournament prep checklist, proxy sheet for testing,
+  sealed-product tracker (boxes opened, pulls per box).
 
 ## Sourcing meta decks
 
@@ -130,5 +188,8 @@ scraping.
 |---|---|
 | Milestone 5 | ✅ Yes: contact Limitless and the aggregators (emails drafted 2026-11-09; the owner sends them). |
 | Milestone 5 | ✅ Claude curates the first meta lists from public tournament results, each credited and linked to its source. |
-| Milestone 6 | Price provider and monthly budget; which currencies (USD/EUR) and whether JP prices matter. |
-| Milestone 8 | Public profiles: on by choice only (recommended), and moderation for public names. |
+| Milestone 6 | Who is the legal owner of the service (you personally or a company) for the privacy policy and terms. |
+| Milestone 6 | Analytics tool (recommend a cookie-free one so no consent banner is needed). |
+| Milestone 9 | Price provider and monthly budget; which currencies (USD/EUR) and whether JP prices matter. |
+| Milestone 9 | Which marketplaces to link to (Cardmarket for Europe, TCGplayer for North America). |
+| Milestone 11 | Public profiles: on by choice only (recommended), and moderation for public names. |

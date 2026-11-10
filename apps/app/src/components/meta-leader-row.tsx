@@ -23,12 +23,15 @@ export function MetaLeaderRow({
   info,
   maxShare,
   signedIn,
+  hideRank = false,
 }: {
   rank: number;
   leader: LeaderMeta;
   info: MetaCardInfo | undefined;
   maxShare: number;
   signedIn: boolean;
+  /** Leave the rank number out (lists that aren't in rank order, e.g. Home's "closest to"). */
+  hideRank?: boolean;
 }) {
   const { t } = useTranslation();
   const palette = usePalette();
@@ -45,7 +48,7 @@ export function MetaLeaderRow({
       <PressableArea
         accessibilityRole="link"
         accessibilityLabel={[
-          `${rank}. ${name}`,
+          hideRank ? name : `${rank}. ${name}`,
           t('meta.leaderLists', { count: leader.lists.length, share }),
           leader.wins ? t('meta.wins', { count: leader.wins }) : null,
           signedIn ? t('meta.ownedOf', { have: leader.have, needed: leader.needed }) : null,
@@ -54,9 +57,11 @@ export function MetaLeaderRow({
           .join(', ')}
         boxStyle={[styles.row, { borderBottomColor: palette.border }]}
         activeStyle={{ backgroundColor: palette.primarySoft }}>
-        <Text variant="mono" weight="semibold" style={[styles.rank, tabular, { color: palette.textSecondary }]}>
+{hideRank ? null : (
+                  <Text variant="mono" weight="semibold" style={[styles.rank, tabular, { color: palette.textSecondary }]}>
           {rank}
         </Text>
+        )}
         <View style={[styles.art, colors.length ? [styles.frame, ringColors(colors.map(cardColor))] : null]}>
           <CardImage uri={info?.image_url} label={leader.leader} rounded={radius.sm} />
         </View>

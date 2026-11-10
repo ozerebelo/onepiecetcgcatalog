@@ -62,7 +62,7 @@ test('a saved deck is checked against the collection and the missing cards can b
   await expect(page.getByRole('heading', { name: 'Leaders' })).toBeVisible();
   await expect(page.getByRole('link', { name: /^Usopp, OP01-004\. In 1 top list\. 4 copies to get$/ })).toBeVisible();
   await page.getByRole('link', { name: /^1\. Roronoa Zoro, 1 list, 100% of the meta, 1 win, own 5 of 13$/ }).click();
-  await expect(page.getByText('Missing 8')).toBeVisible();
+  await expect(page.getByText('Missing 8').filter({ visible: true }).first()).toBeVisible();
   await page.getByRole('button', { name: 'Save as my deck' }).click();
   await expect(page.getByText('Saved to your decks.')).toBeVisible();
   // The saved copy is the consensus itself.

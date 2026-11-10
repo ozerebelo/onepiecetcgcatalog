@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native'
 
 import { Logo } from '@/components/brand/logo';
 import { CardImage } from '@/components/card-image';
+import { MetaLeaderRow } from '@/components/meta-leader-row';
 import { ChecklistHeader, ChecklistRow } from '@/components/checklist';
 import { CostBadge } from '@/components/ui/tcg';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Pips } from '@/components/ui/pips';
 import { PressableArea } from '@/components/ui/pressable-area';
 import { Container } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
+import { useMeta } from '@/hooks/use-meta';
 import { fetchCatalogStats, fetchShowcase, type Showcase } from '@/lib/api';
 import { useCardLanguage } from '@/lib/card-language';
 import { formatReleaseDate, titleCase } from '@/lib/format';
@@ -33,6 +35,7 @@ const SAMPLE_DECK = [
 
 /** Public home page for visitors who aren't signed in. */
 export function Landing() {
+  const meta = useMeta();
   const { t, i18n } = useTranslation();
   const palette = usePalette();
   const { width } = useWindowDimensions();
@@ -107,6 +110,35 @@ export function Landing() {
         </View>
         <SampleDeckCheck showcase={showcase.data ?? null} style={wide ? styles.half : undefined} />
       </Container>
+
+      {/* What's winning: the live leader ranking (hidden until there are meta lists) */}
+      {meta.leaders.length > 0 ? (
+        <Container style={[styles.section, wide && styles.split]}>
+          <View style={[styles.checkText, wide && styles.half]}>
+            <Text variant="title" accessibilityRole="header">
+              {t('landing.metaTitle')}
+            </Text>
+            <Text tone="secondary" style={styles.lead}>
+              {t('landing.metaBody', { lists: meta.lists.data?.length ?? 0 })}
+            </Text>
+            <Link href="/meta" asChild>
+              <Button title={t('landing.metaCta')} variant="outline" trailingIcon="arrow-right" boxStyle={styles.metaCta} />
+            </Link>
+          </View>
+          <View style={[wide ? styles.half : null, styles.metaList, { borderTopColor: palette.rule }]}>
+            {meta.leaders.slice(0, 5).map((leader, i) => (
+              <MetaLeaderRow
+                key={leader.leader}
+                rank={i + 1}
+                leader={leader}
+                info={meta.cards.data?.[leader.leader]}
+                maxShare={meta.leaders[0]?.share ?? 0}
+                signedIn={false}
+              />
+            ))}
+          </View>
+        </Container>
+      ) : null}
 
       {/* Newest set */}
       {showcase.data && set ? (
@@ -280,6 +312,8 @@ const styles = StyleSheet.create({
   sheetTitle: { paddingBottom: spacing.sm },
   sheetNote: { paddingTop: spacing.md },
   section: { gap: spacing.lg },
+  metaList: { borderTopWidth: 2 },
+  metaCta: { alignSelf: 'flex-start' },
   steps: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: 2 },
   step: { flexGrow: 1, gap: spacing.sm, paddingVertical: spacing.xl, paddingHorizontal: spacing.lg },
   stepNumber: { fontFamily: fonts.monoMedium, fontSize: 15 },

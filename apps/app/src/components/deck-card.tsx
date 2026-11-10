@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexGrow: 1,
     flexBasis: 300,
+    maxWidth: 440,
   },
   art: { width: 64 },
   frame: { width: 70, padding: 1, borderWidth: 2, borderRadius: radius.md + 2 },

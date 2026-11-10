@@ -437,11 +437,11 @@
     "steps": {
       "own": {
         "title": "Tick off what you own",
-        "body": "Tap through any set, or paste a list or spreadsheet. Base, alt art, manga, reprints, English and Japanese: every printing is tracked, and all of them count toward your playset."
+        "body": "Tap through any set, type card numbers as you open packs, or paste a list or spreadsheet. Base, alt art, manga and reprints, in English and Japanese: every printing is tracked."
       },
       "paste": {
         "title": "Paste a decklist",
-        "body": "From OPTCG Sim or any deckbuilder. Any printing of a card fills its slot, so your alt arts count."
+        "body": "From OPTCG Sim or any deckbuilder. Any art of a card fills its slot, so your alt arts count."
       },
       "missing": {
         "title": "See what’s missing",
@@ -449,7 +449,7 @@
       }
     },
     "checkTitle": "Owned or missing, card by card",
-    "checkBody": "Four slots per card, like a playset. Marked: you own it. Red: you still need it. Alt arts and Japanese copies fill the same slots. Hold back cards sleeved in decks you’ve already built, or check with English cards only for official events.",
+    "checkBody": "Four slots per card, like a playset. Marked: you own it. Red: you still need it. Alt arts fill the same slots as the base art; English and Japanese cards are counted separately. Hold back cards sleeved in decks you’ve already built.",
     "demoDeck": "Example deck · {{owned}} of {{total}} owned",
     "own": "Own {{count}}",
     "latestTag": "Newest set · {{code}}",
@@ -459,7 +459,10 @@
     "latestBodyNoDate_other": "{{count}} cards, alternate arts included.",
     "viewSet": "Open the checklist",
     "closingTitle": "Start with one set.",
-    "closingBody": "Pick the set you’ve opened the most packs of and tick it off. It takes a few minutes, and it’s free."
+    "closingBody": "Pick the set you’ve opened the most packs of and tick it off. It takes a few minutes, and it’s free.",
+    "metaTitle": "See what’s winning, and how close you are",
+    "metaBody": "Leaders ranked from {{lists}} recent top tournament lists. Open one for its core cards, the usual list and its common builds. Sign in and each leader shows how many cards you’re missing.",
+    "metaCta": "Open the meta"
   },
   "dashboard": {
     "eyebrow": "Dashboard",
@@ -774,7 +777,7 @@
     "sourceLink": "View this list on {{source}}",
     "notFound": "This meta deck is no longer listed.",
     "closestTitle": "Meta leaders you're closest to",
-    "seeAll": "All meta decks",
+    "seeAll": "Open the meta",
     "compareTitle": "Compared with the meta",
     "compareSame": "Your list matches the consensus card for card.",
     "compareShared": "{{shared}} of {{total}} cards in common with the consensus.",
