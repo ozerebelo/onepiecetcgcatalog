@@ -38,6 +38,7 @@ DATABASE_URL=… pnpm db:migrate             # apply pending migrations (CI does
   screens, bottom bar on phones); screens pushed on top of the tabs (card, set, deck, import, auth) get
   `components/web-stack-header.tsx`. Keep their links in sync. Sets live on the Cards page (set artwork,
   newest release first); `/sets` only redirects there, and its tab trigger stays registered but hidden.
+  Meta is a tab (`app/(tabs)/meta.tsx`); its leader and list pages are stack screens under `app/meta/`.
 - **List screens scroll as a whole page.** Use `<Screen bleed>` with the list's
   `contentContainerStyle={listColumn}` and put the page header in `ListHeaderComponent`. A list nested
   inside the centred column puts its scrollbar in the middle of the window on web.

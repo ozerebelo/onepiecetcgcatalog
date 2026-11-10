@@ -435,7 +435,7 @@ function Toggle({
 const LIST_WIDTH = 880;
 
 const styles = StyleSheet.create({
-  hero: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, marginTop: spacing.lg },
+  hero: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, marginTop: spacing.lg, maxWidth: LIST_WIDTH },
   heroWide: { gap: spacing.xl },
   leaderArtWide: { width: 150 },
   leaderArtSmall: { width: 64 },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
   cardsItem: { width: '30%', maxWidth: 140, gap: 4 },
   countBadge: { position: 'absolute', right: 4, bottom: 4, borderRadius: radius.sm, paddingHorizontal: 5, paddingVertical: 1 },
   countText: { color: '#fff', fontFamily: fonts.monoBold, fontSize: 12, lineHeight: 16 },
-  curve: { marginTop: spacing.xl, paddingTop: spacing.md, borderTopWidth: 2, maxWidth: LIST_WIDTH, gap: spacing.xxl },
+  curve: { marginTop: spacing.sm, paddingTop: spacing.lg, borderTopWidth: 2, maxWidth: LIST_WIDTH, gap: spacing.xxl },
   listHead: {
     flexDirection: 'row',
     flexWrap: 'wrap',

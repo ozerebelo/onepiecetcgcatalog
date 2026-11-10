@@ -48,6 +48,9 @@ export default function AppTabs() {
           <TabTrigger name="decks" href="/decks" asChild>
             <NavButton icon="copy" label={t('tabs.decks')} />
           </TabTrigger>
+          <TabTrigger name="meta" href="/meta" asChild>
+            <NavButton icon="award" label={t('tabs.meta')} />
+          </TabTrigger>
           <TabTrigger name="account" href="/account" asChild>
             <AccountButton label={t('tabs.account')} />
           </TabTrigger>

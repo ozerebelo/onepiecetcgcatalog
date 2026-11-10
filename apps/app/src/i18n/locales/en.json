@@ -9,7 +9,8 @@
     "account": "Account",
     "collection": "Collection",
     "home": "Home",
-    "decks": "Decks"
+    "decks": "Decks",
+    "meta": "Meta"
   },
   "common": {
     "retry": "Try again",
@@ -791,7 +792,7 @@
     "wins_other": "{{count}} wins",
     "best": "best {{place}}",
     "ready": "Ready",
-    "rank": "#{{rank}} of {{count}} leaders",
+    "rank": "Ranked {{rank}} of {{count}} leaders by share of top lists.",
     "statShare": "Meta share",
     "statWins": "Wins",
     "statBest": "Best",
@@ -834,6 +835,7 @@
     "oneOffs_one": "Plus {{count}} one-off list with its own take (see Results).",
     "oneOffs_other": "Plus {{count}} one-off lists with their own takes (see Results).",
     "leaderLists_one": "{{count}} list, {{share}}% of the meta",
-    "leaderLists_other": "{{count}} lists, {{share}}% of the meta"
+    "leaderLists_other": "{{count}} lists, {{share}}% of the meta",
+    "first": "1st"
   }
 }

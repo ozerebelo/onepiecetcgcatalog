@@ -67,6 +67,11 @@ export default function MetaLeaderScreen() {
   if (!leader) return <ErrorView error={new Error(t('meta.leaderNotFound'))} />;
 
   const name = info?.name ?? id;
+  const stats = [
+    { label: t('meta.statShare'), value: `${Math.round(leader.share * 100)}%`, hint: t('meta.lists', { count: leader.lists.length }) },
+    { label: t('meta.statWins'), value: String(leader.wins) },
+    { label: t('meta.statBest'), value: leader.best ? (leader.best === 1 ? t('meta.first') : ordinalPlace(leader.best)) : '—' },
+  ];
   const tiers = leader.lists.length >= MIN_LISTS_FOR_TIERS;
   const missingItems = leader.consensus
     .map((i) => ({ card_id: i.card_id, quantity: i.quantity - Math.min(i.quantity, cards?.[i.card_id]?.owned ?? 0) }))
@@ -93,21 +98,14 @@ export default function MetaLeaderScreen() {
               </Text>
               <LanguageSwitch />
             </View>
-            <Text variant="eyebrow" tone="secondary">
-              {t('meta.rank', { rank: index + 1, count: meta.leaders.length })}
-            </Text>
             <Text variant="title" accessibilityRole="header">
               {name}
             </Text>
-            <StatGroup
-              stats={[
-                { label: t('meta.statShare'), value: `${Math.round(leader.share * 100)}%`, hint: t('meta.lists', { count: leader.lists.length }) },
-                { label: t('meta.statWins'), value: String(leader.wins) },
-                { label: t('meta.statBest'), value: leader.best ? (placement(leader.best, null) ?? '—') : '—' },
-              ]}
-            />
+            <Text tone="secondary">{t('meta.rank', { rank: index + 1, count: meta.leaders.length })}</Text>
+            {wide ? <StatGroup stats={stats} /> : null}
           </View>
         </View>
+        {wide ? null : <StatGroup stats={stats} />}
 
         {/* The consensus list and what you own of it */}
         <View style={[styles.section, { borderTopColor: palette.rule }]}>
@@ -249,6 +247,12 @@ export default function MetaLeaderScreen() {
   );
 }
 
+function ordinalPlace(n: number) {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  return `${n}${({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th'}`;
+}
+
 /** A core card: art with its usual copies, how many lists play it and what you own. */
 function CoreCard({
   usage,
@@ -377,7 +381,7 @@ function BuildView({ build, index, cards }: { build: MetaBuild; index: number; c
 
 const styles = StyleSheet.create({
   column: { maxWidth: WIDTH },
-  hero: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, marginTop: spacing.lg },
+  hero: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, marginTop: spacing.lg, marginBottom: spacing.lg },
   heroWide: { gap: spacing.xl },
   artWide: { width: 150 },
   artSmall: { width: 72 },

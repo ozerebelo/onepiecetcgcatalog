@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { radius, spacing, tabular, usePalette } from '@/theme';
 
@@ -44,15 +44,29 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   const palette = usePalette();
+  const compact = useWindowDimensions().width < COMPACT_WIDTH;
   return (
-    <View style={[styles.header, { borderBottomColor: palette.rule }]}>
-      <View style={styles.headerText}>
+    <View style={[styles.header, compact && styles.headerCompact, { borderBottomColor: palette.rule }]}>
+      <View style={[styles.headerText, compact && styles.headerTextCompact]}>
         <Text variant="title" accessibilityRole="header">
           {title}
         </Text>
         {subtitle ? <Text tone="secondary">{subtitle}</Text> : null}
       </View>
-      {actions ? <View style={styles.headerActions}>{actions}</View> : null}
+      {actions ? (
+        compact ? (
+          // Phones: one row that scrolls sideways, instead of buttons wrapping into ragged lines.
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.headerScroll}
+            contentContainerStyle={styles.headerScrollContent}>
+            {actions}
+          </ScrollView>
+        ) : (
+          <View style={styles.headerActions}>{actions}</View>
+        )
+      ) : null}
     </View>
   );
 }
@@ -80,18 +94,27 @@ export interface Stat {
 /** Related numbers in one ruled row, split by hairlines (wraps to two columns on phones). */
 export function StatGroup({ stats }: { stats: Stat[] }) {
   const palette = usePalette();
+  const compact = useWindowDimensions().width < COMPACT_WIDTH;
+  // Phones: three stats stay on one line; four or more sit in a two-column grid.
+  const columns = compact ? (stats.length === 3 ? 3 : 2) : stats.length;
   return (
     <View style={[styles.statGroup, { borderColor: palette.border }]}>
       {stats.map((stat, i) => (
         <View
           key={stat.label}
-          style={[styles.stat, i > 0 && { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: palette.border }]}
+          style={[
+            styles.stat,
+            compact && styles.statCompact,
+            { flexBasis: `${100 / columns}%`, flexGrow: 0 },
+            i % columns > 0 && { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: palette.border },
+            i >= columns && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: palette.border },
+          ]}
           accessible
           accessibilityLabel={`${stat.label}: ${stat.value}${stat.hint ? `, ${stat.hint}` : ''}`}>
           <Text variant="eyebrow" tone="secondary">
             {stat.label}
           </Text>
-          <Text variant="title" style={[styles.statValue, tabular]}>
+          <Text variant="title" numberOfLines={1} style={[styles.statValue, compact && styles.statValueCompact, tabular]}>
             {stat.value}
           </Text>
           {stat.hint ? (
@@ -141,6 +164,9 @@ export function Badge({ label, tone = 'neutral', icon }: { label: string; tone?:
   );
 }
 
+/** Below this width, headers and stat rows use their phone layout. */
+const COMPACT_WIDTH = 600;
+
 const styles = StyleSheet.create({
   panel: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   padded: { padding: spacing.lg, gap: spacing.md },
@@ -153,14 +179,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     borderBottomWidth: 2,
   },
+  headerCompact: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.md },
   headerText: { flex: 1, minWidth: 240, gap: 6 },
+  headerTextCompact: { flex: 0, flexBasis: 'auto' },
+  // Bleeds to the screen edge so the row visibly continues past it.
+  headerScroll: { marginHorizontal: -spacing.lg, flexGrow: 0 },
+  headerScrollContent: { gap: spacing.sm, paddingHorizontal: spacing.lg, alignItems: 'center' },
   // Capped to the header's width so the buttons wrap on phones instead of running off-screen.
   headerActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, maxWidth: '100%' },
   sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderTopWidth: 2, paddingTop: spacing.md },
   flex: { flex: 1 },
   statGroup: { flexDirection: 'row', flexWrap: 'wrap', borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },
-  stat: { flexGrow: 1, flexBasis: 140, paddingVertical: spacing.lg, paddingHorizontal: spacing.lg, gap: 4 },
+  stat: { paddingVertical: spacing.lg, paddingHorizontal: spacing.lg, gap: 4, minWidth: 0 },
+  statCompact: { paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   statValue: { fontSize: 32, lineHeight: 36 },
+  statValueCompact: { fontSize: 26, lineHeight: 30 },
   track: { borderRadius: 1, overflow: 'hidden', width: '100%' },
   fill: { height: '100%' },
   badge: {

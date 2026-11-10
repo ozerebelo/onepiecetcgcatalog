@@ -57,9 +57,6 @@ export default function DecksScreen() {
         actions={
           <>
             <LanguageSwitch />
-            <Link href="/meta" asChild>
-              <Button title={t('meta.link')} icon="award" variant="outline" />
-            </Link>
             <Link href="/deck/new" asChild>
               <Button title={t('decks.new')} icon="plus" />
             </Link>

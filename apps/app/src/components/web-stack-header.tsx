@@ -13,7 +13,8 @@ import { Text } from './ui/text';
 const LINKS: { href: Href; key: string; match: string[] }[] = [
   { href: '/cards', key: 'tabs.cards', match: ['/card', '/set'] },
   { href: '/collection', key: 'tabs.collection', match: ['/collection'] },
-  { href: '/decks', key: 'tabs.decks', match: ['/deck', '/meta'] },
+  { href: '/decks', key: 'tabs.decks', match: ['/deck'] },
+  { href: '/meta', key: 'tabs.meta', match: ['/meta'] },
 ];
 
 /**

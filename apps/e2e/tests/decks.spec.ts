@@ -58,7 +58,7 @@ test('a saved deck is checked against the collection and the missing cards can b
 
   // The meta: leaders ranked, your copies of each leader's consensus, best pickups, and your deck compared.
   await page.goto('/decks');
-  await page.getByRole('link', { name: 'Meta decks' }).click();
+  await page.getByRole('tab', { name: 'Meta' }).click();
   await expect(page.getByRole('heading', { name: 'Leaders' })).toBeVisible();
   await expect(page.getByRole('link', { name: /^Usopp, OP01-004\. In 1 top list\. 4 copies to get$/ })).toBeVisible();
   await page.getByRole('link', { name: /^1\. Roronoa Zoro, 1 list, 100% of the meta, 1 win, own 5 of 13$/ }).click();

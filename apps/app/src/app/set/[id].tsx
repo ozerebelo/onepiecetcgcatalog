@@ -211,33 +211,27 @@ export default function SetScreen() {
   };
 
   const activeFilters = (type !== 'all' ? 1 : 0) + (ownedFilter !== 'all' ? 1 : 0) + (showVariants ? 0 : 1);
-  const filterControls = (
-    <>
-      {types.length > 1 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typesBar} contentContainerStyle={styles.types}>
-          <Chip label={t('sets.types.all')} selected={type === 'all'} onPress={() => setType('all')} />
-          {types.map((c) => (
-            <Chip key={c} label={t(`sets.types.${c}`)} selected={type === c} onPress={() => setType(c)} />
-          ))}
-        </ScrollView>
-      ) : null}
-      <View style={styles.controls}>
-        {user ? (
-          <Segmented
-            accessibilityLabel={t('collection.ownedFilter')}
-            value={ownedFilter}
-            onChange={setOwnedFilter}
-            options={[
-              { value: 'all', label: t('collection.filters.all') },
-              { value: 'owned', label: t('collection.filters.owned') },
-              { value: 'missing', label: t('collection.filters.missing') },
-            ]}
-          />
-        ) : null}
-        <ToggleRow label={t('sets.showVariants')} value={showVariants} onChange={setShowVariants} />
-      </View>
-    </>
+  const ownedSegmented = (
+    <Segmented
+      accessibilityLabel={t('collection.ownedFilter')}
+      value={ownedFilter}
+      onChange={setOwnedFilter}
+      options={[
+        { value: 'all', label: t('collection.filters.all') },
+        { value: 'owned', label: t('collection.filters.owned') },
+        { value: 'missing', label: t('collection.filters.missing') },
+      ]}
+    />
   );
+  const typeChips =
+    types.length > 1 ? (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.typesBar} contentContainerStyle={styles.types}>
+        <Chip label={t('sets.types.all')} selected={type === 'all'} onPress={() => setType('all')} />
+        {types.map((c) => (
+          <Chip key={c} label={t(`sets.types.${c}`)} selected={type === c} onPress={() => setType(c)} />
+        ))}
+      </ScrollView>
+    ) : null;
 
   const header = set.data ? (
     <View style={styles.header}>
@@ -266,10 +260,15 @@ export default function SetScreen() {
 
       {user ? (
         <View style={styles.progress}>
-          <Text variant="subheading">{t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}</Text>
-          <ProgressBar value={percent / 100} />
-          <Text tone="secondary">{t('collection.fullPlaysets', { count: fullPlaysets, total: cardIds.length })}</Text>
-          {view === 'checklist' ? <PipsLegend here={t('collection.legendHere')} elsewhere={t('collection.legendElsewhere')} /> : null}
+          <View style={styles.progressHead}>
+            <Text variant="subheading" style={styles.flexShrink}>
+              {t('collection.setProgress', { owned: ownedCount, total: variantFiltered.length, percent })}
+            </Text>
+            <Text variant="caption" tone="secondary">
+              {t('collection.fullPlaysets', { count: fullPlaysets, total: cardIds.length })}
+            </Text>
+          </View>
+          <ProgressBar value={percent / 100} height={8} />
           {/* Completion by rarity: the chase cards are what a collector counts. */}
           <View style={styles.rarities}>
             {byRarity.map((r) => (
@@ -292,7 +291,8 @@ export default function SetScreen() {
         </Link>
       )}
 
-      <View style={styles.controls}>
+      {/* One toolbar: how to look at the list, what to show, then the collecting tools. */}
+      <View style={[styles.toolbar, { borderTopColor: palette.border, borderBottomColor: palette.border }]}>
         <Segmented
           accessibilityLabel={t('sets.viewLabel')}
           value={view}
@@ -302,13 +302,7 @@ export default function SetScreen() {
             { value: 'grid', label: t('sets.views.grid') },
           ]}
         />
-        {user ? <ToggleRow label={t('collection.collectMode')} value={collectMode} onChange={(v) => { setCollectMode(v); setLastChange(null); }} /> : null}
-        {user && set.data ? (
-          // Logging a box by card number is faster than tapping through the checklist.
-          <Link href={{ pathname: '/collection/packs', params: { set: set.data.id } }} asChild>
-            <Button title={t('packs.fromSet')} icon="package" variant="outline" size="sm" />
-          </Link>
-        ) : null}
+        {!compact && user ? ownedSegmented : null}
         {compact ? (
           <Button
             title={activeFilters ? t('sets.filtersCount', { count: activeFilters }) : t('sets.filters')}
@@ -318,9 +312,27 @@ export default function SetScreen() {
             accessibilityState={{ expanded: filtersOpen }}
             onPress={() => setFiltersOpen((v) => !v)}
           />
-        ) : null}
+        ) : (
+          <ToggleRow label={t('sets.showVariants')} value={showVariants} onChange={setShowVariants} />
+        )}
+        <View style={styles.toolbarEnd}>
+          {user ? <ToggleRow label={t('collection.collectMode')} value={collectMode} onChange={(v) => { setCollectMode(v); setLastChange(null); }} /> : null}
+          {user && set.data ? (
+            // Logging a box by card number is faster than tapping through the checklist.
+            <Link href={{ pathname: '/collection/packs', params: { set: set.data.id } }} asChild>
+              <Button title={t('packs.fromSet')} icon="package" variant="outline" size="sm" />
+            </Link>
+          ) : null}
+        </View>
       </View>
-      {!compact || filtersOpen ? filterControls : null}
+      {compact && filtersOpen ? (
+        <View style={styles.controls}>
+          {user ? ownedSegmented : null}
+          <ToggleRow label={t('sets.showVariants')} value={showVariants} onChange={setShowVariants} />
+        </View>
+      ) : null}
+      {typeChips}
+      {user && view === 'checklist' && !compact ? <PipsLegend here={t('collection.legendHere')} elsewhere={t('collection.legendElsewhere')} /> : null}
       {collectMode ? (
         <Text variant="caption" tone="secondary">
           {t('collection.collectModeHint')}
@@ -441,6 +453,18 @@ const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   packCompact: { width: 88 },
   progress: { gap: spacing.sm, paddingTop: spacing.xs },
+  progressHead: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: spacing.lg, rowGap: 2 },
+  toolbar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: spacing.lg,
+    rowGap: spacing.xs,
+    paddingVertical: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  toolbarEnd: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.md, marginLeft: 'auto' },
   rarities: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.lg, rowGap: spacing.xs },
   rarity: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

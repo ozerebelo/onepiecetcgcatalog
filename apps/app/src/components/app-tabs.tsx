@@ -5,8 +5,8 @@ import { usePalette } from '@/theme';
 
 /**
  * Native (iOS / Android) tab bar. The web version lives in app-tabs.web.tsx.
- * Sets is reachable from Home and the Cards screen, so it has no tab of its own
- * (iOS shows at most five tabs before folding the rest into "More").
+ * Sets live on the Cards screen, so they have no tab of their own. With Meta there are six tabs;
+ * iOS folds the last one (Account) into "More".
  */
 export default function AppTabs() {
   const palette = usePalette();
@@ -34,6 +34,10 @@ export default function AppTabs() {
       <NativeTabs.Trigger name="decks">
         <NativeTabs.Trigger.Label>{t('tabs.decks')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="square.stack.3d.up" md="layers" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="meta">
+        <NativeTabs.Trigger.Label>{t('tabs.meta')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="trophy" md="emoji_events" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="account">
         <NativeTabs.Trigger.Label>{t('tabs.account')}</NativeTabs.Trigger.Label>

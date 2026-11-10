@@ -281,7 +281,8 @@ function CollectionView({ userId }: { userId: string }) {
               width={tileWidth}
               quantity={item.quantity}
               ownedCard={Math.max(byCard[item.card_id] ?? 0, item.quantity)}
-              badge={`${item.set_code} · ${t(`languages.short.${item.language}`)}`}
+              // The language is already chosen for the whole page; the set is what tells printings apart.
+              badge={item.set_code}
             />
           )}
         />
