@@ -98,12 +98,10 @@ a:hover {
   padding-bottom: 20px;
 }
 
-.eyebrow {
-  margin: 0 0 6px;
-  color: var(--muted);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.kicker {
+  margin: 12px 0 0;
+  color: var(--text-2);
+  font-size: 16px;
 }
 
 h1 {
@@ -205,8 +203,8 @@ h1 {
 .notice {
   margin: 16px 0 0;
   padding: 10px 14px;
-  border: 1px solid var(--line-strong);
-  border-left: 3px solid var(--danger);
+  border: 1px solid rgba(255, 122, 107, 0.45);
+  background: rgba(255, 122, 107, 0.08);
   border-radius: 6px;
   color: var(--text-2);
   font-size: 14px;

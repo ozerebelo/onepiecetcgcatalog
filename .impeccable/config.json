@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-11-13T20:20:56.779Z",
         "reason": "Claude: the only src-less <img> is inside <template id=card-template>; app.js sets src on each clone"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "alt-leaders/index.html"
+        ],
+        "createdAt": "2026-11-13T20:27:06.416Z",
+        "reason": "Claude: .stat has 20px padding wherever it has a left border (.stat + .stat rule the static scan misses); .card__art is the card image frame, meant to be filled edge to edge"
       }
     ]
   }
