@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Alt Leaders · One Piece TCG</title>
+    <meta name="description" content="A minha coleção de alt leaders do One Piece TCG: progresso, valor no Cardmarket e o que falta." />
+    <meta name="theme-color" content="#0e0d0b" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#grid">Saltar para as cartas</a>
+
+    <header class="masthead wrap">
+      <p class="eyebrow">One Piece TCG · a minha coleção</p>
+      <h1>Alt Leaders</h1>
+    </header>
+
+    <main class="wrap">
+      <section class="stats" aria-label="Resumo da coleção" aria-busy="true" id="stats">
+        <div class="stat stat--progress">
+          <h2 class="stat__label">Progresso</h2>
+          <p class="stat__value">
+            <span class="gold" data-stat="owned">—</span>
+            <span class="stat__of">de <span data-stat="total">—</span></span>
+          </p>
+          <div
+            class="bar"
+            role="progressbar"
+            aria-label="Cartas que tenho"
+            aria-valuemin="0"
+            aria-valuemax="0"
+            aria-valuenow="0"
+            data-stat="bar"
+          >
+            <span class="bar__fill"></span>
+          </div>
+          <p class="stat__sub" data-stat="percent">&nbsp;</p>
+        </div>
+        <div class="stat">
+          <h2 class="stat__label">Valor total EN</h2>
+          <p class="stat__value" data-stat="valueEn">—</p>
+          <p class="stat__sub" data-stat="splitEn">&nbsp;</p>
+        </div>
+        <div class="stat">
+          <h2 class="stat__label">Valor total JP</h2>
+          <p class="stat__value" data-stat="valueJp">—</p>
+          <p class="stat__sub" data-stat="splitJp">&nbsp;</p>
+        </div>
+        <div class="stat">
+          <h2 class="stat__label">Total pago</h2>
+          <p class="stat__value" data-stat="paid">—</p>
+          <p class="stat__sub" data-stat="paidSub">&nbsp;</p>
+        </div>
+      </section>
+
+      <p class="note" id="price-note" hidden></p>
+      <p class="notice" id="notice" role="status" hidden></p>
+
+      <section class="controls" aria-label="Filtros">
+        <div class="controls__row">
+          <div class="segmented" role="group" aria-label="Mostrar" id="status">
+            <button type="button" data-status="all" aria-pressed="true">Todas <span class="count"></span></button>
+            <button type="button" data-status="owned" aria-pressed="false">Tenho <span class="count"></span></button>
+            <button type="button" data-status="missing" aria-pressed="false">Faltam <span class="count"></span></button>
+          </div>
+          <div class="controls__tools">
+            <label class="search">
+              <span class="visually-hidden">Pesquisar</span>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" /></svg>
+              <input type="search" id="query" placeholder="Leader ou código" autocomplete="off" />
+            </label>
+            <label class="sort">
+              <span class="visually-hidden">Ordenar</span>
+              <select id="sort">
+                <option value="sheet">Ordem da folha</option>
+                <option value="price-en">Preço EN (maior)</option>
+                <option value="price-jp">Preço JP (maior)</option>
+                <option value="name">Nome (A–Z)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="sets" role="group" aria-label="Set" id="sets"></div>
+      </section>
+
+      <p class="result-line" id="result-line" aria-live="polite"></p>
+      <ul class="grid" id="grid" aria-busy="true"></ul>
+      <p class="empty" id="empty" hidden>
+        Nenhuma carta com estes filtros. <button type="button" class="link" id="reset">Limpar filtros</button>
+      </p>
+    </main>
+
+    <footer class="wrap footer">
+      <p>
+        Dados: <a id="sheet-link" href="#" rel="noopener">Google Sheet</a>. Preços:
+        <a href="https://www.cardmarket.com/en/OnePiece" rel="noopener">Cardmarket</a>.
+      </p>
+      <p>
+        Imagens das cartas: <a href="https://en.onepiece-cardgame.com/cardlist/" rel="noopener">lista oficial</a>
+        © Eiichiro Oda/Shueisha, Toei Animation, Bandai. Site de fã, sem fins comerciais.
+      </p>
+    </footer>
+
+    <dialog class="detail" id="detail" aria-labelledby="detail-name">
+      <form method="dialog" class="detail__close-form">
+        <button class="detail__close" aria-label="Fechar">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+        </button>
+      </form>
+      <div class="detail__body" id="detail-body"></div>
+    </dialog>
+
+    <template id="card-template">
+      <li class="card">
+        <button type="button" class="card__button">
+          <span class="card__art">
+            <img alt="" width="480" height="670" loading="lazy" decoding="async" />
+            <span class="badge">Tenho</span>
+          </span>
+          <span class="card__meta">
+            <span class="card__name"></span>
+            <span class="card__code"></span>
+            <span class="prices">
+              <span class="price"><abbr title="Cardmarket, inglês">EN</abbr> <span data-field="en"></span></span>
+              <span class="price"><abbr title="Cardmarket, japonês">JP</abbr> <span data-field="jp"></span></span>
+            </span>
+            <span class="card__paid"></span>
+          </span>
+        </button>
+      </li>
+    </template>
+
+    <noscript><p class="wrap notice">Esta página precisa de JavaScript para ler a folha.</p></noscript>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "alt-leaders/index.html"
+        ],
+        "createdAt": "2026-11-13T20:20:56.779Z",
+        "reason": "Claude: the only src-less <img> is inside <template id=card-template>; app.js sets src on each clone"
+      }
+    ]
+  }
+}

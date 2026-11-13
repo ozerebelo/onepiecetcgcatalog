@@ -1,0 +1,6 @@
+{
+  "name": "alt-leaders-site",
+  "private": true,
+  "description": "Static page (GitHub Pages) for the Alt Leaders collection sheet. Not part of the pnpm workspace.",
+  "type": "module"
+}

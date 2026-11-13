@@ -1,0 +1,64 @@
+name: Alt Leaders site (GitHub Pages)
+
+# Publishes alt-leaders/ to GitHub Pages: https://<owner>.github.io/<repo>/
+# The page reads the published Google Sheet live; each run also refreshes the copy shipped
+# with the site (used when Google is unreachable) and copies images of any new cards.
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'alt-leaders/**'
+      - '.github/workflows/alt-leaders-pages.yml'
+  schedule:
+    - cron: '43 5 * * *' # daily, 05:43 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      # Only for sharp (resizes card images), at the version locked for the importer.
+      - run: pnpm install --frozen-lockfile --filter @binder/ingest...
+      - name: Unit tests
+        working-directory: alt-leaders
+        run: node --test
+      - name: Restore card images copied by earlier runs
+        uses: actions/cache@v4
+        with:
+          path: alt-leaders/.cache/img
+          key: alt-leaders-img-${{ github.run_id }}
+          restore-keys: alt-leaders-img-
+      - name: Build
+        working-directory: alt-leaders
+        run: node scripts/build.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: alt-leaders/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
