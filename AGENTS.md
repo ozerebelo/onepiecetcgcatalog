@@ -10,6 +10,8 @@ Instructions for anyone (human or AI) changing this codebase. Product context, d
   logic etc. here, with vitest tests.
 - `packages/ingest` — card-data importer.
 - `apps/e2e` — Playwright browser tests (web build + local Supabase). Update them when UI text changes.
+- `alt-leaders` — standalone static page (GitHub Pages) for the owner's Alt Leaders Google Sheet. Plain
+  HTML/JS, not part of the pnpm workspace; tests with `node --test` from that folder. See its README.
 - `supabase/migrations` — schema. `supabase/tests/database` — pgTAP tests. `supabase/templates` — auth emails.
 
 ## Commands (run from the repo root)

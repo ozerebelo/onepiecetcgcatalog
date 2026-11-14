@@ -25,6 +25,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+      - name: Alt Leaders page tests
+        working-directory: alt-leaders
+        run: node --test
       - name: Web build
         run: pnpm build:web
         env:
