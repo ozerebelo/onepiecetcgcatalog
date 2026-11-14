@@ -1,4 +1,4 @@
-import { CSV_URL, SHEET_URL } from './config.js';
+import { CSV_URLS, SHEET_URL } from './config.js';
 import {
   cardmarketSearchUrl,
   filterCards,
@@ -34,12 +34,14 @@ async function fetchText(url, ms = 12_000) {
 /** Live sheet first; the copy saved with the site (refreshed on every deploy) if that fails. */
 async function loadData() {
   const override = new URLSearchParams(location.search).get('csv');
-  try {
-    return { ...parseSheet(await fetchText(override || CSV_URL)), live: true };
-  } catch (err) {
-    console.warn('Folha publicada indisponível, a usar a cópia do site:', err);
-    return { ...parseSheet(await fetchText('data/alt-leaders.csv')), live: false };
+  for (const url of override ? [override] : CSV_URLS) {
+    try {
+      return { ...parseSheet(await fetchText(url)), live: true };
+    } catch (err) {
+      console.warn(`Folha indisponível em ${url}:`, err);
+    }
   }
+  return { ...parseSheet(await fetchText('data/alt-leaders.csv')), live: false };
 }
 
 /** Codes whose image the build copied into img/ (missing locally → empty list). */

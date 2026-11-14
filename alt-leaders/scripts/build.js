@@ -16,7 +16,7 @@ import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promi
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { CSV_URL } from '../config.js';
+import { CSV_URLS } from '../config.js';
 import { officialImageUrl, parseSheet } from '../lib.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,17 +44,20 @@ async function fetchWithTimeout(url, init = {}, ms = 30_000) {
 async function loadSheet() {
   const snapshotPath = join(ROOT, 'data', 'alt-leaders.csv');
   if (!offline) {
-    try {
-      const res = await fetchWithTimeout(CSV_URL);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const text = await res.text();
-      const { cards } = parseSheet(text); // throws if it is not the sheet (e.g. a sign-in page)
-      if (cards.length === 0) throw new Error('a folha não tem cartas');
-      log(`Folha lida: ${cards.length} cartas.`);
-      return { text, cards };
-    } catch (err) {
-      warn(`Não consegui ler a folha publicada (${err.message}); uso a cópia em data/alt-leaders.csv.`);
+    for (const url of CSV_URLS) {
+      try {
+        const res = await fetchWithTimeout(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        const { cards } = parseSheet(text); // throws if it is not the sheet (e.g. a sign-in page)
+        if (cards.length === 0) throw new Error('a folha não tem cartas');
+        log(`Folha lida em ${url}: ${cards.length} cartas.`);
+        return { text, cards };
+      } catch (err) {
+        log(`Folha indisponível em ${url} (${err.message}).`);
+      }
     }
+    warn('Não consegui ler a folha; uso a cópia em data/alt-leaders.csv.');
   }
   const text = await readFile(snapshotPath, 'utf8');
   return { text, cards: parseSheet(text).cards };

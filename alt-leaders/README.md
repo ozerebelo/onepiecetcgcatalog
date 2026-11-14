@@ -15,20 +15,20 @@ Google Sheet **“Alt Leaders”**. Publicada no GitHub Pages em
 
 ## Pôr a funcionar (uma vez)
 
-1. **Publicar a folha.** Na Google Sheet: *Ficheiro → Partilhar → Publicar na Web* → separador
-   **Alt Leaders** → formato **Valores separados por vírgulas (.csv)** → *Publicar*. Deixa ligada a
-   opção de republicar automaticamente quando houver alterações.
-2. **Colar o link** que a Google mostra em `PUBLISHED_CSV_URL`, no ficheiro [`config.js`](config.js).
-   (Se ficar vazio, a página usa o endereço público da folha pelo ID, que também funciona depois de a
-   publicares.)
-3. **Ligar o GitHub Pages.** No repositório: *Settings → Pages → Build and deployment → Source:*
+1. **Acesso à folha.** A folha já está partilhada com “qualquer pessoa com o link pode ver”, e a página
+   lê-a pela exportação em CSV (`…/export?format=csv&gid=0`). Não é preciso mais nada. Se preferires
+   usar *Ficheiro → Partilhar → Publicar na Web* (CSV, separador Alt Leaders), cola o link em
+   `PUBLISHED_CSV_URL` no [`config.js`](config.js) e a página passa a tentá-lo primeiro.
+   Atenção: se deixares de partilhar a folha por link sem a publicar, a página fica a mostrar a cópia
+   do último build.
+2. **Ligar o GitHub Pages.** No repositório: *Settings → Pages → Build and deployment → Source:*
    **GitHub Actions**.
-4. Fazer merge para `main`. O workflow [`alt-leaders-pages.yml`](../.github/workflows/alt-leaders-pages.yml)
+3. Fazer merge para `main`. O workflow [`alt-leaders-pages.yml`](../.github/workflows/alt-leaders-pages.yml)
    corre os testes, constrói o site e publica-o. Também corre todos os dias e pode ser lançado à mão
    em *Actions → Alt Leaders site → Run workflow*.
 
 Depois disso não há mais nada a fazer: alteras a folha e a página mostra as alterações quando é aberta
-(a Google demora até ~5 minutos a atualizar o CSV publicado).
+(se usares o link publicado, a Google demora até ~5 minutos a atualizá-lo).
 
 ## Como funciona
 
