@@ -101,6 +101,7 @@ const COLUMNS = {
   owned: (h) => h === 'tenho',
   priceEn: (h) => /^cardmarket en\b/.test(h),
   priceJp: (h) => /^cardmarket (jp|ja)\b/.test(h),
+  priceCn: (h) => /^cardmarket (cn|zh|chines)/.test(h),
   paid: (h) => h.startsWith('preco de compra') || h.startsWith('pago'),
   notes: (h) => h === 'notas' || h === 'nota' || h === 'notes',
 };
@@ -153,11 +154,13 @@ export function parseSheet(text) {
       owned: parseOwned(cell(row, 'owned')),
       priceEn: parseEuro(cell(row, 'priceEn')),
       priceJp: parseEuro(cell(row, 'priceJp')),
+      priceCn: parseEuro(cell(row, 'priceCn')),
       paid: parseEuro(cell(row, 'paid')),
       notes: cell(row, 'notes'),
     });
   }
-  return { cards, priceNote };
+  // The Chinese column only has prices for some sets (OP-01, OP-02); the page shows it when it exists.
+  return { cards, priceNote, hasCn: index.priceCn !== undefined };
 }
 
 const sum = (values) => Math.round(values.reduce((t, v) => t + (v ?? 0), 0) * 100) / 100;
@@ -179,6 +182,11 @@ export function summarize(cards) {
     paidCount: cards.filter((c) => c.paid != null).length,
     unpricedEn: cards.filter((c) => c.priceEn == null).length,
     unpricedJp: cards.filter((c) => c.priceJp == null).length,
+    // Chinese prices exist only for some cards: totals cover those cards.
+    valueCn: sum(cards.map((c) => c.priceCn)),
+    ownedCn: sum(owned.map((c) => c.priceCn)),
+    missingCn: sum(missing.map((c) => c.priceCn)),
+    pricedCn: cards.filter((c) => c.priceCn != null).length,
   };
 }
 
@@ -215,6 +223,7 @@ export function filterCards(cards, f = {}) {
     sheet: (a, b) => a.order - b.order,
     'price-en': byPrice('priceEn'),
     'price-jp': byPrice('priceJp'),
+    'price-cn': byPrice('priceCn'),
     name: (a, b) => a.card.name.localeCompare(b.card.name, 'pt') || a.order - b.order,
   };
   return list.sort(sorters[f.sort] ?? sorters.sheet).map(({ card }) => card);

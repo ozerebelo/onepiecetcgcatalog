@@ -10,6 +10,8 @@ Google Sheet **“Alt Leaders”**. Publicada no GitHub Pages em
   (folha, preço EN, preço JP, nome). Os filtros ficam no endereço (`?set=OP-09&estado=tenho`), por isso
   dá para guardar ou partilhar uma vista.
 - No topo: progresso (X de 67), valor total EN e JP (com quanto já tenho e quanto falta) e total pago.
+  Com a coluna “Cardmarket CN” na folha aparece também o valor total CN, que soma só as cartas com preço
+  em chinês (hoje OP-01 e OP-02); essas cartas mostram o preço CN na grelha e no detalhe.
 - Clicar numa carta abre o detalhe (imagem grande, preços, preço de compra, notas, link de pesquisa no
   Cardmarket).
 
@@ -42,9 +44,9 @@ Depois disso não há mais nada a fazer: alteras a folha e a página mostra as a
 | `data/…csv`         | Cópia de segurança dos dados (o build substitui-a pela versão mais recente da folha).   |
 | `scripts/build.js`  | Gera `dist/`: copia os ficheiros, guarda a cópia da folha e as imagens.                 |
 
-- **Leitura da folha.** O cabeçalho é encontrado pelos nomes das colunas (hoje está na linha 5), por isso
+- **Leitura da folha.** O cabeçalho é encontrado pelos nomes das colunas (hoje está na linha 6), por isso
   as linhas de resumo por cima são ignoradas e as colunas podem mudar de ordem. Colunas usadas: Set,
-  Código, Leader, Tenho, Cardmarket EN…, Cardmarket JP…, Preço de compra, Notas. Os totais são
+  Código, Leader, Tenho, Cardmarket EN…, Cardmarket JP…, Cardmarket CN… (opcional), Preço de compra, Notas. Os totais são
   calculados pela página (não lidos das linhas 1–4). A nota “Preços Cardmarket: …” da linha 1 aparece
   por baixo dos totais.
 - **Se a Google não responder**, a página usa a cópia guardada no site e diz isso num aviso.

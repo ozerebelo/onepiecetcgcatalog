@@ -59,6 +59,7 @@ test('parseSheet finds the header below the summary rows and reads every card', 
     owned: false,
     priceEn: 576,
     priceJp: 143.98,
+    priceCn: null,
     paid: null,
     notes: '',
   });
@@ -127,4 +128,23 @@ test('filterCards combines set, status, search and sort', () => {
   assert.equal(filterCards(cards, { sort: 'price-en' })[0].name, 'Monkey.D.Luffy');
   assert.equal(filterCards(cards, { sort: 'price-jp' }).at(-1).name, 'Nefeltari Vivi');
   assert.equal(filterCards(cards, { sort: 'name' })[0].name, 'Belo Betty');
+});
+
+test('reads the Chinese price column when the sheet has it (only some cards priced)', () => {
+  const csv = [
+    'Valor CN (média 5 + baratas),"30,00 €"',
+    'Set,Código,Leader,Tenho,Cardmarket EN (média 5 + baratas),Cardmarket JP (média 5 + baratas),Cardmarket CN (média 5 + baratas),Preço de compra,Notas',
+    'OP-01,OP01-001_p1,Roronoa Zoro,TRUE,"576,00 €","143,98 €","20,00 €","300,00 €",Chinês',
+    'OP-02,OP02-001_p1,Edward.Newgate,FALSE,"106,00 €","18,56 €","10,00 €",,',
+    'OP-09,OP09-042_p1,Buggy,FALSE,"33,18 €","9,99 €",,,',
+  ].join('\n');
+  const { cards, hasCn } = parseSheet(csv);
+  assert.equal(hasCn, true);
+  assert.deepEqual(cards.map((c) => c.priceCn), [20, 10, null]);
+  assert.equal(cards[0].paid, 300, 'purchase price still read after the new column');
+  assert.equal(cards[0].notes, 'Chinês');
+  const s = summarize(cards);
+  assert.deepEqual([s.valueCn, s.ownedCn, s.missingCn, s.pricedCn], [30, 20, 10, 2]);
+  assert.deepEqual(filterCards(cards, { sort: 'price-cn' }).map((c) => c.code), ['OP01-001_p1', 'OP02-001_p1', 'OP09-042_p1']);
+  assert.equal(parseSheet(snapshot).hasCn, false);
 });
