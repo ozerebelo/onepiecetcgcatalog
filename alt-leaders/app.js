@@ -15,7 +15,7 @@ const percent = new Intl.NumberFormat('pt-PT', { style: 'percent', maximumFracti
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 const STATUS_PARAM = { owned: 'tenho', missing: 'faltam' };
-const state = { cards: [], images: new Set(), set: 'all', status: 'all', query: '', sort: 'sheet' };
+const state = { cards: [], hasCn: false, images: new Set(), set: 'all', status: 'all', query: '', sort: 'sheet' };
 
 // ── Data ──────────────────────────────────────────────
 
@@ -119,6 +119,20 @@ function renderStats() {
   stat('splitEn').innerHTML = split(s.ownedEn, s.missingEn, s.unpricedEn);
   stat('splitJp').innerHTML = split(s.ownedJp, s.missingJp, s.unpricedJp);
 
+  // Chinese prices: only for the cards that have one (OP-01 and OP-02 today).
+  const cnBox = document.querySelector('.stat--cn');
+  cnBox.hidden = !state.hasCn;
+  $('#stats').classList.toggle('stats--cn', state.hasCn);
+  if (state.hasCn) {
+    const cnSets = setsOf(state.cards.filter((c) => c.priceCn != null)).map((x) => x.set);
+    stat('valueCn').textContent = s.pricedCn ? money(s.valueCn) : '—';
+    stat('splitCn').innerHTML = s.pricedCn
+      ? `<span>Tenho <strong>${money(s.ownedCn)}</strong></span><span class="sep"> · </span>` +
+        `<span>Faltam ${money(s.missingCn)}</span><span class="sep"> · </span>` +
+        `<span>${plural(s.pricedCn, 'carta', 'cartas')} (${cnSets.join(', ')})</span>`
+      : '<span>Ainda sem preços na folha</span>';
+  }
+
   stat('paid').textContent = money(s.paid);
   stat('paidSub').textContent = s.paidCount
     ? `Em ${plural(s.paidCount, 'carta', 'cartas')}`
@@ -175,6 +189,10 @@ function renderGrid() {
     li.querySelector('.card__code').textContent = `${card.code} · ${card.set}`;
     li.querySelector('[data-field="en"]').textContent = money(card.priceEn);
     li.querySelector('[data-field="jp"]').textContent = money(card.priceJp);
+    if (card.priceCn != null) {
+      li.querySelector('[data-price="cn"]').hidden = false;
+      li.querySelector('[data-field="cn"]').textContent = money(card.priceCn);
+    }
     if (card.owned) {
       // The badge already says "Tenho"; this line adds what I paid and the note, if any.
       const parts = [card.paid != null ? `Pago ${money(card.paid)}` : '', card.notes].filter(Boolean);
@@ -256,6 +274,7 @@ function openDetail(code) {
   };
   fact('Cardmarket EN', money(card.priceEn));
   fact('Cardmarket JP', money(card.priceJp));
+  if (card.priceCn != null) fact('Cardmarket CN', money(card.priceCn));
   if (card.paid != null) fact('Preço de compra', money(card.paid), true);
   if (card.notes) fact('Notas', card.notes);
 
@@ -331,6 +350,12 @@ async function main() {
   try {
     const [data, images] = await Promise.all([loadData(), loadImageIndex()]);
     state.cards = data.cards;
+    state.hasCn = data.hasCn;
+    if (state.hasCn) {
+      const option = new Option('Preço CN (maior)', 'price-cn');
+      $('#sort').querySelector('option[value="price-jp"]').after(option);
+      if (state.sort === 'price-cn') $('#sort').value = 'price-cn';
+    }
     state.images = images;
     if (state.set !== 'all' && !state.cards.some((c) => c.set === state.set)) state.set = 'all';
 
