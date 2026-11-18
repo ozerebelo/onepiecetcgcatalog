@@ -120,14 +120,17 @@ h1 {
   display: grid;
   grid-template-columns: 1.4fr repeat(3, 1fr);
   border-top: 2px solid var(--text);
+  border-bottom: 1px solid var(--line);
 }
 .stats--cn {
   grid-template-columns: 1.2fr repeat(4, 1fr);
 }
-/* "N cartas (OP-01, OP-02)" on its own line under the Chinese total. */
+/* "N cartas (OP-01, OP-02)" on its own line under the Chinese total, without a dot before it. */
 .stat--cn .stat__sub span:last-child {
   display: block;
-  border-bottom: 1px solid var(--line);
+}
+.stat--cn .stat__sub .sep:nth-last-child(2) {
+  display: none;
 }
 
 .stat {
